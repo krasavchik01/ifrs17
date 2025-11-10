@@ -1,0 +1,418 @@
+// IFRS 17 Enterprise Database Schema
+// Big Four Quality Level
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// MULTI-TENANT & AUTHENTICATION
+// ============================================
+
+model Organization {
+  id                String   @id @default(cuid())
+  name              String
+  legalName         String?
+  taxId             String?  @unique
+  country           String   @default("KZ")
+  currency          String   @default("KZT")
+  fiscalYearEnd     String   @default("12-31")
+
+  // Subscription
+  subscriptionPlan  String   @default("trial") // trial, starter, professional, enterprise
+  subscriptionStatus String  @default("active") // active, inactive, suspended
+  stripeCustomerId  String?  @unique
+  stripeSubscriptionId String? @unique
+
+  // Metadata
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  users             User[]
+  contracts         InsuranceContract[]
+  cohorts           ContractCohort[]
+  auditLogs         AuditLog[]
+  reports           Report[]
+
+  @@index([subscriptionStatus])
+  @@map("organizations")
+}
+
+model User {
+  id                String   @id @default(cuid())
+  email             String   @unique
+  name              String?
+  passwordHash      String
+  role              String   @default("user") // admin, manager, actuary, user, auditor
+
+  // MFA
+  mfaEnabled        Boolean  @default(false)
+  mfaSecret         String?
+
+  // Session
+  lastLoginAt       DateTime?
+
+  // Metadata
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  organizationId    String
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  auditLogs         AuditLog[]
+
+  @@index([organizationId])
+  @@index([email])
+  @@map("users")
+}
+
+// ============================================
+// INSURANCE CONTRACTS - IFRS 17 CORE
+// ============================================
+
+model InsuranceContract {
+  id                String   @id @default(cuid())
+  contractNumber    String
+
+  // Classification
+  contractType      String   // life, non-life, reinsurance
+  productLine       String   // auto, property, health, life, etc.
+  measurementModel  String   // GMM (General Measurement Model), PAA (Premium Allocation Approach), VFA (Variable Fee Approach)
+  profitability     String   // onerous, profitable
+
+  // Dates
+  inceptionDate     DateTime
+  coverageStartDate DateTime
+  coverageEndDate   DateTime
+  recognitionDate   DateTime @default(now())
+
+  // Financial Data
+  currency          String   @default("KZT")
+  nominalAmount     Float
+  presentValue      Float    @default(0)
+
+  // IFRS 17 Components
+  lcValue           Float    @default(0) // Liability for Coverage
+  lrcValue          Float    @default(0) // Liability for Remaining Coverage
+  licValue          Float    @default(0) // Liability for Incurred Claims
+
+  // Status
+  status            String   @default("active") // active, expired, cancelled, fully_settled
+
+  // Grouping
+  cohortId          String?
+  cohort            ContractCohort? @relation(fields: [cohortId], references: [id])
+
+  // Metadata
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  organizationId    String
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  csmCalculations   CSMCalculation[]
+  riskAdjustments   RiskAdjustment[]
+  cashFlows         CashFlow[]
+  claims            Claim[]
+
+  @@unique([organizationId, contractNumber])
+  @@index([organizationId])
+  @@index([cohortId])
+  @@index([status])
+  @@index([measurementModel])
+  @@map("insurance_contracts")
+}
+
+// Contract Cohort for grouping similar contracts
+model ContractCohort {
+  id                String   @id @default(cuid())
+  name              String
+  description       String?
+
+  // Cohort Characteristics
+  issueYear         Int
+  productLine       String
+  profitability     String   // onerous, profitable
+  measurementModel  String   // GMM, PAA, VFA
+
+  // Metadata
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  organizationId    String
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  contracts         InsuranceContract[]
+
+  @@index([organizationId])
+  @@index([issueYear])
+  @@map("contract_cohorts")
+}
+
+// ============================================
+// CSM - CONTRACTUAL SERVICE MARGIN
+// ============================================
+
+model CSMCalculation {
+  id                String   @id @default(cuid())
+
+  // Reference
+  contractId        String
+  contract          InsuranceContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  // Reporting Period
+  reportingDate     DateTime
+  periodStart       DateTime
+  periodEnd         DateTime
+
+  // CSM Components
+  openingBalance    Float    @default(0)
+
+  // Changes in CSM
+  newBusiness       Float    @default(0)
+  interestAccretion Float    @default(0)
+  experienceAdj     Float    @default(0)
+  estimateChanges   Float    @default(0)
+  releaseForService Float    @default(0)
+  foreignExchange   Float    @default(0)
+  other             Float    @default(0)
+
+  closingBalance    Float    @default(0)
+
+  // Coverage Units
+  coverageUnits     Float    @default(0)
+  releasedUnits     Float    @default(0)
+
+  // Discount Rate
+  discountRate      Float
+
+  // Metadata
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([contractId])
+  @@index([reportingDate])
+  @@map("csm_calculations")
+}
+
+// ============================================
+// RISK ADJUSTMENT
+// ============================================
+
+model RiskAdjustment {
+  id                String   @id @default(cuid())
+
+  // Reference
+  contractId        String
+  contract          InsuranceContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  // Reporting Period
+  reportingDate     DateTime
+
+  // Risk Adjustment Calculation
+  method            String   // confidence_level, cost_of_capital, quantile
+  confidenceLevel   Float?   // e.g., 75%, 90%
+
+  // Risk Components
+  insuranceRisk     Float    @default(0)
+  financialRisk     Float    @default(0)
+  operationalRisk   Float    @default(0)
+
+  totalRiskAdj      Float    @default(0)
+
+  // Changes in period
+  openingBalance    Float    @default(0)
+  newBusiness       Float    @default(0)
+  changes           Float    @default(0)
+  releaseForService Float    @default(0)
+  closingBalance    Float    @default(0)
+
+  // Metadata
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([contractId])
+  @@index([reportingDate])
+  @@map("risk_adjustments")
+}
+
+// ============================================
+// CASH FLOWS - FULFILMENT CASH FLOWS
+// ============================================
+
+model CashFlow {
+  id                String   @id @default(cuid())
+
+  // Reference
+  contractId        String
+  contract          InsuranceContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  // Cash Flow Details
+  flowDate          DateTime
+  flowType          String   // premium, claim, expense, commission, tax
+  flowDirection     String   // inflow, outflow
+
+  // Amounts
+  nominalAmount     Float
+  discountedAmount  Float
+  discountRate      Float
+
+  // Classification
+  category          String   // acquisition, maintenance, claim_handling, investment
+  isAttributable    Boolean  @default(true)
+
+  // Description
+  description       String?
+
+  // Metadata
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([contractId])
+  @@index([flowDate])
+  @@index([flowType])
+  @@map("cash_flows")
+}
+
+// ============================================
+// CLAIMS
+// ============================================
+
+model Claim {
+  id                String   @id @default(cuid())
+  claimNumber       String
+
+  // Reference
+  contractId        String
+  contract          InsuranceContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  // Claim Details
+  incidentDate      DateTime
+  reportedDate      DateTime
+  settledDate       DateTime?
+
+  // Amounts
+  claimAmount       Float
+  paidAmount        Float    @default(0)
+  outstandingAmount Float    @default(0)
+  ibnrAmount        Float    @default(0) // Incurred But Not Reported
+
+  // Status
+  status            String   @default("open") // open, pending, approved, paid, closed, rejected
+
+  // Classification
+  claimType         String   // property, casualty, health, death, etc.
+
+  // Description
+  description       String?
+
+  // Metadata
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([contractId])
+  @@index([status])
+  @@index([incidentDate])
+  @@map("claims")
+}
+
+// ============================================
+// REPORTS & ANALYTICS
+// ============================================
+
+model Report {
+  id                String   @id @default(cuid())
+
+  // Report Details
+  reportType        String   // balance_sheet, income_statement, disclosure, csm_roll_forward
+  reportingPeriod   DateTime
+  periodStart       DateTime
+  periodEnd         DateTime
+
+  // Format
+  format            String   // json, xlsx, pdf
+
+  // Data
+  data              Json
+
+  // Status
+  status            String   @default("generated") // generated, reviewed, approved, published
+
+  // File
+  fileUrl           String?
+
+  // Metadata
+  generatedBy       String?
+  generatedAt       DateTime @default(now())
+
+  // Relations
+  organizationId    String
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([reportType])
+  @@index([reportingPeriod])
+  @@map("reports")
+}
+
+// ============================================
+// AUDIT LOG & COMPLIANCE
+// ============================================
+
+model AuditLog {
+  id                String   @id @default(cuid())
+
+  // Actor
+  userId            String?
+  user              User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  // Action
+  action            String   // CREATE, UPDATE, DELETE, CALCULATE, EXPORT, LOGIN, etc.
+  entityType        String   // contract, csm, report, user, etc.
+  entityId          String?
+
+  // Details
+  changes           Json?
+  metadata          Json?
+
+  // Request Info
+  ipAddress         String?
+  userAgent         String?
+
+  // Timestamp
+  timestamp         DateTime @default(now())
+
+  // Relations
+  organizationId    String
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([timestamp])
+  @@index([action])
+  @@map("audit_logs")
+}
+
+// ============================================
+// SYSTEM CONFIGURATION
+// ============================================
+
+model SystemConfig {
+  id                String   @id @default(cuid())
+  key               String   @unique
+  value             Json
+  description       String?
+
+  // Metadata
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("system_config")
+}
