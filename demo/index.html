@@ -2027,269 +2027,50 @@
             }, 3000);
         }
 
-        // Download PDF Report - Real Implementation
+        // Download PDF Report - Simplified Implementation
         function downloadPDFReport() {
             const totalCSM = allContracts.reduce((sum, c) => sum + c.csm, 0);
             const totalPremium = allContracts.reduce((sum, c) => sum + c.premium, 0);
             const activeContracts = allContracts.filter(c => c.status === 'Активен').length;
 
-            // Create PDF HTML content
-            const pdfContent = `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Отчет IFRS 17 - Октябрь 2025</title>
-    <style>
-        @media print {
-            @page { margin: 2cm; }
-            body { margin: 0; }
-        }
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #1a1a1a;
-            max-width: 21cm;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .header {
-            text-align: center;
-            border-bottom: 3px solid #0066cc;
-            padding-bottom: 20px;
-            margin-bottom: 30px;
-        }
-        .header h1 {
-            color: #0066cc;
-            font-size: 28px;
-            margin-bottom: 10px;
-        }
-        .header p {
-            color: #666;
-            font-size: 14px;
-        }
-        .section {
-            margin: 30px 0;
-        }
-        .section-title {
-            background: #f5f7fa;
-            padding: 12px 16px;
-            font-size: 18px;
-            font-weight: 700;
-            color: #0066cc;
-            border-left: 4px solid #0066cc;
-            margin-bottom: 16px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-        }
-        th {
-            background: #0066cc;
-            color: white;
-            padding: 12px;
-            text-align: left;
-            font-weight: 600;
-        }
-        td {
-            padding: 10px 12px;
-            border-bottom: 1px solid #e0e0e0;
-        }
-        tr:nth-child(even) {
-            background: #f8f9fa;
-        }
-        .kpi-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-            margin: 20px 0;
-        }
-        .kpi-box {
-            background: #f8fbff;
-            border: 2px solid #0066cc;
-            border-radius: 8px;
-            padding: 20px;
-            text-align: center;
-        }
-        .kpi-label {
-            font-size: 12px;
-            color: #666;
-            text-transform: uppercase;
-            margin-bottom: 8px;
-        }
-        .kpi-value {
-            font-size: 32px;
-            font-weight: 700;
-            color: #0066cc;
-        }
-        .footer {
-            margin-top: 50px;
-            padding-top: 20px;
-            border-top: 2px solid #e0e0e0;
-            text-align: center;
-            color: #666;
-            font-size: 12px;
-        }
-        .signature-block {
-            margin: 40px 0;
-            display: flex;
-            justify-content: space-between;
-        }
-        .signature {
-            text-align: center;
-        }
-        .signature-line {
-            border-top: 1px solid #333;
-            width: 200px;
-            margin: 20px auto 10px;
-        }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <h1>Отчет IFRS 17</h1>
-        <p>Октябрь 2025 | Kaz-Insur Pro</p>
-        <p>Дата формирования: ${new Date().toLocaleDateString('ru-RU')}</p>
-    </div>
+            // Create simple text report
+            let reportText = '=== ОТЧЕТ IFRS 17 - ОКТЯБРЬ 2025 ===\n\n';
+            reportText += 'Kaz-Insur Pro\n';
+            reportText += 'Дата формирования: ' + new Date().toLocaleDateString('ru-RU') + '\n\n';
+            reportText += '--- СВОДНЫЕ ПОКАЗАТЕЛИ ---\n';
+            reportText += 'Активные договоры: ' + activeContracts.toLocaleString('ru-RU') + '\n';
+            reportText += 'CSM Closing Balance: ' + (totalCSM / 1000000).toFixed(1) + 'M ₸\n';
+            reportText += 'LIC: ' + (totalPremium * 0.15 / 1000000).toFixed(1) + 'M ₸\n';
+            reportText += 'LRC: ' + (totalPremium * 0.85 / 1000000).toFixed(1) + 'M ₸\n\n';
+            reportText += '--- CSM ROLL-FORWARD ---\n';
+            reportText += 'CSM Opening: ' + (totalCSM * 0.97).toLocaleString('ru-RU') + ' ₸\n';
+            reportText += 'New Business CSM: +' + (totalCSM * 0.02).toLocaleString('ru-RU') + ' ₸\n';
+            reportText += 'Interest Accretion: +' + (totalCSM * 0.03).toLocaleString('ru-RU') + ' ₸\n';
+            reportText += 'Release for Service: -' + (totalCSM * 0.02).toLocaleString('ru-RU') + ' ₸\n';
+            reportText += 'CSM Closing: ' + totalCSM.toLocaleString('ru-RU') + ' ₸\n\n';
+            reportText += '--- РАСПРЕДЕЛЕНИЕ ПО ПОРТФЕЛЯМ ---\n';
+            reportText += 'Автострахование: 18,234 договоров\n';
+            reportText += 'Жизнь: 12,456 договоров\n';
+            reportText += 'Имущество: 9,871 договоров\n';
+            reportText += 'ОМС: 7,823 договора\n';
+            reportText += 'Перестрахование: 3,136 договоров\n\n';
+            reportText += '---\nCFO: Алексей Петров\n';
+            reportText += 'Главный актуарий: Мария Иванова\n\n';
+            reportText += 'Actuary Cloud KZ | Enterprise IFRS 17 Platform';
 
-    <div class="section">
-        <div class="section-title">Сводные показатели</div>
-        <div class="kpi-grid">
-            <div class="kpi-box">
-                <div class="kpi-label">Активные договоры</div>
-                <div class="kpi-value">${activeContracts.toLocaleString('ru-RU')}</div>
-            </div>
-            <div class="kpi-box">
-                <div class="kpi-label">CSM Closing Balance</div>
-                <div class="kpi-value">${(totalCSM / 1000000).toFixed(1)}M ₸</div>
-            </div>
-            <div class="kpi-box">
-                <div class="kpi-label">LIC (Liability for Incurred Claims)</div>
-                <div class="kpi-value">${(totalPremium * 0.15 / 1000000).toFixed(1)}M ₸</div>
-            </div>
-            <div class="kpi-box">
-                <div class="kpi-label">LRC (Liability for Remaining Coverage)</div>
-                <div class="kpi-value">${(totalPremium * 0.85 / 1000000).toFixed(1)}M ₸</div>
-            </div>
-        </div>
-    </div>
+            // Create blob and download
+            const blob = new Blob([reportText], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'IFRS17_Report_October_2025.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
 
-    <div class="section">
-        <div class="section-title">CSM Roll-Forward</div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Компонент</th>
-                    <th>Сумма (₸)</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>CSM Opening Balance</td>
-                    <td>${(totalCSM * 0.97).toLocaleString('ru-RU')}</td>
-                </tr>
-                <tr>
-                    <td>New Business CSM</td>
-                    <td>+ ${(totalCSM * 0.02).toLocaleString('ru-RU')}</td>
-                </tr>
-                <tr>
-                    <td>Interest Accretion</td>
-                    <td>+ ${(totalCSM * 0.03).toLocaleString('ru-RU')}</td>
-                </tr>
-                <tr>
-                    <td>Release for Service</td>
-                    <td>- ${(totalCSM * 0.02).toLocaleString('ru-RU')}</td>
-                </tr>
-                <tr style="background: #e6f2ff; font-weight: 700;">
-                    <td>CSM Closing Balance</td>
-                    <td>${totalCSM.toLocaleString('ru-RU')}</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <div class="section">
-        <div class="section-title">Распределение по портфелям</div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Портфель</th>
-                    <th>Договоров</th>
-                    <th>Премия (₸)</th>
-                    <th>CSM (₸)</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Автострахование</td>
-                    <td>18,234</td>
-                    <td>${(totalPremium * 0.35).toLocaleString('ru-RU')}</td>
-                    <td>${(totalCSM * 0.30).toLocaleString('ru-RU')}</td>
-                </tr>
-                <tr>
-                    <td>Жизнь</td>
-                    <td>12,456</td>
-                    <td>${(totalPremium * 0.30).toLocaleString('ru-RU')}</td>
-                    <td>${(totalCSM * 0.40).toLocaleString('ru-RU')}</td>
-                </tr>
-                <tr>
-                    <td>Имущество</td>
-                    <td>9,871</td>
-                    <td>${(totalPremium * 0.20).toLocaleString('ru-RU')}</td>
-                    <td>${(totalCSM * 0.18).toLocaleString('ru-RU')}</td>
-                </tr>
-                <tr>
-                    <td>ОМС</td>
-                    <td>7,823</td>
-                    <td>${(totalPremium * 0.10).toLocaleString('ru-RU')}</td>
-                    <td>${(totalCSM * 0.08).toLocaleString('ru-RU')}</td>
-                </tr>
-                <tr>
-                    <td>Перестрахование</td>
-                    <td>3,136</td>
-                    <td>${(totalPremium * 0.05).toLocaleString('ru-RU')}</td>
-                    <td>${(totalCSM * 0.04).toLocaleString('ru-RU')}</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <div class="signature-block">
-        <div class="signature">
-            <div class="signature-line"></div>
-            <p>CFO</p>
-            <p>Алексей Петров</p>
-        </div>
-        <div class="signature">
-            <div class="signature-line"></div>
-            <p>Главный актуарий</p>
-            <p>Мария Иванова</p>
-        </div>
-    </div>
-
-    <div class="footer">
-        <p><strong>Actuary Cloud KZ</strong></p>
-        <p>Enterprise IFRS 17 Platform | Конфиденциально</p>
-        <p>Документ сформирован автоматически системой Actuary Cloud KZ</p>
-    </div>
-
-    <script>
-        // Auto-print on load
-        window.onload = function() {
-            setTimeout(function() {
-                window.print();
-            }, 500);
-        };
-    </script>
-</body>
-</html>
-            `;
-
-            // Open in new window
-            const printWindow = window.open('', '_blank');
-            printWindow.document.write(pdfContent);
-            printWindow.document.close();
+            // Also show preview in alert
+            alert('Отчет сформирован и скачан!\n\nФайл: IFRS17_Report_October_2025.txt\n\nОтчет содержит:\n- Сводные показатели\n- CSM Roll-Forward\n- Распределение по портфелям\n\nДля PDF версии используйте функцию печати браузера.');
         }
 
         // Initialize dashboard on load
