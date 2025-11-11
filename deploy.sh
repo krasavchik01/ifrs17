@@ -13,6 +13,14 @@ then
     npm install -g vercel
 fi
 
+# Check if logged in
+echo "🔐 Checking Vercel authentication..."
+if ! vercel whoami &> /dev/null
+then
+    echo "Please login to Vercel:"
+    vercel login
+fi
+
 # Deploy to Vercel
 echo "🌐 Deploying to production..."
 vercel --prod --yes
@@ -22,8 +30,11 @@ echo "✅ Deployment complete!"
 echo ""
 echo "📝 Next steps:"
 echo "1. Set environment variables in Vercel Dashboard"
-echo "2. Add your database URL"
-echo "3. Configure Stripe keys"
-echo "4. Run migrations: vercel env pull && npx prisma migrate deploy"
+echo "2. Add your database URL (DATABASE_URL)"
+echo "3. Configure authentication (NEXTAUTH_SECRET, NEXTAUTH_URL)"
+echo "4. Add Stripe keys (if using subscriptions)"
+echo "5. Run migrations: vercel env pull && npx prisma migrate deploy"
 echo ""
 echo "🎉 Your IFRS 17 Pro is live!"
+echo ""
+echo "Visit your deployment at the URL shown above!"

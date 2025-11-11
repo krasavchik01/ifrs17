@@ -6,7 +6,7 @@ Get your IFRS 17 automation system up and running in 5 minutes!
 
 ```bash
 # Clone and navigate
-cd ifrs17-saas
+
 
 # Install dependencies
 npm install
@@ -96,7 +96,7 @@ Format: Excel / PDF
 
 ### Option 1: One-Click Deploy
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/ifrs17-saas)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/krasavchik01/ifrs17)
 
 ### Option 2: Vercel CLI
 
@@ -108,7 +108,7 @@ npm i -g vercel
 vercel login
 
 # Deploy to production
-cd ifrs17-saas
+
 vercel --prod
 ```
 

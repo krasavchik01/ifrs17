@@ -25,21 +25,17 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
-          cache-dependency-path: 'ifrs17-saas/package.json'
 
       - name: Install Vercel CLI
         run: npm install -g vercel
 
       - name: Pull Vercel Environment
-        working-directory: ./ifrs17-saas
         run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Build Project
-        working-directory: ./ifrs17-saas
         run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Deploy to Vercel
-        working-directory: ./ifrs17-saas
         run: |
           if [ "${{ github.ref }}" == "refs/heads/main" ]; then
             vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }}

@@ -43,7 +43,7 @@ After adding env vars, click "Redeploy" to rebuild with environment variables.
 
 ```bash
 # 1. Navigate to project
-cd ifrs17-saas
+
 
 # 2. Login to Vercel
 vercel login

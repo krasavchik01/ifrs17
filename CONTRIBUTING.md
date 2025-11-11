@@ -21,7 +21,7 @@ Click the "Fork" button at the top right of the repository page.
 
 ```bash
 git clone https://github.com/YOUR_USERNAME/ifrs17-saas.git
-cd ifrs17-saas
+
 ```
 
 ### 3. Set Up Development Environment

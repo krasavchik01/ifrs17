@@ -37,7 +37,7 @@ Complete guide for deploying your IFRS 17 SaaS application to Vercel.
 
 ```bash
 # Navigate to your project
-cd ifrs17-saas
+
 
 # Initialize git (if not already)
 git init
@@ -63,7 +63,7 @@ git push -u origin main
 3. Import your GitHub repository
 4. Configure project:
    - Framework Preset: Next.js
-   - Root Directory: `./ifrs17-saas`
+   - Root Directory: `.` (корень)
    - Build Command: `npm run build`
    - Output Directory: `.next`
 
@@ -77,7 +77,7 @@ npm i -g vercel
 vercel login
 
 # Deploy
-cd ifrs17-saas
+
 vercel
 
 # For production
