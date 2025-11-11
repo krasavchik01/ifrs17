@@ -843,11 +843,11 @@
 
                 <div class="nav-section">
                     <div class="nav-section-title">Система</div>
-                    <div class="nav-item disabled">
+                    <div class="nav-item" onclick="navigateTo('audit')">
                         <span class="nav-item-icon">🗂️</span>
                         <span class="nav-item-text">Аудит</span>
                     </div>
-                    <div class="nav-item disabled">
+                    <div class="nav-item" onclick="navigateTo('settings')">
                         <span class="nav-item-icon">👤</span>
                         <span class="nav-item-text">Настройки</span>
                     </div>
@@ -946,7 +946,9 @@
                 'contracts': 'Реестр договоров',
                 'actuarial-models': 'Актуарные модели',
                 'calculations': 'Расчеты IFRS 17',
-                'reports': 'Отчетность'
+                'reports': 'Отчетность',
+                'audit': 'Аудит',
+                'settings': 'Настройки'
             };
             document.getElementById('pageTitle').textContent = titles[page] || page;
 
@@ -978,6 +980,12 @@
                     break;
                 case 'reports':
                     contentArea.innerHTML = getReportsContent();
+                    break;
+                case 'audit':
+                    contentArea.innerHTML = getAuditContent();
+                    break;
+                case 'settings':
+                    contentArea.innerHTML = getSettingsContent();
                     break;
             }
         }
@@ -1937,13 +1945,13 @@
                                 <p style="color: var(--text-secondary); font-size: 14px;">Отчет для Национального Банка РК за Октябрь 2025 (10 страниц)</p>
                             </div>
                             <div style="display: flex; gap: 12px; justify-content: center;">
-                                <button class="btn" onclick="window.open('about:blank')">
-                                    📄 Открыть PDF
+                                <button class="btn" onclick="downloadPDFReport()">
+                                    📄 Скачать отчет НБРК
                                 </button>
-                                <button class="btn btn-secondary">
+                                <button class="btn btn-secondary" onclick="downloadExcelReport()">
                                     📊 Экспорт в Excel
                                 </button>
-                                <button class="btn btn-secondary">
+                                <button class="btn btn-secondary" onclick="download1CProvodki()">
                                     💾 Выгрузить проводки для 1С
                                 </button>
                             </div>
@@ -2023,18 +2031,412 @@
                 { time: 2800, text: 'Завершено!', progress: 100 }
             ];
 
-            steps.forEach(step => {
-                setTimeout(() => {
+            steps.forEach(function(step) {
+                setTimeout(function() {
                     label.textContent = step.text;
                     percentage.textContent = step.progress + '%';
                     bar.style.width = step.progress + '%';
                 }, step.time);
             });
 
-            setTimeout(() => {
+            setTimeout(function() {
                 progressDiv.style.display = 'none';
                 resultDiv.style.display = 'block';
             }, 3000);
+        }
+
+        function downloadPDFReport() {
+            const totalCSM = allContracts.reduce(function(sum, c) { return sum + c.csm; }, 0);
+            const totalPremium = allContracts.reduce(function(sum, c) { return sum + c.premium; }, 0);
+            const activeContracts = allContracts.filter(function(c) { return c.status === 'Активен'; }).length;
+
+            const reportContent = '═════════════════════════════════════════════════════════════════\n' +
+                '                 ОТЧЕТ IFRS 17 - ОКТЯБРЬ 2025\n' +
+                '             Национальный Банк Республики Казахстан\n' +
+                '═════════════════════════════════════════════════════════════════\n\n' +
+                'СТРАХОВАЯ КОМПАНИЯ: Kaz-Insur Pro\n' +
+                'ОТЧЕТНЫЙ ПЕРИОД: Октябрь 2025\n' +
+                'ДАТА ФОРМИРОВАНИЯ: ' + new Date().toLocaleDateString('ru-RU') + '\n' +
+                'ПОДГОТОВИЛ: Алексей Петров, CFO\n\n' +
+                '═════════════════════════════════════════════════════════════════\n' +
+                '                    КЛЮЧЕВЫЕ ПОКАЗАТЕЛИ\n' +
+                '═════════════════════════════════════════════════════════════════\n\n' +
+                'Активные договоры:                ' + activeContracts.toLocaleString('ru-RU') + '\n' +
+                'CSM Closing Balance:              ' + (totalCSM / 1000000).toFixed(2) + ' млн ₸\n' +
+                'LIC (Incurred Claims):            ' + (totalPremium * 0.15 / 1000000).toFixed(2) + ' млн ₸\n' +
+                'LRC (Remaining Coverage):         ' + (totalPremium * 0.85 / 1000000).toFixed(2) + ' млн ₸\n' +
+                'Risk Adjustment:                  ' + (totalCSM * 0.05 / 1000000).toFixed(2) + ' млн ₸\n\n' +
+                '═════════════════════════════════════════════════════════════════\n' +
+                '                   CSM ROLL-FORWARD ДВИЖЕНИЕ\n' +
+                '═════════════════════════════════════════════════════════════════\n\n' +
+                'CSM Opening Balance:              8,423.52 млн ₸\n' +
+                'Новые договоры (New Business):    +187.23 млн ₸\n' +
+                'Начисление процентов:             +256.89 млн ₸\n' +
+                'Освобождение за услуги:           -144.13 млн ₸\n' +
+                'Изменения допущений:              +23.76 млн ₸\n' +
+                'CSM Closing Balance:              ' + (totalCSM / 1000000).toFixed(2) + ' млн ₸\n\n' +
+                '═════════════════════════════════════════════════════════════════\n' +
+                '              РАСПРЕДЕЛЕНИЕ ПО ПОРТФЕЛЯМ\n' +
+                '═════════════════════════════════════════════════════════════════\n\n' +
+                'Автострахование:                  18,234 договора (35.4%)\n' +
+                'Страхование жизни:                12,456 договоров (24.2%)\n' +
+                'Имущественное страхование:        9,871 договоров (19.1%)\n' +
+                'ОМС:                              7,823 договора (15.2%)\n' +
+                'Перестрахование:                  3,136 договоров (6.1%)\n\n' +
+                '═════════════════════════════════════════════════════════════════\n' +
+                '                    МОДЕЛИ ИЗМЕРЕНИЯ\n' +
+                '═════════════════════════════════════════════════════════════════\n\n' +
+                'GMM (General Measurement Model):  ' + Math.floor(activeContracts * 0.40).toLocaleString('ru-RU') + ' договоров\n' +
+                'PAA (Premium Allocation):         ' + Math.floor(activeContracts * 0.45).toLocaleString('ru-RU') + ' договоров\n' +
+                'VFA (Variable Fee Approach):      ' + Math.floor(activeContracts * 0.15).toLocaleString('ru-RU') + ' договоров\n\n' +
+                '═════════════════════════════════════════════════════════════════\n' +
+                '                   АКТУАРНЫЕ ДОПУЩЕНИЯ\n' +
+                '═════════════════════════════════════════════════════════════════\n\n' +
+                'Кривая дисконтирования:           KZ Government Bonds (9.25% - 7.40%)\n' +
+                'Таблица смертности:               SOA Standard Table 2020\n' +
+                'Коэффициент убыточности:          65.2%\n' +
+                'Расходы на ведение дела:          15.3%\n' +
+                'Лапс-фактор:                      4.7%\n' +
+                'Risk Adjustment (Conf Level):     75%\n\n' +
+                '═════════════════════════════════════════════════════════════════\n' +
+                '                        ЗАКЛЮЧЕНИЕ\n' +
+                '═════════════════════════════════════════════════════════════════\n\n' +
+                'Расчеты выполнены в соответствии со стандартом IFRS 17.\n' +
+                'Все данные прошли валидацию и готовы к отправке в НБРК.\n\n' +
+                'Система: Actuary Cloud KZ Enterprise Platform\n' +
+                'Время расчета: 8.2 секунды\n' +
+                'Договоров обработано: ' + allContracts.length.toLocaleString('ru-RU') + '\n\n' +
+                '═════════════════════════════════════════════════════════════════\n' +
+                '                         ПОДПИСЬ\n' +
+                '═════════════════════════════════════════════════════════════════\n\n' +
+                'Алексей Петров\n' +
+                'Финансовый Директор (CFO)\n' +
+                'Kaz-Insur Pro\n\n' +
+                'Дата: ' + new Date().toLocaleDateString('ru-RU') + '\n' +
+                '═════════════════════════════════════════════════════════════════\n';
+
+            const blob = new Blob([reportContent], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'IFRS17_Report_NBRK_October_2025.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            alert('Отчет успешно сохранен!\n\nФайл: IFRS17_Report_NBRK_October_2025.txt\nРазмер: ' + Math.floor(reportContent.length / 1024) + ' KB\n\nГотов к отправке в Национальный Банк РК.');
+        }
+
+        function downloadExcelReport() {
+            const csvContent = 'Портфель,Договоров,CSM (млн),Премии (млн),Статус\n' +
+                'Автострахование,18234,' + (totalCSM * 0.354 / 1000000).toFixed(2) + ',' + (totalPremium * 0.354 / 1000000).toFixed(2) + ',Активен\n' +
+                'Жизнь,12456,' + (totalCSM * 0.242 / 1000000).toFixed(2) + ',' + (totalPremium * 0.242 / 1000000).toFixed(2) + ',Активен\n' +
+                'Имущество,9871,' + (totalCSM * 0.191 / 1000000).toFixed(2) + ',' + (totalPremium * 0.191 / 1000000).toFixed(2) + ',Активен\n' +
+                'ОМС,7823,' + (totalCSM * 0.152 / 1000000).toFixed(2) + ',' + (totalPremium * 0.152 / 1000000).toFixed(2) + ',Активен\n' +
+                'Перестрахование,3136,' + (totalCSM * 0.061 / 1000000).toFixed(2) + ',' + (totalPremium * 0.061 / 1000000).toFixed(2) + ',Активен\n';
+
+            const totalCSM = allContracts.reduce(function(sum, c) { return sum + c.csm; }, 0);
+            const totalPremium = allContracts.reduce(function(sum, c) { return sum + c.premium; }, 0);
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'IFRS17_Data_Export_October_2025.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            alert('Excel файл успешно экспортирован!\n\nОткройте его в Microsoft Excel или Google Sheets.');
+        }
+
+        function download1CProvodki() {
+            const provodki = '═════════════════════════════════════════════════════════════════\n' +
+                '           ВЫГРУЗКА ПРОВОДОК ДЛЯ 1С ПРЕДПРИЯТИЕ 8.3\n' +
+                '═════════════════════════════════════════════════════════════════\n\n' +
+                'Период: Октябрь 2025\n' +
+                'Дата выгрузки: ' + new Date().toLocaleDateString('ru-RU') + '\n' +
+                'Формат: DBF для импорта в 1С\n\n' +
+                'ПРОВОДКИ IFRS 17:\n\n' +
+                '01.11.2025 | Дт 7210 Кт 7110 | CSM Accretion       | 256,892,341 ₸\n' +
+                '01.11.2025 | Дт 7110 Кт 7310 | CSM Release         | 144,126,908 ₸\n' +
+                '01.11.2025 | Дт 1110 Кт 7210 | New Business CSM    | 187,234,567 ₸\n' +
+                '01.11.2025 | Дт 7410 Кт 7510 | Risk Adjustment     | 23,156,442 ₸\n' +
+                '01.11.2025 | Дт 2210 Кт 2110 | LIC Movement        | 89,234,112 ₸\n' +
+                '01.11.2025 | Дт 2110 Кт 1210 | Claims Paid         | 156,789,223 ₸\n\n' +
+                'Всего проводок: 6\n' +
+                'Сумма оборотов по дебету: 857,433,593 ₸\n' +
+                'Сумма оборотов по кредиту: 857,433,593 ₸\n' +
+                'Баланс: СВЕДЕН ✓\n\n' +
+                '═════════════════════════════════════════════════════════════════\n';
+
+            const blob = new Blob([provodki], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = '1C_Provodki_IFRS17_October_2025.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            alert('Проводки для 1С выгружены!\n\nИмпортируйте файл в 1С Бухгалтерия через меню "Операции → Импорт".');
+        }
+
+        function getAuditContent() {
+            return '<div class="chart-card" style="margin-bottom: 24px;">' +
+                '<div class="chart-header">' +
+                '<div class="chart-title">Журнал аудита системы</div>' +
+                '<div class="chart-subtitle">Полная история всех действий пользователей</div>' +
+                '</div>' +
+                '<div style="padding: 20px;">' +
+                '<div style="display: flex; gap: 12px; margin-bottom: 20px;">' +
+                '<select class="search-input" style="width: auto;">' +
+                '<option>Все действия</option>' +
+                '<option>Расчеты</option>' +
+                '<option>Импорт данных</option>' +
+                '<option>Отчеты</option>' +
+                '<option>Изменения настроек</option>' +
+                '</select>' +
+                '<input type="date" class="search-input" style="width: auto;" value="2025-11-01">' +
+                '<button class="btn btn-secondary">📥 Экспорт журнала</button>' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
+                '<div class="data-table-container">' +
+                '<div class="table-header">' +
+                '<div class="table-title">История действий</div>' +
+                '</div>' +
+                '<div class="table-wrapper">' +
+                '<table>' +
+                '<thead>' +
+                '<tr>' +
+                '<th>Дата/Время</th>' +
+                '<th>Пользователь</th>' +
+                '<th>Действие</th>' +
+                '<th>Модуль</th>' +
+                '<th>Детали</th>' +
+                '<th>IP адрес</th>' +
+                '<th>Статус</th>' +
+                '</tr>' +
+                '</thead>' +
+                '<tbody>' +
+                '<tr>' +
+                '<td>01.11.2025 10:45:23</td>' +
+                '<td>А. Петров (CFO)</td>' +
+                '<td>Расчет IFRS 17</td>' +
+                '<td>Расчеты</td>' +
+                '<td>Октябрь 2025 - 51,520 договоров</td>' +
+                '<td>192.168.1.45</td>' +
+                '<td><span class="status-badge status-active">Успешно</span></td>' +
+                '</tr>' +
+                '<tr>' +
+                '<td>01.11.2025 10:23:12</td>' +
+                '<td>А. Петров (CFO)</td>' +
+                '<td>Синхронизация из 1С</td>' +
+                '<td>Импорт данных</td>' +
+                '<td>Загружено 51,520 договоров</td>' +
+                '<td>192.168.1.45</td>' +
+                '<td><span class="status-badge status-active">Успешно</span></td>' +
+                '</tr>' +
+                '<tr>' +
+                '<td>01.11.2025 09:58:34</td>' +
+                '<td>А. Петров (CFO)</td>' +
+                '<td>Генерация отчета</td>' +
+                '<td>Отчетность</td>' +
+                '<td>Отчет для НБРК - Октябрь 2025</td>' +
+                '<td>192.168.1.45</td>' +
+                '<td><span class="status-badge status-active">Успешно</span></td>' +
+                '</tr>' +
+                '<tr>' +
+                '<td>01.10.2025 11:30:15</td>' +
+                '<td>А. Петров (CFO)</td>' +
+                '<td>Расчет IFRS 17</td>' +
+                '<td>Расчеты</td>' +
+                '<td>Сентябрь 2025 - 51,234 договора</td>' +
+                '<td>192.168.1.45</td>' +
+                '<td><span class="status-badge status-active">Успешно</span></td>' +
+                '</tr>' +
+                '<tr>' +
+                '<td>01.10.2025 10:23:45</td>' +
+                '<td>М. Иванова (Актуарий)</td>' +
+                '<td>Обновление таблицы смертности</td>' +
+                '<td>Актуарные модели</td>' +
+                '<td>SOA Standard Table 2020</td>' +
+                '<td>192.168.1.87</td>' +
+                '<td><span class="status-badge status-active">Успешно</span></td>' +
+                '</tr>' +
+                '<tr>' +
+                '<td>30.09.2025 16:45:12</td>' +
+                '<td>С. Казбеков (Admin)</td>' +
+                '<td>Изменение прав доступа</td>' +
+                '<td>Настройки</td>' +
+                '<td>Добавлен новый пользователь: Д. Нурланов</td>' +
+                '<td>192.168.1.10</td>' +
+                '<td><span class="status-badge status-active">Успешно</span></td>' +
+                '</tr>' +
+                '<tr>' +
+                '<td>30.09.2025 14:22:03</td>' +
+                '<td>А. Петров (CFO)</td>' +
+                '<td>Экспорт в Excel</td>' +
+                '<td>Отчетность</td>' +
+                '<td>Полный отчет IFRS 17 - 28 страниц</td>' +
+                '<td>192.168.1.45</td>' +
+                '<td><span class="status-badge status-active">Успешно</span></td>' +
+                '</tr>' +
+                '<tr>' +
+                '<td>29.09.2025 09:15:34</td>' +
+                '<td>Система</td>' +
+                '<td>Автоматическая синхронизация</td>' +
+                '<td>Импорт данных</td>' +
+                '<td>Ночная синхронизация из 1С</td>' +
+                '<td>127.0.0.1</td>' +
+                '<td><span class="status-badge status-active">Успешно</span></td>' +
+                '</tr>' +
+                '</tbody>' +
+                '</table>' +
+                '</div>' +
+                '<div class="pagination">' +
+                '<div class="pagination-info">Показано 1-8 из 1,247 записей</div>' +
+                '<div class="pagination-controls">' +
+                '<button class="page-btn">Первая</button>' +
+                '<button class="page-btn">←</button>' +
+                '<button class="page-btn active">1</button>' +
+                '<button class="page-btn">2</button>' +
+                '<button class="page-btn">3</button>' +
+                '<button class="page-btn">→</button>' +
+                '<button class="page-btn">Последняя</button>' +
+                '</div>' +
+                '</div>' +
+                '</div>';
+        }
+
+        function getSettingsContent() {
+            return '<div class="chart-card" style="margin-bottom: 24px;">' +
+                '<div class="chart-header">' +
+                '<div class="chart-title">Профиль пользователя</div>' +
+                '<div class="chart-subtitle">Личная информация и настройки учетной записи</div>' +
+                '</div>' +
+                '<div style="padding: 24px;">' +
+                '<div style="display: flex; gap: 32px;">' +
+                '<div>' +
+                '<div class="user-avatar" style="width: 120px; height: 120px; font-size: 48px;">АП</div>' +
+                '</div>' +
+                '<div style="flex: 1;">' +
+                '<div class="detail-grid">' +
+                '<div class="detail-item">' +
+                '<div class="detail-label">Полное имя</div>' +
+                '<div class="detail-value">Алексей Петров</div>' +
+                '</div>' +
+                '<div class="detail-item">' +
+                '<div class="detail-label">Должность</div>' +
+                '<div class="detail-value">Финансовый Директор (CFO)</div>' +
+                '</div>' +
+                '<div class="detail-item">' +
+                '<div class="detail-label">Организация</div>' +
+                '<div class="detail-value">Kaz-Insur Pro</div>' +
+                '</div>' +
+                '<div class="detail-item">' +
+                '<div class="detail-label">Email</div>' +
+                '<div class="detail-value">a.petrov@kaz-insur.kz</div>' +
+                '</div>' +
+                '<div class="detail-item">' +
+                '<div class="detail-label">Телефон</div>' +
+                '<div class="detail-value">+7 (727) 123-45-67</div>' +
+                '</div>' +
+                '<div class="detail-item">' +
+                '<div class="detail-label">Дата регистрации</div>' +
+                '<div class="detail-value">15 января 2024</div>' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
+                '<div class="chart-card" style="margin-bottom: 24px;">' +
+                '<div class="chart-header">' +
+                '<div class="chart-title">Права доступа</div>' +
+                '<div class="chart-subtitle">Роли и разрешения в системе</div>' +
+                '</div>' +
+                '<div style="padding: 24px;">' +
+                '<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">' +
+                '<div style="padding: 16px; background: var(--bg-tertiary); border-radius: 8px;">' +
+                '<div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">' +
+                '<span style="font-size: 24px;">✅</span>' +
+                '<span style="font-weight: 600;">Полный доступ</span>' +
+                '</div>' +
+                '<div style="font-size: 13px; color: var(--text-muted);">Администратор системы с правами на все модули</div>' +
+                '</div>' +
+                '<div style="padding: 16px; background: var(--bg-tertiary); border-radius: 8px;">' +
+                '<div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">' +
+                '<span style="font-size: 24px;">📊</span>' +
+                '<span style="font-weight: 600;">Расчеты IFRS 17</span>' +
+                '</div>' +
+                '<div style="font-size: 13px; color: var(--text-muted);">Создание и просмотр расчетов</div>' +
+                '</div>' +
+                '<div style="padding: 16px; background: var(--bg-tertiary); border-radius: 8px;">' +
+                '<div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">' +
+                '<span style="font-size: 24px;">📈</span>' +
+                '<span style="font-weight: 600;">Отчетность</span>' +
+                '</div>' +
+                '<div style="font-size: 13px; color: var(--text-muted);">Генерация и экспорт отчетов</div>' +
+                '</div>' +
+                '<div style="padding: 16px; background: var(--bg-tertiary); border-radius: 8px;">' +
+                '<div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">' +
+                '<span style="font-size: 24px;">⚙️</span>' +
+                '<span style="font-weight: 600;">Актуарные модели</span>' +
+                '</div>' +
+                '<div style="font-size: 13px; color: var(--text-muted);">Управление кривыми и таблицами</div>' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
+                '<div class="chart-card">' +
+                '<div class="chart-header">' +
+                '<div class="chart-title">Настройки системы</div>' +
+                '<div class="chart-subtitle">Предпочтения отображения и уведомлений</div>' +
+                '</div>' +
+                '<div style="padding: 24px;">' +
+                '<div style="display: flex; flex-direction: column; gap: 20px;">' +
+                '<div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-tertiary); border-radius: 8px;">' +
+                '<div>' +
+                '<div style="font-weight: 600; margin-bottom: 4px;">Email уведомления</div>' +
+                '<div style="font-size: 13px; color: var(--text-muted);">Получать уведомления о завершении расчетов</div>' +
+                '</div>' +
+                '<label style="position: relative; display: inline-block; width: 60px; height: 30px;">' +
+                '<input type="checkbox" checked style="opacity: 0; width: 0; height: 0;">' +
+                '<span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--primary-color); border-radius: 30px; transition: 0.4s;"></span>' +
+                '</label>' +
+                '</div>' +
+                '<div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-tertiary); border-radius: 8px;">' +
+                '<div>' +
+                '<div style="font-weight: 600; margin-bottom: 4px;">Автоматическая синхронизация</div>' +
+                '<div style="font-size: 13px; color: var(--text-muted);">Синхронизация с 1С каждую ночь в 02:00</div>' +
+                '</div>' +
+                '<label style="position: relative; display: inline-block; width: 60px; height: 30px;">' +
+                '<input type="checkbox" checked style="opacity: 0; width: 0; height: 0;">' +
+                '<span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--primary-color); border-radius: 30px; transition: 0.4s;"></span>' +
+                '</label>' +
+                '</div>' +
+                '<div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-tertiary); border-radius: 8px;">' +
+                '<div>' +
+                '<div style="font-weight: 600; margin-bottom: 4px;">Двухфакторная аутентификация</div>' +
+                '<div style="font-size: 13px; color: var(--text-muted);">Дополнительная защита учетной записи</div>' +
+                '</div>' +
+                '<label style="position: relative; display: inline-block; width: 60px; height: 30px;">' +
+                '<input type="checkbox" style="opacity: 0; width: 0; height: 0;">' +
+                '<span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #475569; border-radius: 30px; transition: 0.4s;"></span>' +
+                '</label>' +
+                '</div>' +
+                '<div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border-color);">' +
+                '<button class="btn" style="margin-right: 12px;">💾 Сохранить изменения</button>' +
+                '<button class="btn btn-secondary">🔄 Сбросить пароль</button>' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
+                '</div>';
         }
 
         // Initialize dashboard on load
