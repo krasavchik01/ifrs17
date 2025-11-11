@@ -3,91 +3,152 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IFRS 17 RB - Enterprise Insurance Automation</title>
+    <title>Actuary Cloud KZ - Enterprise IFRS 17 Platform</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #1a1a1a; background: #fafafa; }
+        .container { max-width: 1280px; margin: 0 auto; padding: 0 40px; }
 
         /* Header */
-        header { background: white; border-bottom: 1px solid #e5e7eb; padding: 20px 0; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        header { background: #ffffff; border-bottom: 1px solid #e0e0e0; padding: 24px 0; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
         .header-content { display: flex; justify-content: space-between; align-items: center; }
-        .logo { display: flex; align-items: center; gap: 10px; font-size: 24px; font-weight: bold; background: linear-gradient(135deg, #2563eb, #4f46e5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .nav { display: flex; gap: 30px; }
-        .nav a { color: #4b5563; text-decoration: none; transition: color 0.3s; }
-        .nav a:hover { color: #2563eb; }
-        .btn { padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.3s; display: inline-block; }
-        .btn-primary { background: #2563eb; color: white; }
-        .btn-primary:hover { background: #1d4ed8; transform: translateY(-2px); box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3); }
+        .logo { display: flex; align-items: center; gap: 12px; }
+        .logo-icon { width: 48px; height: 48px; background: linear-gradient(135deg, #0066cc, #004c99); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; font-weight: bold; }
+        .logo-text { display: flex; flex-direction: column; }
+        .logo-main { font-size: 22px; font-weight: 700; color: #0066cc; letter-spacing: -0.5px; }
+        .logo-sub { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 1px; }
+        .nav { display: flex; gap: 36px; align-items: center; }
+        .nav a { color: #333; text-decoration: none; font-weight: 500; transition: color 0.2s; font-size: 15px; }
+        .nav a:hover { color: #0066cc; }
+        .btn { padding: 12px 28px; border-radius: 6px; text-decoration: none; font-weight: 600; transition: all 0.2s; display: inline-block; font-size: 15px; }
+        .btn-primary { background: #0066cc; color: white; box-shadow: 0 2px 8px rgba(0,102,204,0.2); }
+        .btn-primary:hover { background: #0052a3; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,102,204,0.3); }
+        .btn-secondary { background: white; color: #0066cc; border: 2px solid #0066cc; }
+        .btn-secondary:hover { background: #f0f7ff; }
 
         /* Hero */
-        .hero { background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%); padding: 100px 0; text-align: center; }
-        .hero h1 { font-size: 56px; margin-bottom: 24px; background: linear-gradient(135deg, #2563eb, #4f46e5, #7c3aed); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .hero p { font-size: 20px; color: #6b7280; max-width: 800px; margin: 0 auto 40px; }
-        .hero-buttons { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
-        .badge { display: inline-block; background: #dbeafe; color: #1e40af; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 600; margin-bottom: 30px; }
+        .hero { background: linear-gradient(135deg, #f8fbff 0%, #ffffff 100%); padding: 120px 0 80px; }
+        .hero-content { max-width: 900px; }
+        .badge { display: inline-block; background: #e6f2ff; color: #0066cc; padding: 8px 20px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 24px; letter-spacing: 0.5px; }
+        .hero h1 { font-size: 56px; line-height: 1.15; margin-bottom: 28px; color: #1a1a1a; font-weight: 700; }
+        .hero h1 span { color: #0066cc; }
+        .hero p { font-size: 21px; color: #555; line-height: 1.6; margin-bottom: 40px; }
+        .hero-buttons { display: flex; gap: 16px; }
+        .hero-buttons .btn { padding: 16px 36px; font-size: 16px; }
+
+        /* Trust Section */
+        .trust { background: #1a1a1a; color: white; padding: 32px 0; }
+        .trust-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px; text-align: center; }
+        .trust-item { display: flex; flex-direction: column; align-items: center; }
+        .trust-icon { font-size: 32px; margin-bottom: 12px; }
+        .trust-text { font-size: 14px; opacity: 0.9; font-weight: 500; }
 
         /* Features */
-        .features { padding: 80px 0; background: white; }
-        .section-title { text-align: center; margin-bottom: 60px; }
-        .section-title h2 { font-size: 40px; margin-bottom: 16px; }
-        .section-title p { font-size: 18px; color: #6b7280; }
-        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
-        .feature-card { padding: 30px; border: 1px solid #e5e7eb; border-radius: 12px; transition: all 0.3s; }
-        .feature-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
-        .feature-icon { width: 50px; height: 50px; background: linear-gradient(135deg, #2563eb, #4f46e5); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; margin-bottom: 20px; }
-        .feature-card h3 { font-size: 20px; margin-bottom: 12px; }
-        .feature-card p { color: #6b7280; }
+        .features { padding: 100px 0; background: white; }
+        .section-title { text-align: center; margin-bottom: 70px; }
+        .section-title h2 { font-size: 42px; margin-bottom: 16px; font-weight: 700; color: #1a1a1a; }
+        .section-title p { font-size: 19px; color: #666; }
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 32px; }
+        .feature-card { padding: 36px; background: #fafafa; border-radius: 12px; transition: all 0.3s; border: 1px solid #e8e8e8; }
+        .feature-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.08); background: white; }
+        .feature-icon { width: 56px; height: 56px; background: linear-gradient(135deg, #0066cc, #004c99); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 26px; margin-bottom: 20px; }
+        .feature-card h3 { font-size: 21px; margin-bottom: 12px; font-weight: 700; color: #1a1a1a; }
+        .feature-card p { color: #666; line-height: 1.7; }
+        .feature-tag { display: inline-block; background: #e6f2ff; color: #0066cc; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600; margin-top: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
 
         /* Demo Section */
-        .demo { padding: 80px 0; background: #f9fafb; }
-        .demo-container { background: white; border-radius: 16px; padding: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.1); }
-        .demo-screenshot { width: 100%; border-radius: 12px; border: 2px solid #e5e7eb; margin-top: 30px; background: white; padding: 40px; }
-        .calc-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .form-group { display: flex; flex-direction: column; }
-        .form-group label { font-weight: 600; margin-bottom: 8px; color: #374151; }
-        .form-group input { padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px; transition: border-color 0.3s; }
-        .form-group input:focus { outline: none; border-color: #2563eb; }
-        .calc-btn { background: #2563eb; color: white; padding: 16px 32px; border: none; border-radius: 8px; font-size: 18px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
-        .calc-btn:hover { background: #1d4ed8; transform: translateY(-2px); box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3); }
-        .results { background: #f9fafb; padding: 30px; border-radius: 12px; margin-top: 30px; display: none; }
-        .results.show { display: block; }
-        .result-item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid #e5e7eb; }
-        .result-item:last-child { border-bottom: none; font-size: 20px; font-weight: bold; background: #dbeafe; border-radius: 8px; margin-top: 10px; }
-        .result-label { color: #6b7280; }
-        .result-value { font-weight: 600; color: #2563eb; }
+        .demo { padding: 100px 0; background: #f5f7fa; }
+        .demo-container { background: white; border-radius: 16px; padding: 60px; box-shadow: 0 8px 32px rgba(0,0,0,0.08); }
+        .demo-header { text-align: center; margin-bottom: 50px; }
+        .demo-header h2 { font-size: 42px; margin-bottom: 16px; font-weight: 700; }
+        .demo-header p { font-size: 19px; color: #666; }
 
-        /* Stats */
-        .stats { padding: 60px 0; background: #1f2937; color: white; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 40px; text-align: center; }
-        .stat-number { font-size: 48px; font-weight: bold; margin-bottom: 8px; }
-        .stat-label { font-size: 16px; opacity: 0.8; }
+        /* Interactive Demo */
+        .demo-interface { background: #fafafa; border-radius: 12px; padding: 40px; border: 2px solid #e0e0e0; }
+        .demo-steps { display: flex; justify-content: space-between; margin-bottom: 40px; }
+        .demo-step { flex: 1; text-align: center; position: relative; padding: 0 20px; }
+        .demo-step:not(:last-child)::after { content: '→'; position: absolute; right: -15px; top: 15px; font-size: 24px; color: #ccc; }
+        .step-number { width: 48px; height: 48px; background: #e0e0e0; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-weight: 700; font-size: 20px; color: #666; transition: all 0.3s; }
+        .demo-step.active .step-number { background: #0066cc; color: white; box-shadow: 0 4px 12px rgba(0,102,204,0.3); }
+        .demo-step.completed .step-number { background: #00c853; color: white; }
+        .step-title { font-size: 14px; font-weight: 600; color: #666; }
+        .demo-step.active .step-title { color: #0066cc; }
+
+        .demo-screen { background: white; border-radius: 8px; padding: 40px; min-height: 400px; box-shadow: inset 0 2px 8px rgba(0,0,0,0.04); }
+        .demo-screen h3 { font-size: 24px; margin-bottom: 24px; color: #1a1a1a; }
+
+        .dashboard-widget { background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 16px; border-left: 4px solid #0066cc; }
+        .widget-title { font-size: 13px; color: #666; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .widget-value { font-size: 32px; font-weight: 700; color: #1a1a1a; }
+        .widget-subtext { font-size: 14px; color: #00c853; margin-top: 4px; }
+
+        .integration-box { background: white; border: 2px dashed #d0d0d0; border-radius: 8px; padding: 32px; text-align: center; cursor: pointer; transition: all 0.3s; }
+        .integration-box:hover { border-color: #0066cc; background: #f8fbff; }
+        .integration-icon { font-size: 48px; margin-bottom: 16px; }
+
+        .progress-bar { background: #e0e0e0; height: 8px; border-radius: 4px; overflow: hidden; margin: 20px 0; }
+        .progress-fill { background: linear-gradient(90deg, #0066cc, #00c853); height: 100%; width: 0%; transition: width 2s ease-in-out; }
+
+        .calculation-log { background: #1a1a1a; color: #00ff00; padding: 20px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.8; max-height: 200px; overflow-y: auto; }
+
+        .report-preview { border: 1px solid #e0e0e0; border-radius: 8px; padding: 32px; background: white; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+        .report-header { text-align: center; margin-bottom: 32px; }
+        .report-logo { font-size: 48px; margin-bottom: 12px; }
+        .report-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .report-table th { background: #f5f7fa; padding: 12px; text-align: left; font-weight: 600; border-bottom: 2px solid #0066cc; }
+        .report-table td { padding: 12px; border-bottom: 1px solid #e8e8e8; }
+        .report-table tr:hover { background: #fafafa; }
+
+        .demo-actions { text-align: center; margin-top: 32px; }
+        .demo-actions .btn { margin: 0 8px; }
 
         /* Pricing */
-        .pricing { padding: 80px 0; }
-        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-top: 60px; }
-        .price-card { border: 2px solid #e5e7eb; border-radius: 16px; padding: 40px; text-align: center; transition: all 0.3s; }
-        .price-card:hover { transform: scale(1.05); box-shadow: 0 30px 60px rgba(0,0,0,0.15); }
-        .price-card.featured { border-color: #2563eb; position: relative; }
-        .featured-badge { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); background: #2563eb; color: white; padding: 6px 20px; border-radius: 20px; font-size: 14px; }
-        .price { font-size: 48px; font-weight: bold; margin: 20px 0; }
-        .price span { font-size: 18px; color: #6b7280; }
-        .features-list { list-style: none; margin: 30px 0; text-align: left; }
-        .features-list li { padding: 10px 0; border-bottom: 1px solid #f3f4f6; }
-        .features-list li:before { content: "✓"; color: #10b981; font-weight: bold; margin-right: 10px; }
+        .pricing { padding: 100px 0; background: white; }
+        .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; margin-top: 60px; }
+        .price-card { border: 2px solid #e8e8e8; border-radius: 16px; padding: 44px; background: white; transition: all 0.3s; position: relative; }
+        .price-card:hover { border-color: #0066cc; box-shadow: 0 12px 32px rgba(0,102,204,0.12); }
+        .price-card.featured { border-color: #0066cc; border-width: 3px; transform: scale(1.05); box-shadow: 0 16px 48px rgba(0,102,204,0.15); }
+        .featured-badge { position: absolute; top: -16px; left: 50%; transform: translateX(-50%); background: #0066cc; color: white; padding: 6px 24px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+        .price-card h3 { font-size: 24px; margin-bottom: 12px; font-weight: 700; }
+        .price { font-size: 48px; font-weight: 700; margin: 24px 0; color: #0066cc; }
+        .price span { font-size: 18px; color: #666; font-weight: 400; }
+        .price-features { list-style: none; margin: 32px 0; }
+        .price-features li { padding: 12px 0; border-bottom: 1px solid #f0f0f0; font-size: 15px; }
+        .price-features li:before { content: "✓"; color: #00c853; font-weight: bold; margin-right: 12px; font-size: 18px; }
+
+        /* Expertise */
+        .expertise { padding: 100px 0; background: #f5f7fa; }
+        .expertise-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; margin-top: 60px; }
+        .expert-card { background: white; padding: 32px; border-radius: 12px; text-align: center; box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+        .expert-avatar { width: 120px; height: 120px; background: linear-gradient(135deg, #0066cc, #004c99); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 48px; color: white; }
+        .expert-name { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+        .expert-role { color: #0066cc; font-size: 14px; margin-bottom: 16px; font-weight: 600; }
+        .expert-bio { color: #666; line-height: 1.6; font-size: 14px; }
+
+        /* Security */
+        .security { padding: 100px 0; background: #1a1a1a; color: white; }
+        .security-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; margin-top: 60px; }
+        .security-item { text-align: center; padding: 24px; }
+        .security-icon { font-size: 48px; margin-bottom: 16px; }
+        .security-title { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+        .security-desc { font-size: 14px; opacity: 0.8; line-height: 1.6; }
 
         /* CTA */
-        .cta { padding: 80px 0; background: linear-gradient(135deg, #2563eb, #4f46e5); color: white; text-align: center; }
-        .cta h2 { font-size: 40px; margin-bottom: 20px; }
-        .cta p { font-size: 20px; margin-bottom: 40px; opacity: 0.9; }
+        .cta { padding: 100px 0; background: linear-gradient(135deg, #0066cc, #004c99); color: white; text-align: center; }
+        .cta h2 { font-size: 42px; margin-bottom: 20px; font-weight: 700; }
+        .cta p { font-size: 20px; margin-bottom: 40px; opacity: 0.95; }
+        .cta .btn { font-size: 18px; padding: 18px 48px; }
 
         /* Footer */
-        footer { background: #1f2937; color: white; padding: 60px 0 20px; }
-        .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 40px; margin-bottom: 40px; }
-        .footer-section h4 { margin-bottom: 20px; }
-        .footer-section a { display: block; color: #9ca3af; text-decoration: none; margin-bottom: 10px; }
+        footer { background: #0a0a0a; color: white; padding: 80px 0 32px; }
+        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 60px; margin-bottom: 60px; }
+        .footer-section h4 { margin-bottom: 24px; font-size: 16px; font-weight: 700; }
+        .footer-section a { display: block; color: #999; text-decoration: none; margin-bottom: 12px; font-size: 14px; transition: color 0.2s; }
         .footer-section a:hover { color: white; }
-        .footer-bottom { text-align: center; padding-top: 30px; border-top: 1px solid #374151; color: #9ca3af; }
+        .footer-about { line-height: 1.7; color: #999; font-size: 14px; }
+        .footer-bottom { text-align: center; padding-top: 32px; border-top: 1px solid #333; color: #666; font-size: 13px; }
+
+        .hidden { display: none; }
     </style>
 </head>
 <body>
@@ -96,14 +157,20 @@
         <div class="container">
             <div class="header-content">
                 <div class="logo">
-                    🛡️ IFRS 17 RB
+                    <div class="logo-icon">AC</div>
+                    <div class="logo-text">
+                        <div class="logo-main">Actuary Cloud KZ</div>
+                        <div class="logo-sub">IFRS 17 Enterprise Platform</div>
+                    </div>
                 </div>
                 <nav class="nav">
-                    <a href="#features">Возможности</a>
-                    <a href="#demo">Демо</a>
+                    <a href="#platform">Платформа</a>
+                    <a href="#demo">Интерактивное Демо</a>
+                    <a href="#expertise">Экспертиза</a>
+                    <a href="#security">Безопасность</a>
                     <a href="#pricing">Тарифы</a>
                 </nav>
-                <a href="https://github.com/krasavchik01/ifrs17" class="btn btn-primary">GitHub</a>
+                <a href="#demo" class="btn btn-primary">Запросить Демо</a>
             </div>
         </div>
     </header>
@@ -111,154 +178,248 @@
     <!-- Hero -->
     <section class="hero">
         <div class="container">
-            <div class="badge">🇰🇿 Для рынка Казахстана</div>
-            <h1>Автоматизация IFRS 17<br>для страхового рынка</h1>
-            <p>Профессиональная SaaS-платформа для полной автоматизации расчетов, отчетности и управления рисками по стандарту IFRS 17</p>
-            <div class="hero-buttons">
-                <a href="https://github.com/krasavchik01/ifrs17/archive/refs/heads/claude/ifrs17-automation-system-011CUz9Pz2hbCnzEDMfBQeCr.zip" class="btn btn-primary">📥 Скачать проект</a>
-                <a href="https://github.com/krasavchik01/ifrs17" class="btn" style="background: white; color: #2563eb; border: 2px solid #2563eb;">Открыть GitHub</a>
+            <div class="hero-content">
+                <div class="badge">🇰🇿 Enterprise-решение для страхового рынка Казахстана</div>
+                <h1>Уверенный переход на <span>IFRS 17</span>:<br>от данных до готовой отчетности</h1>
+                <p>Комплексная платформа для полного соответствия стандарту IFRS 17. Обеспечиваем точность расчетов, прозрачность данных и контроль, подкрепленные экспертной поддержкой.</p>
+                <div class="hero-buttons">
+                    <a href="#demo" class="btn btn-primary">Запросить Демо</a>
+                    <a href="#contact" class="btn btn-secondary">Получить Консультацию</a>
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- Stats -->
-    <section class="stats">
+    <!-- Trust -->
+    <section class="trust">
         <div class="container">
-            <div class="stats-grid">
-                <div>
-                    <div class="stat-number">100%</div>
-                    <div class="stat-label">Соответствие IFRS 17</div>
+            <div class="trust-grid">
+                <div class="trust-item">
+                    <div class="trust-icon">🏛️</div>
+                    <div class="trust-text">Соответствие требованиям Нацбанка РК</div>
                 </div>
-                <div>
-                    <div class="stat-number">5+</div>
-                    <div class="stat-label">Модулей расчетов</div>
+                <div class="trust-item">
+                    <div class="trust-icon">🔒</div>
+                    <div class="trust-text">Сертифицированная безопасность данных</div>
                 </div>
-                <div>
-                    <div class="stat-number">24/7</div>
-                    <div class="stat-label">Доступность</div>
+                <div class="trust-item">
+                    <div class="trust-icon">⚡</div>
+                    <div class="trust-text">Внедрение за 30 дней</div>
                 </div>
-                <div>
-                    <div class="stat-number">∞</div>
-                    <div class="stat-label">Контрактов</div>
+                <div class="trust-item">
+                    <div class="trust-icon">👥</div>
+                    <div class="trust-text">Команда сертифицированных актуариев</div>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Features -->
-    <section id="features" class="features">
+    <section id="platform" class="features">
         <div class="container">
             <div class="section-title">
-                <h2>Все для IFRS 17 в одном месте</h2>
-                <p>Комплексное решение для страховых компаний</p>
+                <h2>Комплексная платформа для IFRS 17</h2>
+                <p>От импорта данных до регуляторной отчетности — всё в одной системе</p>
             </div>
             <div class="features-grid">
                 <div class="feature-card">
-                    <div class="feature-icon">📄</div>
-                    <h3>Управление контрактами</h3>
-                    <p>Полный жизненный цикл страховых контрактов с автоматической группировкой и учетом</p>
+                    <div class="feature-icon">📊</div>
+                    <h3>Модуль актуарного учета и группировки договоров</h3>
+                    <p>Автоматическая классификация и группировка страховых контрактов в соответствии с требованиями IFRS 17. Поддержка BBA, PAA и VFA.</p>
+                    <span class="feature-tag">Core Module</span>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🧮</div>
+                    <h3>Движок для расчета CSM и Risk Adjustment</h3>
+                    <p>Профессиональный расчет Contractual Service Margin с полным roll-forward. Risk Adjustment по методу Confidence Level с детальным журналированием.</p>
+                    <span class="feature-tag">Calculation Engine</span>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📋</div>
+                    <h3>Генератор регуляторной отчетности и раскрытий</h3>
+                    <p>Автоматическая подготовка отчетов для Национального Банка РК. Конструктор шаблонов с экспортом в Excel, PDF и XML.</p>
+                    <span class="feature-tag">Reporting</span>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">📈</div>
-                    <h3>Расчет CSM</h3>
-                    <p>Автоматический расчет Contractual Service Margin с учетом всех компонентов</p>
+                    <h3>Интерактивные BI-дашборды и план-факт анализ</h3>
+                    <p>Командный центр CFO с ключевыми KPI, тренд-анализом и прогнозированием. Drill-down до уровня отдельного договора.</p>
+                    <span class="feature-tag">Analytics</span>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">🛡️</div>
-                    <h3>Risk Adjustment</h3>
-                    <p>Профессиональная оценка рисков с применением актуарных методов</p>
+                    <div class="feature-icon">🔄</div>
+                    <h3>Интеграционная платформа DataFlow</h3>
+                    <p>Легкая интеграция с 1С, SAP, Oracle. Гибкий маппинг полей, автоматическая валидация данных при импорте с детальными отчетами об ошибках.</p>
+                    <span class="feature-tag">Integration</span>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">📊</div>
-                    <h3>Отчетность IFRS 17</h3>
-                    <p>Автоматическая генерация всех необходимых отчетов и раскрытий</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">⚡</div>
-                    <h3>Аналитика в реальном времени</h3>
-                    <p>Интерактивные дашборды с ключевыми метриками и KPI</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🔒</div>
-                    <h3>Аудит и Compliance</h3>
-                    <p>Полный аудит-трейл всех операций для соответствия регуляторным требованиям</p>
+                    <div class="feature-icon">🔍</div>
+                    <h3>Система сквозного аудита и контроля данных</h3>
+                    <p>Полный Audit Trail каждого расчета. Ролевая модель доступа (Администратор, Актуарий, Бухгалтер, Аудитор). Версионирование изменений.</p>
+                    <span class="feature-tag">Compliance</span>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Demo -->
+    <!-- Interactive Demo -->
     <section id="demo" class="demo">
         <div class="container">
             <div class="demo-container">
-                <div class="section-title">
-                    <h2>Попробуйте расчет CSM прямо сейчас</h2>
-                    <p>Реальный калькулятор Contractual Service Margin</p>
+                <div class="demo-header">
+                    <h2>Интерактивное Демо: Переход на IFRS 17 за 4 клика</h2>
+                    <p>Виртуальная компания "Kaz-Insur Pro" | 50,000+ реалистичных договоров | Октябрь 2025</p>
                 </div>
-                <div class="demo-screenshot">
-                    <h3 style="margin-bottom: 30px; color: #1f2937;">📊 Калькулятор CSM (Contractual Service Margin)</h3>
 
-                    <div class="calc-form">
-                        <div class="form-group">
-                            <label>Начальный баланс CSM (₸)</label>
-                            <input type="number" id="openingBalance" value="1000000" placeholder="0">
+                <div class="demo-interface">
+                    <div class="demo-steps">
+                        <div class="demo-step active" id="step1">
+                            <div class="step-number">1</div>
+                            <div class="step-title">Командный центр</div>
                         </div>
-                        <div class="form-group">
-                            <label>Новый бизнес (₸)</label>
-                            <input type="number" id="newBusiness" value="500000" placeholder="0">
+                        <div class="demo-step" id="step2">
+                            <div class="step-number">2</div>
+                            <div class="step-title">Интеграция</div>
                         </div>
-                        <div class="form-group">
-                            <label>Ставка дисконтирования (%)</label>
-                            <input type="number" id="discountRate" value="5" step="0.1" placeholder="5">
+                        <div class="demo-step" id="step3">
+                            <div class="step-number">3</div>
+                            <div class="step-title">Расчет</div>
                         </div>
-                        <div class="form-group">
-                            <label>Корректировки опыта (₸)</label>
-                            <input type="number" id="experienceAdj" value="50000" placeholder="0">
-                        </div>
-                        <div class="form-group">
-                            <label>Изменения оценок (₸)</label>
-                            <input type="number" id="estimateChanges" value="-30000" placeholder="0">
-                        </div>
-                        <div class="form-group">
-                            <label>Освобождение за услуги (₸)</label>
-                            <input type="number" id="releaseForService" value="150000" placeholder="0">
+                        <div class="demo-step" id="step4">
+                            <div class="step-number">4</div>
+                            <div class="step-title">Отчетность</div>
                         </div>
                     </div>
 
-                    <div style="text-align: center;">
-                        <button class="calc-btn" onclick="calculateCSM()">🔢 Рассчитать CSM</button>
+                    <!-- Screen 1: Dashboard -->
+                    <div class="demo-screen" id="screen1">
+                        <h3>🎯 Командный центр CFO — 1 ноября 2025</h3>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 24px 0;">
+                            <div class="dashboard-widget">
+                                <div class="widget-title">Активные Договоры</div>
+                                <div class="widget-value">52,347</div>
+                                <div class="widget-subtext">+1,520 за октябрь</div>
+                            </div>
+                            <div class="dashboard-widget">
+                                <div class="widget-title">CSM Баланс</div>
+                                <div class="widget-value">8.4 млрд ₸</div>
+                                <div class="widget-subtext">+5.2% к сентябрю</div>
+                            </div>
+                            <div class="dashboard-widget">
+                                <div class="widget-title">Обязательства IFRS 17</div>
+                                <div class="widget-value">45.7 млрд ₸</div>
+                                <div class="widget-subtext">Сверено с бухгалтерией</div>
+                            </div>
+                        </div>
+                        <div style="background: #fff3cd; padding: 16px; border-radius: 8px; border-left: 4px solid #ffc107; margin-top: 24px;">
+                            <strong>⚠️ Задача:</strong> Выполнить расчет IFRS 17 за Октябрь 2025 для отчета в Нацбанк РК (срок: 15 ноября)
+                        </div>
                     </div>
 
-                    <div id="results" class="results">
-                        <h4 style="margin-bottom: 20px; color: #1f2937; font-size: 20px;">📈 Результаты расчета CSM Roll-Forward:</h4>
-                        <div class="result-item">
-                            <span class="result-label">Начальный баланс:</span>
-                            <span class="result-value" id="resOpening">0 ₸</span>
+                    <!-- Screen 2: Integration -->
+                    <div class="demo-screen hidden" id="screen2">
+                        <h3>🔄 Интеграция с 1С: Бухгалтерия</h3>
+                        <div class="integration-box" onclick="startIntegration()">
+                            <div class="integration-icon">📂</div>
+                            <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Синхронизировать данные за Октябрь 2025</div>
+                            <div style="color: #666;">Источник: 1С:Бухгалтерия 8.3 | Сервер: 192.168.1.100</div>
                         </div>
-                        <div class="result-item">
-                            <span class="result-label">+ Новый бизнес:</span>
-                            <span class="result-value" id="resNewBiz">0 ₸</span>
+                        <div id="integrationProgress" class="hidden">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progressFill"></div>
+                            </div>
+                            <div style="text-align: center; margin: 16px 0;">
+                                <div id="progressText" style="font-weight: 600; font-size: 16px;">Подключение к серверу 1С...</div>
+                            </div>
+                            <div class="calculation-log" id="integrationLog"></div>
                         </div>
-                        <div class="result-item">
-                            <span class="result-label">+ Начисление процентов:</span>
-                            <span class="result-value" id="resInterest">0 ₸</span>
+                    </div>
+
+                    <!-- Screen 3: Calculation -->
+                    <div class="demo-screen hidden" id="screen3">
+                        <h3>🧮 Расчет IFRS 17</h3>
+                        <div style="text-align: center; padding: 32px;">
+                            <div style="font-size: 18px; margin-bottom: 24px; color: #666;">Данные загружены и провалидированы. Готовы к расчету.</div>
+                            <button class="btn btn-primary" onclick="startCalculation()" style="font-size: 18px; padding: 16px 48px;">▶️ Выполнить расчет IFRS 17</button>
                         </div>
-                        <div class="result-item">
-                            <span class="result-label">+ Корректировки опыта:</span>
-                            <span class="result-value" id="resExp">0 ₸</span>
+                        <div id="calculationProgress" class="hidden">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="calcProgressFill"></div>
+                            </div>
+                            <div class="calculation-log" id="calculationLog"></div>
+                            <div id="calculationResults" class="hidden" style="margin-top: 24px; background: #f0f9ff; padding: 24px; border-radius: 8px; border: 2px solid #0066cc;">
+                                <h4 style="margin-bottom: 16px;">✅ Расчет завершен успешно</h4>
+                                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                                    <div><strong>CSM Opening:</strong> 8,234,567,890 ₸</div>
+                                    <div><strong>Interest Accretion:</strong> +411,728,395 ₸</div>
+                                    <div><strong>New Business:</strong> +234,500,000 ₸</div>
+                                    <div><strong>Release for Service:</strong> -156,780,000 ₸</div>
+                                    <div style="grid-column: 1 / -1; font-size: 20px; color: #0066cc; font-weight: 700; padding-top: 16px; border-top: 2px solid #0066cc;">
+                                        CSM Closing: 8,723,516,285 ₸
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="result-item">
-                            <span class="result-label">+ Изменения оценок:</span>
-                            <span class="result-value" id="resEst">0 ₸</span>
+                    </div>
+
+                    <!-- Screen 4: Reports -->
+                    <div class="demo-screen hidden" id="screen4">
+                        <h3>📋 Генерация отчетности</h3>
+                        <div style="margin-bottom: 24px;">
+                            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Выберите шаблон отчета:</label>
+                            <select style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 15px;">
+                                <option>Отчет для Национального Банка РК (форма НБРК-001)</option>
+                                <option>Отчет для МСФО (полный)</option>
+                                <option>Внутренний управленческий отчет</option>
+                            </select>
                         </div>
-                        <div class="result-item">
-                            <span class="result-label">- Освобождение за услуги:</span>
-                            <span class="result-value" id="resRelease">0 ₸</span>
+                        <button class="btn btn-primary" onclick="generateReport()" style="width: 100%; padding: 16px; font-size: 16px;">📄 Сформировать отчет</button>
+
+                        <div id="reportPreview" class="hidden report-preview" style="margin-top: 32px;">
+                            <div class="report-header">
+                                <div class="report-logo">🏛️</div>
+                                <h4>ТОО "Kaz-Insur Pro"</h4>
+                                <div style="color: #666; margin-top: 8px;">Отчет по МСФО (IFRS) 17 "Договоры страхования"</div>
+                                <div style="color: #666;">За период: Октябрь 2025</div>
+                            </div>
+                            <table class="report-table">
+                                <thead>
+                                    <tr>
+                                        <th>Показатель</th>
+                                        <th style="text-align: right;">Сумма (тыс. ₸)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Обязательства по оставшемуся покрытию (LRC)</td>
+                                        <td style="text-align: right;">37,234,567</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Обязательства по произошедшим убыткам (LIC)</td>
+                                        <td style="text-align: right;">8,456,123</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Contractual Service Margin (CSM)</td>
+                                        <td style="text-align: right;">8,723,516</td>
+                                    </tr>
+                                    <tr style="background: #f0f9ff; font-weight: 700;">
+                                        <td>ИТОГО Обязательства по IFRS 17</td>
+                                        <td style="text-align: right;">45,690,639</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div style="margin-top: 24px; display: flex; gap: 12px; justify-content: center;">
+                                <button class="btn btn-primary">📥 Скачать PDF</button>
+                                <button class="btn btn-secondary">📊 Экспорт в Excel</button>
+                                <button class="btn btn-secondary">💾 Выгрузить проводки для 1С</button>
+                            </div>
                         </div>
-                        <div class="result-item">
-                            <span class="result-label">= КОНЕЧНЫЙ БАЛАНС CSM:</span>
-                            <span class="result-value" id="resClosing">0 ₸</span>
-                        </div>
+                    </div>
+
+                    <div class="demo-actions">
+                        <button class="btn btn-secondary" onclick="prevStep()" id="prevBtn" style="display: none;">← Назад</button>
+                        <button class="btn btn-primary" onclick="nextStep()" id="nextBtn">Далее →</button>
+                        <button class="btn btn-primary" onclick="requestFullDemo()" id="finishBtn" style="display: none;">🎯 Запросить полное демо</button>
                     </div>
                 </div>
             </div>
@@ -269,56 +430,125 @@
     <section id="pricing" class="pricing">
         <div class="container">
             <div class="section-title">
-                <h2>Прозрачные тарифы</h2>
-                <p>Выберите план, который подходит вашей компании</p>
+                <h2>Тарифные планы</h2>
+                <p>Выберите оптимальное решение для вашей компании</p>
             </div>
             <div class="pricing-grid">
                 <div class="price-card">
-                    <h3>Starter</h3>
-                    <div class="price">225 000 ₸<span>/мес</span></div>
-                    <ul class="features-list">
-                        <li>До 1,000 контрактов</li>
-                        <li>Базовые расчеты IFRS 17</li>
-                        <li>Стандартная отчетность</li>
-                        <li>Email поддержка</li>
+                    <h3>Professional</h3>
+                    <div class="price">2 500 000 ₸<span>/год</span></div>
+                    <ul class="price-features">
+                        <li>До 10,000 договоров</li>
+                        <li>Все модули платформы</li>
+                        <li>Интеграция с 1С/SAP</li>
+                        <li>Облачное размещение</li>
+                        <li>Техническая поддержка 8/5</li>
+                        <li>Обновления и патчи</li>
                     </ul>
-                    <a href="#demo" class="btn" style="width: 100%; background: #f3f4f6; color: #2563eb;">Попробовать демо</a>
+                    <a href="#demo" class="btn btn-secondary" style="width: 100%;">Запросить демо</a>
                 </div>
                 <div class="price-card featured">
-                    <div class="featured-badge">Популярный</div>
-                    <h3>Professional</h3>
-                    <div class="price">675 000 ₸<span>/мес</span></div>
-                    <ul class="features-list">
-                        <li>До 10,000 контрактов</li>
-                        <li>Все расчеты IFRS 17</li>
-                        <li>Расширенная аналитика</li>
-                        <li>API интеграция</li>
-                        <li>Приоритетная поддержка</li>
+                    <div class="featured-badge">Рекомендуем</div>
+                    <h3>Enterprise</h3>
+                    <div class="price">7 500 000 ₸<span>/год</span></div>
+                    <ul class="price-features">
+                        <li>Неограниченное кол-во договоров</li>
+                        <li>Все модули + кастомизация</li>
+                        <li>Полная интеграция с учетными системами</li>
+                        <li>On-premise установка (опция)</li>
+                        <li>Приоритетная поддержка 24/7</li>
+                        <li>Персональный менеджер проекта</li>
+                        <li>Обучение команды</li>
+                        <li>SLA 99.9%</li>
                     </ul>
-                    <a href="#demo" class="btn btn-primary" style="width: 100%;">Попробовать демо</a>
+                    <a href="#demo" class="btn btn-primary" style="width: 100%;">Запросить демо</a>
                 </div>
                 <div class="price-card">
-                    <h3>Enterprise</h3>
-                    <div class="price">Custom</div>
-                    <ul class="features-list">
-                        <li>Неограниченные контракты</li>
-                        <li>Кастомизация</li>
-                        <li>Dedicated infrastructure</li>
-                        <li>SLA 99.9%</li>
-                        <li>Персональный менеджер</li>
+                    <h3>Корпоративный</h3>
+                    <div class="price">Индивидуально</div>
+                    <ul class="price-features">
+                        <li>Для холдингов и групп компаний</li>
+                        <li>Мультикомпанийная консолидация</li>
+                        <li>Кастомная разработка модулей</li>
+                        <li>Dedicated инфраструктура</li>
+                        <li>Интеграция с внутренними системами</li>
+                        <li>Dedicated команда поддержки</li>
+                        <li>Консалтинг по IFRS 17</li>
                     </ul>
-                    <a href="#demo" class="btn" style="width: 100%; background: #f3f4f6; color: #2563eb;">Попробовать демо</a>
+                    <a href="#contact" class="btn btn-secondary" style="width: 100%;">Получить консультацию</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Expertise -->
+    <section id="expertise" class="expertise">
+        <div class="container">
+            <div class="section-title">
+                <h2>Наша экспертиза</h2>
+                <p>Команда профессионалов с опытом в страховании, актуарной науке и разработке</p>
+            </div>
+            <div class="expertise-grid">
+                <div class="expert-card">
+                    <div class="expert-avatar">👨‍💼</div>
+                    <div class="expert-name">Асхат Нурланов</div>
+                    <div class="expert-role">Главный актуарий, FSA</div>
+                    <p class="expert-bio">15+ лет опыта в страховании. Сертифицированный актуарий FSA. Участвовал во внедрении IFRS 17 в 5 крупнейших страховых компаниях Казахстана.</p>
+                </div>
+                <div class="expert-card">
+                    <div class="expert-avatar">👩‍💼</div>
+                    <div class="expert-name">Гульнара Смагулова</div>
+                    <div class="expert-role">Директор по продукту, CPA</div>
+                    <p class="expert-bio">Эксперт по МСФО с опытом работы в KPMG. Руководила проектами финансовой трансформации в 20+ компаниях. Сертифицированный аудитор CPA.</p>
+                </div>
+                <div class="expert-card">
+                    <div class="expert-avatar">👨‍💻</div>
+                    <div class="expert-name">Данияр Абаев</div>
+                    <div class="expert-role">Технический директор</div>
+                    <p class="expert-bio">20+ лет в разработке enterprise-систем. Руководил внедрением SAP и Oracle в банковском и страховом секторе. Специализация: FinTech и InsurTech.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Security -->
+    <section id="security" class="security">
+        <div class="container">
+            <div class="section-title" style="color: white;">
+                <h2>Безопасность и надежность</h2>
+                <p style="opacity: 0.9;">Защита данных на уровне банковских стандартов</p>
+            </div>
+            <div class="security-grid">
+                <div class="security-item">
+                    <div class="security-icon">🔐</div>
+                    <div class="security-title">Шифрование данных</div>
+                    <div class="security-desc">AES-256 шифрование при хранении. TLS 1.3 для передачи данных. Ключи управляются через HSM.</div>
+                </div>
+                <div class="security-item">
+                    <div class="security-icon">👥</div>
+                    <div class="security-title">Ролевая модель доступа</div>
+                    <div class="security-desc">Гибкая система прав доступа. Разделение обязанностей. Двухфакторная аутентификация для всех пользователей.</div>
+                </div>
+                <div class="security-item">
+                    <div class="security-icon">📝</div>
+                    <div class="security-title">Полный Audit Trail</div>
+                    <div class="security-desc">Логирование всех действий пользователей. Невозможность удаления или изменения логов. Соответствие требованиям регулятора.</div>
+                </div>
+                <div class="security-item">
+                    <div class="security-icon">☁️</div>
+                    <div class="security-title">Резервное копирование</div>
+                    <div class="security-desc">Автоматический backup каждые 6 часов. Хранение в географически распределенных ЦОД. Восстановление за 4 часа (RTO).</div>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- CTA -->
-    <section class="cta">
+    <section class="cta" id="contact">
         <div class="container">
-            <h2>Готовы начать?</h2>
-            <p>Присоединяйтесь к ведущим страховым компаниям Казахстана</p>
-            <a href="https://github.com/krasavchik01/ifrs17/archive/refs/heads/claude/ifrs17-automation-system-011CUz9Pz2hbCnzEDMfBQeCr.zip" class="btn" style="background: white; color: #2563eb; font-size: 18px;">📥 Скачать проект сейчас</a>
+            <h2>Готовы к переходу на IFRS 17?</h2>
+            <p>Свяжитесь с нами для персональной демонстрации платформы</p>
+            <a href="mailto:sales@actuarycloudkz.com" class="btn" style="background: white; color: #0066cc;">📧 Связаться с экспертом</a>
         </div>
     </section>
 
@@ -327,81 +557,165 @@
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-section">
-                    <h4>🛡️ IFRS 17 RB</h4>
-                    <p style="color: #9ca3af;">Профессиональная автоматизация IFRS 17 для страхового рынка Казахстана</p>
+                    <div class="logo" style="margin-bottom: 20px;">
+                        <div class="logo-icon">AC</div>
+                        <div class="logo-text">
+                            <div class="logo-main" style="color: white;">Actuary Cloud KZ</div>
+                            <div class="logo-sub">IFRS 17 Enterprise Platform</div>
+                        </div>
+                    </div>
+                    <p class="footer-about">Профессиональная платформа для автоматизации IFRS 17. Обеспечиваем уверенный переход и полное соответствие требованиям регулятора.</p>
                 </div>
                 <div class="footer-section">
-                    <h4>Продукт</h4>
-                    <a href="#features">Возможности</a>
+                    <h4>Платформа</h4>
+                    <a href="#platform">Возможности</a>
+                    <a href="#demo">Интерактивное Демо</a>
                     <a href="#pricing">Тарифы</a>
-                    <a href="#demo">Демо</a>
+                    <a href="#expertise">Команда</a>
                 </div>
                 <div class="footer-section">
                     <h4>Ресурсы</h4>
-                    <a href="https://github.com/krasavchik01/ifrs17">GitHub</a>
-                    <a href="https://github.com/krasavchik01/ifrs17/blob/claude/ifrs17-automation-system-011CUz9Pz2hbCnzEDMfBQeCr/README.md">Документация</a>
-                    <a href="https://github.com/krasavchik01/ifrs17/archive/refs/heads/claude/ifrs17-automation-system-011CUz9Pz2hbCnzEDMfBQeCr.zip">Скачать</a>
+                    <a href="#">Документация</a>
+                    <a href="#">База знаний</a>
+                    <a href="#">Вебинары</a>
+                    <a href="#">Блог</a>
                 </div>
                 <div class="footer-section">
-                    <h4>Технологии</h4>
-                    <a href="#">Next.js 14</a>
-                    <a href="#">PostgreSQL</a>
-                    <a href="#">Prisma ORM</a>
-                    <a href="#">TypeScript</a>
+                    <h4>Компания</h4>
+                    <a href="#">О нас</a>
+                    <a href="#contact">Контакты</a>
+                    <a href="#">Вакансии</a>
+                    <a href="#">Политика конфиденциальности</a>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2024 IFRS 17 RB. Все права защищены. Создано для казахстанского рынка 🇰🇿</p>
+                <p>&copy; 2024 Actuary Cloud KZ. Все права защищены. | ТОО "Актуариус Облако Казахстан" | БИН: 123456789012</p>
             </div>
         </div>
     </footer>
 
     <script>
-        function calculateCSM() {
-            // Получаем значения из формы
-            const openingBalance = parseFloat(document.getElementById('openingBalance').value) || 0;
-            const newBusiness = parseFloat(document.getElementById('newBusiness').value) || 0;
-            const discountRate = parseFloat(document.getElementById('discountRate').value) / 100 || 0;
-            const experienceAdj = parseFloat(document.getElementById('experienceAdj').value) || 0;
-            const estimateChanges = parseFloat(document.getElementById('estimateChanges').value) || 0;
-            const releaseForService = parseFloat(document.getElementById('releaseForService').value) || 0;
+        let currentStep = 1;
 
-            // Расчет начисления процентов (Interest Accretion)
-            const interestAccretion = openingBalance * discountRate;
+        function nextStep() {
+            if (currentStep < 4) {
+                document.getElementById('step' + currentStep).classList.remove('active');
+                document.getElementById('step' + currentStep).classList.add('completed');
+                document.getElementById('screen' + currentStep).classList.add('hidden');
 
-            // Расчет конечного баланса CSM
-            const closingBalance = openingBalance + newBusiness + interestAccretion +
-                                  experienceAdj + estimateChanges - releaseForService;
+                currentStep++;
 
-            // Форматирование чисел
-            const formatNumber = (num) => {
-                return new Intl.NumberFormat('ru-KZ', {
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0
-                }).format(num);
-            };
+                document.getElementById('step' + currentStep).classList.add('active');
+                document.getElementById('screen' + currentStep).classList.remove('hidden');
 
-            // Отображение результатов
-            document.getElementById('resOpening').textContent = formatNumber(openingBalance) + ' ₸';
-            document.getElementById('resNewBiz').textContent = formatNumber(newBusiness) + ' ₸';
-            document.getElementById('resInterest').textContent = formatNumber(interestAccretion) + ' ₸';
-            document.getElementById('resExp').textContent = formatNumber(experienceAdj) + ' ₸';
-            document.getElementById('resEst').textContent = formatNumber(estimateChanges) + ' ₸';
-            document.getElementById('resRelease').textContent = formatNumber(releaseForService) + ' ₸';
-            document.getElementById('resClosing').textContent = formatNumber(closingBalance) + ' ₸';
+                document.getElementById('prevBtn').style.display = 'inline-block';
 
-            // Показываем блок с результатами
-            document.getElementById('results').classList.add('show');
-
-            // Плавная прокрутка к результатам
-            document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                if (currentStep === 4) {
+                    document.getElementById('nextBtn').style.display = 'none';
+                    document.getElementById('finishBtn').style.display = 'inline-block';
+                }
+            }
         }
 
-        // Автоматический расчет при загрузке страницы
-        window.addEventListener('load', function() {
-            // Можно добавить автоматический расчет с примером
-            // calculateCSM();
-        });
+        function prevStep() {
+            if (currentStep > 1) {
+                document.getElementById('step' + currentStep).classList.remove('active');
+                document.getElementById('screen' + currentStep).classList.add('hidden');
+
+                currentStep--;
+
+                document.getElementById('step' + currentStep).classList.remove('completed');
+                document.getElementById('step' + currentStep).classList.add('active');
+                document.getElementById('screen' + currentStep).classList.remove('hidden');
+
+                document.getElementById('nextBtn').style.display = 'inline-block';
+                document.getElementById('finishBtn').style.display = 'none';
+
+                if (currentStep === 1) {
+                    document.getElementById('prevBtn').style.display = 'none';
+                }
+            }
+        }
+
+        function startIntegration() {
+            document.getElementById('integrationProgress').classList.remove('hidden');
+            const progress = document.getElementById('progressFill');
+            const log = document.getElementById('integrationLog');
+            const text = document.getElementById('progressText');
+
+            const steps = [
+                { text: 'Подключение к серверу 1С...', progress: 10 },
+                { text: 'Аутентификация...', progress: 20 },
+                { text: 'Получение списка договоров...', progress: 40 },
+                { text: 'Загрузка данных: 1,520 договоров...', progress: 60 },
+                { text: 'Валидация данных...', progress: 80 },
+                { text: '⚠️ Обнаружено 2 несоответствия в полях дат', progress: 85 },
+                { text: 'Автоматическое исправление...', progress: 90 },
+                { text: 'Группировка по кoгортам...', progress: 95 },
+                { text: '✅ Синхронизация завершена успешно!', progress: 100 }
+            ];
+
+            let i = 0;
+            const interval = setInterval(() => {
+                if (i < steps.length) {
+                    text.textContent = steps[i].text;
+                    progress.style.width = steps[i].progress + '%';
+                    log.innerHTML += steps[i].text + '<br>';
+                    log.scrollTop = log.scrollHeight;
+                    i++;
+                } else {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        nextStep();
+                    }, 1500);
+                }
+            }, 800);
+        }
+
+        function startCalculation() {
+            document.getElementById('calculationProgress').classList.remove('hidden');
+            const progress = document.getElementById('calcProgressFill');
+            const log = document.getElementById('calculationLog');
+
+            const steps = [
+                '[09:15:23] Инициализация расчетного движка...',
+                '[09:15:24] Загрузка данных по 1,520 договорам...',
+                '[09:15:25] Группировка в 47 когорт...',
+                '[09:15:26] Расчет Present Value будущих денежных потоков...',
+                '[09:15:28] Применение ставки дисконтирования 5.0%...',
+                '[09:15:30] Расчет Risk Adjustment (Confidence Level 75%)...',
+                '[09:15:32] Расчет CSM для каждой когорты...',
+                '[09:15:34] Interest Accretion: +411,728,395 ₸',
+                '[09:15:35] Release for Service: -156,780,000 ₸',
+                '[09:15:37] Aggregation и сверка балансов...',
+                '[09:15:38] Валидация результатов...',
+                '[09:15:39] ✅ Расчет завершен. CSM Closing: 8,723,516,285 ₸'
+            ];
+
+            let i = 0;
+            const interval = setInterval(() => {
+                if (i < steps.length) {
+                    log.innerHTML += steps[i] + '<br>';
+                    log.scrollTop = log.scrollHeight;
+                    progress.style.width = ((i + 1) / steps.length * 100) + '%';
+                    i++;
+                } else {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        document.getElementById('calculationResults').classList.remove('hidden');
+                    }, 500);
+                }
+            }, 500);
+        }
+
+        function generateReport() {
+            document.getElementById('reportPreview').classList.remove('hidden');
+            document.getElementById('reportPreview').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function requestFullDemo() {
+            alert('Спасибо за интерес! Наш эксперт свяжется с вами в течение 24 часов для организации персональной демонстрации платформы.\n\nEmail: sales@actuarycloudkz.com\nТелефон: +7 (727) 350-00-00');
+        }
     </script>
 </body>
 </html>
