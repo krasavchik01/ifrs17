@@ -762,14 +762,19 @@
                     name: document.getElementById('demoName').value,
                     company: document.getElementById('demoCompany').value,
                     email: document.getElementById('demoEmail').value,
-                    phone: document.getElementById('demoPhone').value
+                    phone: document.getElementById('demoPhone').value,
+                    mode: document.querySelector('input[name="tourMode"]:checked').value
                 };
 
                 // Store in localStorage for analytics (in real app would send to server)
                 localStorage.setItem('demoRequest', JSON.stringify(formData));
 
-                // Redirect to demo tour
-                window.location.href = 'demo/tour.html';
+                // Redirect to demo app with correct mode
+                if (formData.mode === 'guided') {
+                    window.location.href = 'demo/index.html?tour=guided';
+                } else {
+                    window.location.href = 'demo/index.html';
+                }
             });
         });
 
@@ -807,11 +812,24 @@
                         <label class="form-label" for="demoPhone">Телефон</label>
                         <input type="tel" class="form-input" id="demoPhone" placeholder="+7 (727) 000-00-00" required>
                     </div>
+                    <div class="form-group">
+                        <label class="form-label">Режим демонстрации</label>
+                        <div style="display: flex; gap: 12px;">
+                            <label style="flex: 1; cursor: pointer;">
+                                <input type="radio" name="tourMode" value="guided" checked style="margin-right: 8px;">
+                                <span style="font-size: 14px; color: #1a1a1a;">🎯 Интерактивный тур (5 мин)</span>
+                            </label>
+                            <label style="flex: 1; cursor: pointer;">
+                                <input type="radio" name="tourMode" value="free" style="margin-right: 8px;">
+                                <span style="font-size: 14px; color: #1a1a1a;">🚀 Свободный режим</span>
+                            </label>
+                        </div>
+                    </div>
                     <button type="submit" class="form-submit">
-                        Начать интерактивное демо →
+                        Начать демо →
                     </button>
                     <p class="form-note">
-                        После отправки формы вы получите мгновенный доступ к полнофункциональной демо-версии платформы с 51,520 реальными договорами.
+                        После отправки формы вы получите мгновенный доступ к полнофункциональной демо-версии с 51,520 реальными договорами.
                     </p>
                 </form>
             </div>
