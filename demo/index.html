@@ -936,8 +936,10 @@
             // Update active nav item
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.classList.remove('active');
+                if (item.onclick && item.onclick.toString().includes(`'${page}'`)) {
+                    item.classList.add('active');
+                }
             });
-            event.currentTarget.classList.add('active');
 
             // Update page title
             const titles = {
