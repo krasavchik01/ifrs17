@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IFRS 17 Pro - Enterprise Insurance Automation</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+        /* Header */
+        header { background: white; border-bottom: 1px solid #e5e7eb; padding: 20px 0; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .header-content { display: flex; justify-content: space-between; align-items: center; }
+        .logo { display: flex; align-items: center; gap: 10px; font-size: 24px; font-weight: bold; background: linear-gradient(135deg, #2563eb, #4f46e5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .nav { display: flex; gap: 30px; }
+        .nav a { color: #4b5563; text-decoration: none; transition: color 0.3s; }
+        .nav a:hover { color: #2563eb; }
+        .btn { padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.3s; display: inline-block; }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-primary:hover { background: #1d4ed8; transform: translateY(-2px); box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3); }
+
+        /* Hero */
+        .hero { background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%); padding: 100px 0; text-align: center; }
+        .hero h1 { font-size: 56px; margin-bottom: 24px; background: linear-gradient(135deg, #2563eb, #4f46e5, #7c3aed); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero p { font-size: 20px; color: #6b7280; max-width: 800px; margin: 0 auto 40px; }
+        .hero-buttons { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+        .badge { display: inline-block; background: #dbeafe; color: #1e40af; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 600; margin-bottom: 30px; }
+
+        /* Features */
+        .features { padding: 80px 0; background: white; }
+        .section-title { text-align: center; margin-bottom: 60px; }
+        .section-title h2 { font-size: 40px; margin-bottom: 16px; }
+        .section-title p { font-size: 18px; color: #6b7280; }
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
+        .feature-card { padding: 30px; border: 1px solid #e5e7eb; border-radius: 12px; transition: all 0.3s; }
+        .feature-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+        .feature-icon { width: 50px; height: 50px; background: linear-gradient(135deg, #2563eb, #4f46e5); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; margin-bottom: 20px; }
+        .feature-card h3 { font-size: 20px; margin-bottom: 12px; }
+        .feature-card p { color: #6b7280; }
+
+        /* Demo Section */
+        .demo { padding: 80px 0; background: #f9fafb; }
+        .demo-container { background: white; border-radius: 16px; padding: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.1); }
+        .demo-screenshot { width: 100%; border-radius: 12px; border: 2px solid #e5e7eb; margin-top: 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 400px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; }
+
+        /* Stats */
+        .stats { padding: 60px 0; background: #1f2937; color: white; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 40px; text-align: center; }
+        .stat-number { font-size: 48px; font-weight: bold; margin-bottom: 8px; }
+        .stat-label { font-size: 16px; opacity: 0.8; }
+
+        /* Pricing */
+        .pricing { padding: 80px 0; }
+        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-top: 60px; }
+        .price-card { border: 2px solid #e5e7eb; border-radius: 16px; padding: 40px; text-align: center; transition: all 0.3s; }
+        .price-card:hover { transform: scale(1.05); box-shadow: 0 30px 60px rgba(0,0,0,0.15); }
+        .price-card.featured { border-color: #2563eb; position: relative; }
+        .featured-badge { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); background: #2563eb; color: white; padding: 6px 20px; border-radius: 20px; font-size: 14px; }
+        .price { font-size: 48px; font-weight: bold; margin: 20px 0; }
+        .price span { font-size: 18px; color: #6b7280; }
+        .features-list { list-style: none; margin: 30px 0; text-align: left; }
+        .features-list li { padding: 10px 0; border-bottom: 1px solid #f3f4f6; }
+        .features-list li:before { content: "✓"; color: #10b981; font-weight: bold; margin-right: 10px; }
+
+        /* CTA */
+        .cta { padding: 80px 0; background: linear-gradient(135deg, #2563eb, #4f46e5); color: white; text-align: center; }
+        .cta h2 { font-size: 40px; margin-bottom: 20px; }
+        .cta p { font-size: 20px; margin-bottom: 40px; opacity: 0.9; }
+
+        /* Footer */
+        footer { background: #1f2937; color: white; padding: 60px 0 20px; }
+        .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 40px; margin-bottom: 40px; }
+        .footer-section h4 { margin-bottom: 20px; }
+        .footer-section a { display: block; color: #9ca3af; text-decoration: none; margin-bottom: 10px; }
+        .footer-section a:hover { color: white; }
+        .footer-bottom { text-align: center; padding-top: 30px; border-top: 1px solid #374151; color: #9ca3af; }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    🛡️ IFRS 17 Pro
+                </div>
+                <nav class="nav">
+                    <a href="#features">Возможности</a>
+                    <a href="#demo">Демо</a>
+                    <a href="#pricing">Тарифы</a>
+                </nav>
+                <a href="https://github.com/krasavchik01/ifrs17" class="btn btn-primary">GitHub</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="container">
+            <div class="badge">🇰🇿 Для рынка Казахстана</div>
+            <h1>Автоматизация IFRS 17<br>Уровня Большой Четверки</h1>
+            <p>Профессиональная SaaS-платформа для полной автоматизации расчетов, отчетности и управления рисками по стандарту IFRS 17</p>
+            <div class="hero-buttons">
+                <a href="https://github.com/krasavchik01/ifrs17/archive/refs/heads/claude/ifrs17-automation-system-011CUz9Pz2hbCnzEDMfBQeCr.zip" class="btn btn-primary">📥 Скачать проект</a>
+                <a href="https://github.com/krasavchik01/ifrs17" class="btn" style="background: white; color: #2563eb; border: 2px solid #2563eb;">Открыть GitHub</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="stats">
+        <div class="container">
+            <div class="stats-grid">
+                <div>
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">Соответствие IFRS 17</div>
+                </div>
+                <div>
+                    <div class="stat-number">5+</div>
+                    <div class="stat-label">Модулей расчетов</div>
+                </div>
+                <div>
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-label">Доступность</div>
+                </div>
+                <div>
+                    <div class="stat-number">∞</div>
+                    <div class="stat-label">Контрактов</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-title">
+                <h2>Все для IFRS 17 в одном месте</h2>
+                <p>Комплексное решение для страховых компаний</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📄</div>
+                    <h3>Управление контрактами</h3>
+                    <p>Полный жизненный цикл страховых контрактов с автоматической группировкой и учетом</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📈</div>
+                    <h3>Расчет CSM</h3>
+                    <p>Автоматический расчет Contractual Service Margin с учетом всех компонентов</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🛡️</div>
+                    <h3>Risk Adjustment</h3>
+                    <p>Профессиональная оценка рисков с применением актуарных методов</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Отчетность IFRS 17</h3>
+                    <p>Автоматическая генерация всех необходимых отчетов и раскрытий</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Аналитика в реальном времени</h3>
+                    <p>Интерактивные дашборды с ключевыми метриками и KPI</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Аудит и Compliance</h3>
+                    <p>Полный аудит-трейл всех операций для соответствия регуляторным требованиям</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Demo -->
+    <section id="demo" class="demo">
+        <div class="container">
+            <div class="demo-container">
+                <div class="section-title">
+                    <h2>Посмотрите как это работает</h2>
+                    <p>Enterprise-grade решение для автоматизации IFRS 17</p>
+                </div>
+                <div class="demo-screenshot">
+                    🎯 Интерактивная демо версия<br>в разработке
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing -->
+    <section id="pricing" class="pricing">
+        <div class="container">
+            <div class="section-title">
+                <h2>Прозрачные тарифы</h2>
+                <p>Выберите план, который подходит вашей компании</p>
+            </div>
+            <div class="pricing-grid">
+                <div class="price-card">
+                    <h3>Starter</h3>
+                    <div class="price">$499<span>/мес</span></div>
+                    <ul class="features-list">
+                        <li>До 1,000 контрактов</li>
+                        <li>Базовые расчеты IFRS 17</li>
+                        <li>Стандартная отчетность</li>
+                        <li>Email поддержка</li>
+                    </ul>
+                    <a href="https://github.com/krasavchik01/ifrs17" class="btn" style="width: 100%; background: #f3f4f6; color: #2563eb;">Выбрать</a>
+                </div>
+                <div class="price-card featured">
+                    <div class="featured-badge">Популярный</div>
+                    <h3>Professional</h3>
+                    <div class="price">$1,499<span>/мес</span></div>
+                    <ul class="features-list">
+                        <li>До 10,000 контрактов</li>
+                        <li>Все расчеты IFRS 17</li>
+                        <li>Расширенная аналитика</li>
+                        <li>API интеграция</li>
+                        <li>Приоритетная поддержка</li>
+                    </ul>
+                    <a href="https://github.com/krasavchik01/ifrs17" class="btn btn-primary" style="width: 100%;">Выбрать</a>
+                </div>
+                <div class="price-card">
+                    <h3>Enterprise</h3>
+                    <div class="price">Custom</div>
+                    <ul class="features-list">
+                        <li>Неограниченные контракты</li>
+                        <li>Кастомизация</li>
+                        <li>Dedicated infrastructure</li>
+                        <li>SLA 99.9%</li>
+                        <li>Персональный менеджер</li>
+                    </ul>
+                    <a href="https://github.com/krasavchik01/ifrs17" class="btn" style="width: 100%; background: #f3f4f6; color: #2563eb;">Связаться</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta">
+        <div class="container">
+            <h2>Готовы начать?</h2>
+            <p>Присоединяйтесь к ведущим страховым компаниям Казахстана</p>
+            <a href="https://github.com/krasavchik01/ifrs17/archive/refs/heads/claude/ifrs17-automation-system-011CUz9Pz2hbCnzEDMfBQeCr.zip" class="btn" style="background: white; color: #2563eb; font-size: 18px;">📥 Скачать проект сейчас</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <h4>🛡️ IFRS 17 Pro</h4>
+                    <p style="color: #9ca3af;">Профессиональная автоматизация IFRS 17 для страхового рынка Казахстана</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Продукт</h4>
+                    <a href="#features">Возможности</a>
+                    <a href="#pricing">Тарифы</a>
+                    <a href="#demo">Демо</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Ресурсы</h4>
+                    <a href="https://github.com/krasavchik01/ifrs17">GitHub</a>
+                    <a href="https://github.com/krasavchik01/ifrs17/blob/claude/ifrs17-automation-system-011CUz9Pz2hbCnzEDMfBQeCr/README.md">Документация</a>
+                    <a href="https://github.com/krasavchik01/ifrs17/archive/refs/heads/claude/ifrs17-automation-system-011CUz9Pz2hbCnzEDMfBQeCr.zip">Скачать</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Технологии</h4>
+                    <a href="#">Next.js 14</a>
+                    <a href="#">PostgreSQL</a>
+                    <a href="#">Prisma ORM</a>
+                    <a href="#">TypeScript</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 IFRS 17 Pro. Все права защищены. Создано для казахстанского рынка 🇰🇿</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
