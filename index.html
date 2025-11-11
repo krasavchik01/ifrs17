@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IFRS 17 Pro - Enterprise Insurance Automation</title>
+    <title>IFRS 17 RB - Enterprise Insurance Automation</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; }
@@ -42,7 +42,20 @@
         /* Demo Section */
         .demo { padding: 80px 0; background: #f9fafb; }
         .demo-container { background: white; border-radius: 16px; padding: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.1); }
-        .demo-screenshot { width: 100%; border-radius: 12px; border: 2px solid #e5e7eb; margin-top: 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 400px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; }
+        .demo-screenshot { width: 100%; border-radius: 12px; border: 2px solid #e5e7eb; margin-top: 30px; background: white; padding: 40px; }
+        .calc-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { font-weight: 600; margin-bottom: 8px; color: #374151; }
+        .form-group input { padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px; transition: border-color 0.3s; }
+        .form-group input:focus { outline: none; border-color: #2563eb; }
+        .calc-btn { background: #2563eb; color: white; padding: 16px 32px; border: none; border-radius: 8px; font-size: 18px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .calc-btn:hover { background: #1d4ed8; transform: translateY(-2px); box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3); }
+        .results { background: #f9fafb; padding: 30px; border-radius: 12px; margin-top: 30px; display: none; }
+        .results.show { display: block; }
+        .result-item { display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid #e5e7eb; }
+        .result-item:last-child { border-bottom: none; font-size: 20px; font-weight: bold; background: #dbeafe; border-radius: 8px; margin-top: 10px; }
+        .result-label { color: #6b7280; }
+        .result-value { font-weight: 600; color: #2563eb; }
 
         /* Stats */
         .stats { padding: 60px 0; background: #1f2937; color: white; }
@@ -83,7 +96,7 @@
         <div class="container">
             <div class="header-content">
                 <div class="logo">
-                    🛡️ IFRS 17 Pro
+                    🛡️ IFRS 17 RB
                 </div>
                 <nav class="nav">
                     <a href="#features">Возможности</a>
@@ -99,7 +112,7 @@
     <section class="hero">
         <div class="container">
             <div class="badge">🇰🇿 Для рынка Казахстана</div>
-            <h1>Автоматизация IFRS 17<br>Уровня Большой Четверки</h1>
+            <h1>Автоматизация IFRS 17<br>для страхового рынка</h1>
             <p>Профессиональная SaaS-платформа для полной автоматизации расчетов, отчетности и управления рисками по стандарту IFRS 17</p>
             <div class="hero-buttons">
                 <a href="https://github.com/krasavchik01/ifrs17/archive/refs/heads/claude/ifrs17-automation-system-011CUz9Pz2hbCnzEDMfBQeCr.zip" class="btn btn-primary">📥 Скачать проект</a>
@@ -179,11 +192,74 @@
         <div class="container">
             <div class="demo-container">
                 <div class="section-title">
-                    <h2>Посмотрите как это работает</h2>
-                    <p>Enterprise-grade решение для автоматизации IFRS 17</p>
+                    <h2>Попробуйте расчет CSM прямо сейчас</h2>
+                    <p>Реальный калькулятор Contractual Service Margin</p>
                 </div>
                 <div class="demo-screenshot">
-                    🎯 Интерактивная демо версия<br>в разработке
+                    <h3 style="margin-bottom: 30px; color: #1f2937;">📊 Калькулятор CSM (Contractual Service Margin)</h3>
+
+                    <div class="calc-form">
+                        <div class="form-group">
+                            <label>Начальный баланс CSM (₸)</label>
+                            <input type="number" id="openingBalance" value="1000000" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Новый бизнес (₸)</label>
+                            <input type="number" id="newBusiness" value="500000" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Ставка дисконтирования (%)</label>
+                            <input type="number" id="discountRate" value="5" step="0.1" placeholder="5">
+                        </div>
+                        <div class="form-group">
+                            <label>Корректировки опыта (₸)</label>
+                            <input type="number" id="experienceAdj" value="50000" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Изменения оценок (₸)</label>
+                            <input type="number" id="estimateChanges" value="-30000" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Освобождение за услуги (₸)</label>
+                            <input type="number" id="releaseForService" value="150000" placeholder="0">
+                        </div>
+                    </div>
+
+                    <div style="text-align: center;">
+                        <button class="calc-btn" onclick="calculateCSM()">🔢 Рассчитать CSM</button>
+                    </div>
+
+                    <div id="results" class="results">
+                        <h4 style="margin-bottom: 20px; color: #1f2937; font-size: 20px;">📈 Результаты расчета CSM Roll-Forward:</h4>
+                        <div class="result-item">
+                            <span class="result-label">Начальный баланс:</span>
+                            <span class="result-value" id="resOpening">0 ₸</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">+ Новый бизнес:</span>
+                            <span class="result-value" id="resNewBiz">0 ₸</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">+ Начисление процентов:</span>
+                            <span class="result-value" id="resInterest">0 ₸</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">+ Корректировки опыта:</span>
+                            <span class="result-value" id="resExp">0 ₸</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">+ Изменения оценок:</span>
+                            <span class="result-value" id="resEst">0 ₸</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">- Освобождение за услуги:</span>
+                            <span class="result-value" id="resRelease">0 ₸</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">= КОНЕЧНЫЙ БАЛАНС CSM:</span>
+                            <span class="result-value" id="resClosing">0 ₸</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -199,19 +275,19 @@
             <div class="pricing-grid">
                 <div class="price-card">
                     <h3>Starter</h3>
-                    <div class="price">$499<span>/мес</span></div>
+                    <div class="price">225 000 ₸<span>/мес</span></div>
                     <ul class="features-list">
                         <li>До 1,000 контрактов</li>
                         <li>Базовые расчеты IFRS 17</li>
                         <li>Стандартная отчетность</li>
                         <li>Email поддержка</li>
                     </ul>
-                    <a href="https://github.com/krasavchik01/ifrs17" class="btn" style="width: 100%; background: #f3f4f6; color: #2563eb;">Выбрать</a>
+                    <a href="#demo" class="btn" style="width: 100%; background: #f3f4f6; color: #2563eb;">Попробовать демо</a>
                 </div>
                 <div class="price-card featured">
                     <div class="featured-badge">Популярный</div>
                     <h3>Professional</h3>
-                    <div class="price">$1,499<span>/мес</span></div>
+                    <div class="price">675 000 ₸<span>/мес</span></div>
                     <ul class="features-list">
                         <li>До 10,000 контрактов</li>
                         <li>Все расчеты IFRS 17</li>
@@ -219,7 +295,7 @@
                         <li>API интеграция</li>
                         <li>Приоритетная поддержка</li>
                     </ul>
-                    <a href="https://github.com/krasavchik01/ifrs17" class="btn btn-primary" style="width: 100%;">Выбрать</a>
+                    <a href="#demo" class="btn btn-primary" style="width: 100%;">Попробовать демо</a>
                 </div>
                 <div class="price-card">
                     <h3>Enterprise</h3>
@@ -231,7 +307,7 @@
                         <li>SLA 99.9%</li>
                         <li>Персональный менеджер</li>
                     </ul>
-                    <a href="https://github.com/krasavchik01/ifrs17" class="btn" style="width: 100%; background: #f3f4f6; color: #2563eb;">Связаться</a>
+                    <a href="#demo" class="btn" style="width: 100%; background: #f3f4f6; color: #2563eb;">Попробовать демо</a>
                 </div>
             </div>
         </div>
@@ -251,7 +327,7 @@
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-section">
-                    <h4>🛡️ IFRS 17 Pro</h4>
+                    <h4>🛡️ IFRS 17 RB</h4>
                     <p style="color: #9ca3af;">Профессиональная автоматизация IFRS 17 для страхового рынка Казахстана</p>
                 </div>
                 <div class="footer-section">
@@ -275,9 +351,57 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2024 IFRS 17 Pro. Все права защищены. Создано для казахстанского рынка 🇰🇿</p>
+                <p>&copy; 2024 IFRS 17 RB. Все права защищены. Создано для казахстанского рынка 🇰🇿</p>
             </div>
         </div>
     </footer>
+
+    <script>
+        function calculateCSM() {
+            // Получаем значения из формы
+            const openingBalance = parseFloat(document.getElementById('openingBalance').value) || 0;
+            const newBusiness = parseFloat(document.getElementById('newBusiness').value) || 0;
+            const discountRate = parseFloat(document.getElementById('discountRate').value) / 100 || 0;
+            const experienceAdj = parseFloat(document.getElementById('experienceAdj').value) || 0;
+            const estimateChanges = parseFloat(document.getElementById('estimateChanges').value) || 0;
+            const releaseForService = parseFloat(document.getElementById('releaseForService').value) || 0;
+
+            // Расчет начисления процентов (Interest Accretion)
+            const interestAccretion = openingBalance * discountRate;
+
+            // Расчет конечного баланса CSM
+            const closingBalance = openingBalance + newBusiness + interestAccretion +
+                                  experienceAdj + estimateChanges - releaseForService;
+
+            // Форматирование чисел
+            const formatNumber = (num) => {
+                return new Intl.NumberFormat('ru-KZ', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                }).format(num);
+            };
+
+            // Отображение результатов
+            document.getElementById('resOpening').textContent = formatNumber(openingBalance) + ' ₸';
+            document.getElementById('resNewBiz').textContent = formatNumber(newBusiness) + ' ₸';
+            document.getElementById('resInterest').textContent = formatNumber(interestAccretion) + ' ₸';
+            document.getElementById('resExp').textContent = formatNumber(experienceAdj) + ' ₸';
+            document.getElementById('resEst').textContent = formatNumber(estimateChanges) + ' ₸';
+            document.getElementById('resRelease').textContent = formatNumber(releaseForService) + ' ₸';
+            document.getElementById('resClosing').textContent = formatNumber(closingBalance) + ' ₸';
+
+            // Показываем блок с результатами
+            document.getElementById('results').classList.add('show');
+
+            // Плавная прокрутка к результатам
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Автоматический расчет при загрузке страницы
+        window.addEventListener('load', function() {
+            // Можно добавить автоматический расчет с примером
+            // calculateCSM();
+        });
+    </script>
 </body>
 </html>
