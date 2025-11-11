@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Actuary Cloud KZ - Интерактивный Тур</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .tour-container {
+            max-width: 600px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .tour-header {
+            background: linear-gradient(135deg, #0066cc, #3385d6);
+            color: white;
+            padding: 40px 32px;
+            text-align: center;
+        }
+
+        .tour-logo {
+            width: 64px;
+            height: 64px;
+            background: white;
+            color: #0066cc;
+            border-radius: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 24px;
+            margin-bottom: 16px;
+        }
+
+        .tour-header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .tour-header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .tour-content {
+            padding: 40px 32px;
+        }
+
+        .tour-welcome {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .tour-welcome h2 {
+            font-size: 24px;
+            color: #1a1a1a;
+            margin-bottom: 12px;
+        }
+
+        .tour-welcome p {
+            font-size: 16px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .tour-modes {
+            display: grid;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .tour-mode {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tour-mode:hover {
+            border-color: #0066cc;
+            box-shadow: 0 4px 12px rgba(0, 102, 204, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .tour-mode-badge {
+            display: inline-block;
+            background: #0066cc;
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .tour-mode-badge.advanced {
+            background: #764ba2;
+        }
+
+        .tour-mode h3 {
+            font-size: 18px;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+
+        .tour-mode p {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .tour-mode ul {
+            list-style: none;
+            font-size: 13px;
+            color: #888;
+        }
+
+        .tour-mode ul li {
+            padding: 4px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .tour-mode ul li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #10b981;
+            font-weight: 700;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            background: #0066cc;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 14px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .btn:hover {
+            background: #004a99;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #0066cc;
+            border: 2px solid #0066cc;
+        }
+
+        .btn-secondary:hover {
+            background: #f0f7ff;
+        }
+
+        .tour-footer {
+            text-align: center;
+            padding: 0 32px 32px;
+            color: #888;
+            font-size: 13px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-top: 24px;
+        }
+
+        .feature-item {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .feature-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .feature-label {
+            font-size: 13px;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .feature-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="tour-container">
+        <div class="tour-header">
+            <div class="tour-logo">AC</div>
+            <h1>Actuary Cloud KZ</h1>
+            <p>Добро пожаловать в интерактивное демо</p>
+        </div>
+
+        <div class="tour-content">
+            <div class="tour-welcome">
+                <h2>Выберите режим демонстрации</h2>
+                <p>Мы подготовили два варианта знакомства с платформой</p>
+            </div>
+
+            <div class="tour-modes">
+                <div class="tour-mode" onclick="startGuidedTour()">
+                    <span class="tour-mode-badge">Рекомендуется</span>
+                    <h3>🎯 Интерактивный тур</h3>
+                    <p>Пошаговое знакомство с ключевыми возможностями. Займет ~5 минут.</p>
+                    <ul>
+                        <li>Командный центр CFO</li>
+                        <li>Синхронизация с 1С</li>
+                        <li>Расчет IFRS 17</li>
+                        <li>Генерация отчетов</li>
+                    </ul>
+                </div>
+
+                <div class="tour-mode" onclick="startFreeTour()">
+                    <span class="tour-mode-badge advanced">Для экспертов</span>
+                    <h3>🚀 Свободный режим</h3>
+                    <p>Полная свобода действий. Исследуйте все разделы системы самостоятельно.</p>
+                    <ul>
+                        <li>Без ограничений</li>
+                        <li>Все функции доступны</li>
+                        <li>51,520 реальных договоров</li>
+                        <li>Drill-down в любые данные</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">📑</div>
+                    <div class="feature-label">Договоров</div>
+                    <div class="feature-value">51,520</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">⚡</div>
+                    <div class="feature-label">Расчет</div>
+                    <div class="feature-value">8.2 сек</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">💰</div>
+                    <div class="feature-label">CSM</div>
+                    <div class="feature-value">8.7B ₸</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">📊</div>
+                    <div class="feature-label">Отчетов</div>
+                    <div class="feature-value">15+</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tour-footer">
+            <p>Демо-версия с полнофункциональным интерфейсом</p>
+        </div>
+    </div>
+
+    <script>
+        function startGuidedTour() {
+            // Store tour preference
+            localStorage.setItem('tourMode', 'guided');
+            // Redirect to main demo with tour enabled
+            window.location.href = 'index.html?tour=guided';
+        }
+
+        function startFreeTour() {
+            // Store tour preference
+            localStorage.setItem('tourMode', 'free');
+            // Redirect to main demo without tour
+            window.location.href = 'index.html';
+        }
+
+        // Check if coming back from demo
+        if (window.location.search.includes('restart=1')) {
+            document.querySelector('.tour-welcome h2').textContent = 'Отличная работа!';
+            document.querySelector('.tour-welcome p').textContent = 'Вы завершили тур. Хотите пройти снова или перейти в свободный режим?';
+        }
+    </script>
+</body>
+</html>
