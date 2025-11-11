@@ -823,7 +823,7 @@
                         <span class="nav-item-icon">📑</span>
                         <span class="nav-item-text">Реестр договоров</span>
                     </div>
-                    <div class="nav-item disabled">
+                    <div class="nav-item" onclick="navigateTo('actuarial-models')">
                         <span class="nav-item-icon">⚙️</span>
                         <span class="nav-item-text">Актуарные модели</span>
                     </div>
@@ -944,6 +944,7 @@
                 'dashboard': 'Командный центр',
                 'data-management': 'Управление данными',
                 'contracts': 'Реестр договоров',
+                'actuarial-models': 'Актуарные модели',
                 'calculations': 'Расчеты IFRS 17',
                 'reports': 'Отчетность'
             };
@@ -967,6 +968,10 @@
                     break;
                 case 'contracts':
                     contentArea.innerHTML = getContractsContent();
+                    break;
+                case 'actuarial-models':
+                    contentArea.innerHTML = getActuarialModelsContent();
+                    initDiscountCurves();
                     break;
                 case 'calculations':
                     contentArea.innerHTML = getCalculationsContent();
@@ -1265,9 +1270,272 @@
             if (text.includes('⚠️')) className = 'log-level-warning';
             if (text.includes('❌') || text.includes('ошибк')) className = 'log-level-error';
 
-            line.innerHTML = `<span class="${className}">${text}</span>`;
+            line.innerHTML = '<span class="' + className + '">' + text + '</span>';
             terminal.appendChild(line);
             terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        // Actuarial Models content
+        function getActuarialModelsContent() {
+            return '<div class="chart-card" style="margin-bottom: 24px;">' +
+                '<div class="chart-header">' +
+                '<div class="chart-title">Кривые дисконтирования</div>' +
+                '<div class="chart-subtitle">Актуализация: 05.11.2025 (Национальный Банк РК)</div>' +
+                '</div>' +
+                '<div style="padding: 24px;">' +
+                '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">' +
+                '<div>' +
+                '<div style="margin-bottom: 16px; padding: 16px; background: var(--bg-tertiary); border-radius: 8px;">' +
+                '<div style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">БАЗОВАЯ КРИВАЯ</div>' +
+                '<div style="font-size: 20px; font-weight: 700;">KZ Government Bonds</div>' +
+                '<div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">Безрисковая ставка + спред суверенных облигаций</div>' +
+                '</div>' +
+                '<canvas id="discountCurve1" width="450" height="280" style="background: var(--bg-tertiary); border-radius: 8px;"></canvas>' +
+                '</div>' +
+                '<div>' +
+                '<div style="margin-bottom: 16px; padding: 16px; background: var(--bg-tertiary); border-radius: 8px;">' +
+                '<div style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">КРИВАЯ С КОРРЕКТИРОВКОЙ</div>' +
+                '<div style="font-size: 20px; font-weight: 700;">Adjusted for Credit Risk</div>' +
+                '<div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">С учётом кредитного риска портфеля</div>' +
+                '</div>' +
+                '<canvas id="discountCurve2" width="450" height="280" style="background: var(--bg-tertiary); border-radius: 8px;"></canvas>' +
+                '</div>' +
+                '</div>' +
+                '<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">' +
+                '<div style="padding: 12px; background: var(--bg-tertiary); border-radius: 8px; text-align: center;">' +
+                '<div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">1 ГОД</div>' +
+                '<div style="font-size: 18px; font-weight: 700; color: var(--primary-light);">9.25%</div>' +
+                '</div>' +
+                '<div style="padding: 12px; background: var(--bg-tertiary); border-radius: 8px; text-align: center;">' +
+                '<div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">5 ЛЕТ</div>' +
+                '<div style="font-size: 18px; font-weight: 700; color: var(--primary-light);">8.75%</div>' +
+                '</div>' +
+                '<div style="padding: 12px; background: var(--bg-tertiary); border-radius: 8px; text-align: center;">' +
+                '<div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">10 ЛЕТ</div>' +
+                '<div style="font-size: 18px; font-weight: 700; color: var(--primary-light);">8.15%</div>' +
+                '</div>' +
+                '<div style="padding: 12px; background: var(--bg-tertiary); border-radius: 8px; text-align: center;">' +
+                '<div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">20 ЛЕТ</div>' +
+                '<div style="font-size: 18px; font-weight: 700; color: var(--primary-light);">7.65%</div>' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
+                '<div class="chart-card" style="margin-bottom: 24px;">' +
+                '<div class="chart-header">' +
+                '<div class="chart-title">Таблица смертности</div>' +
+                '<div class="chart-subtitle">Загрузка актуарных данных из международных источников</div>' +
+                '</div>' +
+                '<div style="padding: 24px;">' +
+                '<div style="text-align: center; margin-bottom: 24px;">' +
+                '<button class="btn" onclick="loadMortalityTable()" style="font-size: 16px; padding: 14px 32px;">' +
+                '🌐 Загрузить таблицу смертности (SOA 2020)' +
+                '</button>' +
+                '<div style="margin-top: 12px; font-size: 13px; color: var(--text-muted);">Источник: Society of Actuaries, Standard Table 2020</div>' +
+                '</div>' +
+                '<div id="mortalityProgress" style="display: none;">' +
+                '<div class="progress-container">' +
+                '<div class="progress-header">' +
+                '<span class="progress-label" id="mortalityLabel">Подключение к серверу...</span>' +
+                '<span class="progress-percentage" id="mortalityPercentage">0%</span>' +
+                '</div>' +
+                '<div class="progress-bar-bg">' +
+                '<div class="progress-bar-fill" id="mortalityBar" style="width: 0%;"></div>' +
+                '</div>' +
+                '</div>' +
+                '<div class="terminal" id="mortalityTerminal"></div>' +
+                '</div>' +
+                '<div id="mortalityTableContainer" style="display: none;">' +
+                '<div class="data-table-container" style="margin-top: 24px;">' +
+                '<div class="table-header">' +
+                '<div class="table-title">Таблица смертности - Standard Table 2020 (Мужчины)</div>' +
+                '<div style="display: flex; gap: 12px;">' +
+                '<button class="btn btn-secondary" style="padding: 8px 16px; font-size: 13px;">👨 Мужчины</button>' +
+                '<button class="btn btn-secondary" style="padding: 8px 16px; font-size: 13px;">👩 Женщины</button>' +
+                '<button class="btn btn-secondary" style="padding: 8px 16px; font-size: 13px;">📊 Сравнить</button>' +
+                '</div>' +
+                '</div>' +
+                '<div class="table-wrapper">' +
+                '<table>' +
+                '<thead>' +
+                '<tr>' +
+                '<th>Возраст</th>' +
+                '<th>qx (Вероятность смерти)</th>' +
+                '<th>lx (Число доживших)</th>' +
+                '<th>dx (Число умерших)</th>' +
+                '<th>ex (Ожид. продолжительность)</th>' +
+                '</tr>' +
+                '</thead>' +
+                '<tbody id="mortalityTableBody">' +
+                '</tbody>' +
+                '</table>' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
+                '</div>';
+        }
+
+        // Initialize discount curves with canvas
+        function initDiscountCurves() {
+            setTimeout(function() {
+                drawDiscountCurve('discountCurve1', [
+                    {year: 1, rate: 9.25}, {year: 2, rate: 9.05}, {year: 3, rate: 8.95},
+                    {year: 5, rate: 8.75}, {year: 7, rate: 8.50}, {year: 10, rate: 8.15},
+                    {year: 15, rate: 7.90}, {year: 20, rate: 7.65}, {year: 25, rate: 7.50},
+                    {year: 30, rate: 7.40}
+                ], '#3b82f6');
+
+                drawDiscountCurve('discountCurve2', [
+                    {year: 1, rate: 9.85}, {year: 2, rate: 9.60}, {year: 3, rate: 9.45},
+                    {year: 5, rate: 9.20}, {year: 7, rate: 8.90}, {year: 10, rate: 8.50},
+                    {year: 15, rate: 8.20}, {year: 20, rate: 7.95}, {year: 25, rate: 7.80},
+                    {year: 30, rate: 7.70}
+                ], '#10b981');
+            }, 100);
+        }
+
+        function drawDiscountCurve(canvasId, data, color) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            const padding = 40;
+
+            ctx.clearRect(0, 0, width, height);
+
+            const maxYear = Math.max.apply(Math, data.map(function(d) { return d.year; }));
+            const maxRate = Math.max.apply(Math, data.map(function(d) { return d.rate; }));
+            const minRate = Math.min.apply(Math, data.map(function(d) { return d.rate; }));
+
+            const xScale = (width - padding * 2) / maxYear;
+            const yScale = (height - padding * 2) / (maxRate - minRate + 1);
+
+            ctx.strokeStyle = '#475569';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 5; i++) {
+                const y = padding + (height - padding * 2) * i / 5;
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(width - padding, y);
+                ctx.stroke();
+
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = '11px Arial';
+                ctx.textAlign = 'right';
+                const rateValue = (maxRate - (maxRate - minRate) * i / 5).toFixed(1);
+                ctx.fillText(rateValue + '%', padding - 10, y + 4);
+            }
+
+            for (let i = 0; i <= 6; i++) {
+                const x = padding + (width - padding * 2) * i / 6;
+                const yearValue = Math.floor(maxYear * i / 6);
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = '11px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(yearValue + 'г', x, height - padding + 20);
+            }
+
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+
+            for (let i = 0; i < data.length; i++) {
+                const x = padding + data[i].year * xScale;
+                const y = height - padding - (data[i].rate - minRate) * yScale;
+
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+
+            ctx.stroke();
+
+            for (let i = 0; i < data.length; i++) {
+                const x = padding + data[i].year * xScale;
+                const y = height - padding - (data[i].rate - minRate) * yScale;
+
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(x, y, 4, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+        }
+
+        // Load mortality table with animation
+        function loadMortalityTable() {
+            const progressDiv = document.getElementById('mortalityProgress');
+            const tableContainer = document.getElementById('mortalityTableContainer');
+            const terminal = document.getElementById('mortalityTerminal');
+            const bar = document.getElementById('mortalityBar');
+            const label = document.getElementById('mortalityLabel');
+            const percentage = document.getElementById('mortalityPercentage');
+
+            progressDiv.style.display = 'block';
+            tableContainer.style.display = 'none';
+            terminal.innerHTML = '';
+            bar.style.width = '0%';
+
+            const logs = [
+                { time: 100, text: '[10:23:01] Подключение к API Society of Actuaries...', progress: 10 },
+                { time: 800, text: '[10:23:02] Аутентификация успешна', progress: 20 },
+                { time: 1400, text: '[10:23:03] Запрос Standard Mortality Table 2020...', progress: 30 },
+                { time: 2200, text: '[10:23:05] Загрузка таблицы для возрастов 0-120 лет', progress: 50 },
+                { time: 3000, text: '[10:23:07] Получено 121 записей (мужчины)', progress: 70 },
+                { time: 3600, text: '[10:23:08] Получено 121 записей (женщины)', progress: 85 },
+                { time: 4200, text: '[10:23:09] Валидация данных...', progress: 95 },
+                { time: 4800, text: '[10:23:10] ✅ Таблица смертности загружена успешно!', progress: 100 }
+            ];
+
+            logs.forEach(function(log) {
+                setTimeout(function() {
+                    const line = document.createElement('div');
+                    line.className = 'log-line';
+                    let className = 'log-level-info';
+                    if (log.text.includes('✅')) className = 'log-level-success';
+                    line.innerHTML = '<span class="' + className + '">' + log.text + '</span>';
+                    terminal.appendChild(line);
+                    terminal.scrollTop = terminal.scrollHeight;
+
+                    bar.style.width = log.progress + '%';
+                    percentage.textContent = log.progress + '%';
+                    label.textContent = log.progress < 100 ? 'Загрузка данных...' : 'Загрузка завершена!';
+                }, log.time);
+            });
+
+            setTimeout(function() {
+                progressDiv.style.display = 'none';
+                tableContainer.style.display = 'block';
+
+                const tbody = document.getElementById('mortalityTableBody');
+                const sampleAges = [20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90];
+                const baseQx = 0.00050;
+
+                let lx = 100000;
+                let html = '';
+
+                for (let i = 0; i < sampleAges.length; i++) {
+                    const age = sampleAges[i];
+                    const qx = baseQx * Math.exp((age - 20) * 0.08);
+                    const dx = Math.floor(lx * qx);
+                    lx = lx - dx;
+                    const ex = (85 - age) * (1 - qx / 2);
+
+                    html += '<tr>' +
+                        '<td>' + age + '</td>' +
+                        '<td>' + qx.toFixed(6) + '</td>' +
+                        '<td>' + lx.toLocaleString('ru-RU') + '</td>' +
+                        '<td>' + dx.toLocaleString('ru-RU') + '</td>' +
+                        '<td>' + ex.toFixed(1) + ' лет</td>' +
+                        '</tr>';
+                }
+
+                tbody.innerHTML = html;
+            }, 5000);
         }
 
         // Contracts content
