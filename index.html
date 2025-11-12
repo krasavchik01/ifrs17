@@ -168,6 +168,90 @@
         .form-submit { width: 100%; padding: 16px; background: #0066cc; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
         .form-submit:hover { background: #0052a3; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,102,204,0.3); }
         .form-note { font-size: 13px; color: #666; margin-top: 16px; text-align: center; line-height: 1.6; }
+
+        /* Mobile Navigation */
+        .mobile-nav-toggle { display: none; background: #0066cc; border: none; color: white; padding: 10px; border-radius: 6px; cursor: pointer; font-size: 24px; }
+        .nav.mobile-open { display: flex; }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .container { padding: 0 32px; }
+            .hero h1 { font-size: 48px; }
+            .features-grid { grid-template-columns: repeat(2, 1fr); }
+            .trust-grid { grid-template-columns: repeat(2, 1fr); gap: 32px; }
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 0 20px; }
+
+            /* Header */
+            .mobile-nav-toggle { display: block; }
+            .nav { display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; flex-direction: column; padding: 20px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); gap: 16px; }
+            .header-content { position: relative; }
+
+            /* Hero */
+            .hero { padding: 80px 0 60px; }
+            .hero h1 { font-size: 36px; }
+            .hero p { font-size: 18px; }
+            .hero-buttons { flex-direction: column; }
+            .hero-buttons .btn { width: 100%; text-align: center; }
+
+            /* Trust */
+            .trust-grid { grid-template-columns: repeat(2, 1fr); gap: 24px; }
+
+            /* Features */
+            .features { padding: 60px 0; }
+            .section-title h2 { font-size: 32px; }
+            .section-title p { font-size: 17px; }
+            .features-grid { grid-template-columns: 1fr; gap: 24px; }
+            .feature-card { padding: 28px; }
+
+            /* Demo */
+            .demo { padding: 60px 0; }
+            .demo-container { padding: 40px 24px; }
+            .demo-header h2 { font-size: 32px; }
+            .demo-steps { flex-direction: column; gap: 16px; }
+            .demo-step:not(:last-child)::after { content: '↓'; right: auto; top: auto; bottom: -30px; left: 50%; transform: translateX(-50%); }
+            .demo-screen { padding: 24px; min-height: 300px; }
+
+            /* Modal */
+            .modal { max-width: 95%; margin: 20px; }
+            .modal-header { padding: 24px; }
+            .modal-header h2 { font-size: 24px; }
+            .modal-body { padding: 24px; }
+
+            /* CTA */
+            .cta { padding: 60px 0; }
+            .cta-content h2 { font-size: 32px; }
+        }
+
+        @media (max-width: 480px) {
+            .logo-main { font-size: 18px; }
+            .logo-sub { font-size: 10px; }
+            .logo-icon { width: 40px; height: 40px; font-size: 20px; }
+
+            .hero h1 { font-size: 28px; line-height: 1.2; }
+            .hero p { font-size: 16px; }
+            .badge { font-size: 12px; padding: 6px 16px; }
+
+            .trust-grid { grid-template-columns: 1fr; gap: 20px; }
+            .trust-icon { font-size: 28px; }
+
+            .section-title h2 { font-size: 28px; }
+            .section-title p { font-size: 16px; }
+
+            .feature-card { padding: 24px; }
+            .feature-card h3 { font-size: 19px; }
+            .feature-icon { width: 48px; height: 48px; font-size: 22px; }
+
+            .demo-header h2 { font-size: 28px; }
+            .demo-header p { font-size: 16px; }
+            .step-title { font-size: 13px; }
+            .step-number { width: 40px; height: 40px; font-size: 18px; }
+
+            .btn { font-size: 14px; padding: 12px 24px; }
+            .hero-buttons .btn { font-size: 15px; padding: 14px 28px; }
+        }
     </style>
 </head>
 <body>
@@ -182,7 +266,8 @@
                         <div class="logo-sub">IFRS 17 Enterprise Platform</div>
                     </div>
                 </div>
-                <nav class="nav">
+                <button class="mobile-nav-toggle" onclick="toggleMobileNav()">☰</button>
+                <nav class="nav" id="mainNav">
                     <a href="#platform">Платформа</a>
                     <a href="#demo">Интерактивное Демо</a>
                     <a href="#expertise">Экспертиза</a>
@@ -734,6 +819,12 @@
 
         function requestFullDemo() {
             openDemoModal();
+        }
+
+        // Mobile navigation toggle
+        function toggleMobileNav() {
+            const nav = document.getElementById('mainNav');
+            nav.classList.toggle('mobile-open');
         }
 
         // Modal functions

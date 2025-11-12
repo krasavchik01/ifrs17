@@ -788,12 +788,273 @@
             color: var(--text-primary);
             white-space: nowrap;
         }
+
+        /* Mobile Menu Toggle */
+        .mobile-menu-toggle {
+            display: none;
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            z-index: 1100;
+            background: var(--primary-color);
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            color: white;
+            font-size: 24px;
+            width: 48px;
+            height: 48px;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 102, 204, 0.4);
+        }
+
+        .mobile-menu-toggle:active {
+            transform: scale(0.95);
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 998;
+        }
+
+        .sidebar-overlay.active {
+            display: block;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+
+            .detail-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .mobile-menu-toggle {
+                display: flex;
+            }
+
+            .sidebar {
+                position: fixed;
+                left: -280px;
+                top: 0;
+                bottom: 0;
+                z-index: 999;
+                transition: left 0.3s ease;
+            }
+
+            .sidebar.active {
+                left: 0;
+            }
+
+            .main-content {
+                width: 100%;
+            }
+
+            .header {
+                padding: 0 16px 0 72px;
+            }
+
+            .header-title {
+                font-size: 16px;
+            }
+
+            .user-info {
+                display: none;
+            }
+
+            .user-avatar {
+                width: 36px;
+                height: 36px;
+                font-size: 14px;
+            }
+
+            .content-area {
+                padding: 16px;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .charts-section {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .kpi-card {
+                padding: 16px;
+            }
+
+            .kpi-value {
+                font-size: 24px;
+            }
+
+            .chart-card {
+                padding: 16px;
+            }
+
+            .table-header {
+                flex-direction: column;
+                gap: 12px;
+                align-items: stretch;
+            }
+
+            .table-controls {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .search-input {
+                width: 100%;
+            }
+
+            .table-wrapper {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            table {
+                font-size: 13px;
+            }
+
+            th, td {
+                padding: 10px 12px;
+                white-space: nowrap;
+            }
+
+            .pagination {
+                flex-direction: column;
+                gap: 12px;
+                align-items: stretch;
+            }
+
+            .pagination-controls {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .detail-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal {
+                width: 95%;
+                max-width: none;
+            }
+
+            .alert-box {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            canvas {
+                max-width: 100%;
+                height: auto !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header-title {
+                font-size: 14px;
+            }
+
+            .kpi-label {
+                font-size: 11px;
+            }
+
+            .kpi-value {
+                font-size: 20px;
+            }
+
+            .chart-title {
+                font-size: 14px;
+            }
+
+            .table-title {
+                font-size: 16px;
+            }
+
+            th, td {
+                font-size: 12px;
+                padding: 8px 10px;
+            }
+
+            .btn {
+                font-size: 13px;
+                padding: 10px 16px;
+            }
+
+            .nav-item {
+                padding: 10px 16px;
+            }
+
+            .nav-item-text {
+                font-size: 13px;
+            }
+
+            .logo-text-main {
+                font-size: 16px;
+            }
+
+            .page-btn {
+                padding: 6px 10px;
+                font-size: 13px;
+            }
+        }
+
+        /* Improved consistency */
+        .chart-card, .data-table-container, .progress-container {
+            margin-bottom: 24px;
+        }
+
+        .btn, .btn-secondary, .page-btn {
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+
+        /* Better touch targets for mobile */
+        @media (hover: none) and (pointer: coarse) {
+            .nav-item, .btn, .page-btn, .contract-id {
+                min-height: 44px;
+                display: flex;
+                align-items: center;
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" id="mobileMenuToggle" onclick="toggleMobileMenu()">
+        ☰
+    </button>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileMenu()"></div>
+
     <div class="app-container">
         <!-- Sidebar -->
-        <div class="sidebar">
+        <div class="sidebar" id="sidebar">
             <div class="logo-section">
                 <div class="logo-content">
                     <div class="logo-icon">AC</div>
@@ -929,8 +1190,36 @@
         const contractsPerPage = 25;
         let filteredContracts = [...allContracts];
 
+        // Mobile menu functions
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const menuToggle = document.getElementById('mobileMenuToggle');
+
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+
+            if (sidebar.classList.contains('active')) {
+                menuToggle.innerHTML = '✕';
+            } else {
+                menuToggle.innerHTML = '☰';
+            }
+        }
+
+        function closeMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const menuToggle = document.getElementById('mobileMenuToggle');
+
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+            menuToggle.innerHTML = '☰';
+        }
+
         // Navigation
         function navigateTo(page) {
+            // Close mobile menu when navigating
+            closeMobileMenu();
             currentPage = page;
 
             // Update active nav item
