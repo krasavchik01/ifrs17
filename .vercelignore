@@ -1,7 +1,11 @@
-node_modules
+kz_insurepro/
 .env
 .env.local
-.DS_Store
-*.log
-.next
-out
+.env.*.local
+.git
+.gitmodules
+.next/cache/
+.pytest_cache/
+__pycache__/
+venv/
+node_modules/

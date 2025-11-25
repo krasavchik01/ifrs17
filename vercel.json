@@ -4,5 +4,6 @@
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "framework": "nextjs",
-  "regions": ["iad1"]
+  "regions": ["iad1"],
+  "ignoreCommand": "git check-ignore -q $FILE || exit 0"
 }
