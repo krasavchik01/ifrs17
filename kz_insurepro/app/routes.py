@@ -86,25 +86,15 @@ def help_guide():
                           APP_CONFIG=APP_CONFIG)
 
 
-@main_bp.route('/ifrs9/advanced')
-def ifrs9_advanced():
-    """Расширенный анализ ECL с регрессией, стресс-тестами и импортом"""
-    return render_template('ifrs9_enhanced.html',
-                          macro=MACRO_INDICATORS_2025,
-                          APP_CONFIG=APP_CONFIG)
+# =============================================================================
+# ГЛАВНЫЙ РАСЧЕТ - UNIFIED CALCULATION (ECL + IFRS 17 + Solvency)
+# =============================================================================
 
+from app.services.unified_calculation_service import unified_calculation_service
 
-@main_bp.route('/ifrs17/advanced')
-def ifrs17_advanced():
-    """Расширенный анализ МСФО 17 с графиками, KaTeX формулами и детальными расчетами"""
-    return render_template('ifrs17_advanced.html',
-                          macro=MACRO_INDICATORS_2025,
-                          APP_CONFIG=APP_CONFIG)
-
-
-@main_bp.route('/ifrs9', methods=['GET', 'POST'])
-def ifrs9():
-    """Страница МСФО 9 - ECL расчеты (через единый сервис)"""
+@main_bp.route('/calculation', methods=['GET', 'POST'])
+def main_calculation():
+    """Главный расчет - единая система ECL, МСФО 17 и платежеспособности"""
     result = None
     error = None
 
@@ -112,173 +102,63 @@ def ifrs9():
         try:
             # Получение параметров из формы
             gca = Decimal(request.form.get('gca', '500000000'))
-            pd_annual = Decimal(request.form.get('pd', '0.095'))
+            pd = Decimal(request.form.get('pd', '0.095'))
             lgd = Decimal(request.form.get('lgd', '0.69'))
             eir = Decimal(request.form.get('eir', '0.19'))
-            remaining_term = int(request.form.get('term', '3'))
-            days_past_due = int(request.form.get('dpd', '0'))
-            scenario = request.form.get('scenario', 'weighted')
+            term = int(request.form.get('term', '3'))
+            dpd = int(request.form.get('dpd', '0'))
 
-            # ВСЕ расчеты через calculation_service!
-            ecl_result = calculation_service.calculate_single_ecl(
-                gross_carrying_amount=gca,
-                pd_annual=pd_annual,
-                lgd=lgd,
-                eir=eir,
-                remaining_term=remaining_term,
-                days_past_due=days_past_due,
-                scenario=scenario
-            )
-
-            result = {
-                'ecl_amount': format_currency(ecl_result.ecl_amount),
-                'ecl_raw': float(ecl_result.ecl_amount),
-                'stage': ecl_result.stage,
-                'formula_display': ecl_result.formula_display,
-                'justification': ecl_result.justification,
-                'net_value': format_currency(gca - ecl_result.ecl_amount),
-                'coverage_ratio': format_percent(float(ecl_result.ecl_amount / gca * 100)),
-            }
-
-        except Exception as e:
-            error = f"Ошибка расчета: {str(e)}"
-
-    return render_template('ifrs9.html',
-                          result=result,
-                          error=error,
-                          macro=MACRO_INDICATORS_2025,
-                          APP_CONFIG=APP_CONFIG)
-
-
-@main_bp.route('/ifrs17', methods=['GET', 'POST'])
-def ifrs17():
-    """Страница МСФО 17 - BEL/RA/CSM расчеты"""
-    result = None
-    error = None
-
-    if request.method == 'POST':
-        try:
-            calc = IFRS17Calculator()
-
-            # Получение параметров
-            model_type = request.form.get('model', 'gmm')
             premiums = Decimal(request.form.get('premiums', '100000000'))
-            claims_per_year = Decimal(request.form.get('claims', '80000000'))
-            expenses_per_year = Decimal(request.form.get('expenses', '5000000'))
-            acquisition_costs = Decimal(request.form.get('ac', '10000000'))
-            term = int(request.form.get('term', '10'))
+            claims = Decimal(request.form.get('claims', '80000000'))
+            expenses = Decimal(request.form.get('expenses', '5000000'))
+            ac = Decimal(request.form.get('ac', '10000000'))
+            contract_term = int(request.form.get('contract_term', '10'))
             ra_method = request.form.get('ra_method', 'coc')
 
-            # Формирование денежных потоков
-            cash_flows = []
-            for year in range(1, term + 1):
-                cf = {
-                    'period': year,
-                    'premiums': float(premiums) if year == 1 else 0,
-                    'claims': float(claims_per_year) * (1 + 0.02 * year),
-                    'expenses': float(expenses_per_year),
-                    'acquisition_costs': float(acquisition_costs) if year == 1 else 0,
-                }
-                cash_flows.append(cf)
-
-            # Расчет по GMM
-            gmm_result = calc.calculate_gmm(
-                cash_flows=cash_flows,
-                acquisition_costs=acquisition_costs,
-                ra_method=ra_method,
-            )
-
-            result = {
-                'model': model_type.upper(),
-                'bel': format_currency(gmm_result.bel.bel_amount),
-                'ra': format_currency(gmm_result.ra.ra_amount),
-                'csm': format_currency(gmm_result.csm.csm_amount),
-                'fcf': format_currency(gmm_result.fcf),
-                'total_liability': format_currency(gmm_result.total_liability),
-                'is_onerous': gmm_result.csm.is_onerous,
-                'formula_display': gmm_result.formula_display,
-                'justification': gmm_result.justification,
-            }
-
-        except Exception as e:
-            error = f"Ошибка расчета: {str(e)}"
-
-    return render_template('ifrs17.html',
-                          result=result,
-                          error=error,
-                          macro=MACRO_INDICATORS_2025,
-                          APP_CONFIG=APP_CONFIG)
-
-
-@main_bp.route('/solvency', methods=['GET', 'POST'])
-def solvency():
-    """Страница Платежеспособность - MMP/FMP расчеты"""
-    result = None
-    error = None
-
-    if request.method == 'POST':
-        try:
-            calc = SolvencyCalculator()
-
-            # Получение параметров
-            gross_premiums = Decimal(request.form.get('premiums', '35000000000'))
-            incurred_claims = Decimal(request.form.get('claims', '18000000000'))
             equity = Decimal(request.form.get('equity', '20000000000'))
-            ecl_adj = Decimal(request.form.get('ecl', '2100000000'))
-            csm_adj = Decimal(request.form.get('csm', '11800000000'))
             subordinated = Decimal(request.form.get('subordinated', '3000000000'))
             illiquid = Decimal(request.form.get('illiquid', '500000000'))
+            k_coef = Decimal(request.form.get('k_coef', '0.70'))
             has_osago = request.form.get('osago') == 'on'
-            k_coef = Decimal(request.form.get('k', '0.70'))
 
-            # MMP
-            mmp_result = calc.calculate_mmp(
-                gross_premiums=gross_premiums,
-                incurred_claims=incurred_claims,
-                k_coefficient=k_coef,
-                has_osago=has_osago
+            # Выполняем главный расчет
+            calc_result = unified_calculation_service.calculate_everything(
+                gross_carrying_amount=gca,
+                pd_annual=pd,
+                lgd=lgd,
+                eir=eir,
+                remaining_term=term,
+                days_past_due=dpd,
+                premiums=premiums,
+                claims_per_year=claims,
+                expenses_per_year=expenses,
+                acquisition_costs=ac,
+                contract_term=contract_term,
+                ra_method=ra_method,
+                equity=equity,
+                subordinated=subordinated,
+                illiquid=illiquid,
+                has_osago=has_osago,
+                k_coef=k_coef,
             )
 
-            # FMP
-            fmp_result = calc.calculate_fmp(
-                equity_capital=equity,
-                ecl_adjustment=ecl_adj,
-                csm_adjustment=csm_adj,
-                subordinated_debt=subordinated,
-                illiquid_assets=illiquid,
-            )
-
-            # Ratio
-            ratio_result = calc.calculate_solvency_ratio(
-                fmp_result.fmp_amount,
-                mmp_result.mmp_amount
-            )
-
-            # Стресс-тест
-            stress_result = calc.stress_test(
-                fmp_result.fmp_amount,
-                mmp_result.mmp_amount
-            )
-
+            # Форматируем для шаблона
             result = {
-                'mmp': format_currency(mmp_result.mmp_amount),
-                'mmp_p': format_currency(mmp_result.mmp_by_premiums),
-                'mmp_i': format_currency(mmp_result.mmp_by_claims),
-                'fmp': format_currency(fmp_result.fmp_amount),
-                'ratio': format_percent(float(ratio_result.ratio * 100)),
-                'ratio_raw': float(ratio_result.ratio),
-                'is_compliant': ratio_result.is_compliant,
-                'stress_adverse': format_percent(float(stress_result.stressed_ratios.get('adverse', Decimal('0')) * 100)),
-                'stress_severe': format_percent(float(stress_result.stressed_ratios.get('severe', Decimal('0')) * 100)),
-                'var_99_5': format_percent(float(stress_result.var_99_5 * 100)),
-                'formula_display': mmp_result.formula_display + '\n\n' + fmp_result.formula_display + '\n\n' + ratio_result.formula_display,
-                'justification': ratio_result.justification,
+                'calculation_date': calc_result.calculation_date.isoformat(),
+                'status': calc_result.status,
+                'warnings': calc_result.warnings,
+                'ecl': calc_result.ecl,
+                'ecl_formatted': calc_result.ecl_formatted,
+                'ifrs17': calc_result.ifrs17,
+                'ifrs17_formatted': calc_result.ifrs17_formatted,
+                'solvency': calc_result.solvency,
+                'solvency_formatted': calc_result.solvency_formatted,
             }
 
         except Exception as e:
             error = f"Ошибка расчета: {str(e)}"
 
-    return render_template('solvency.html',
+    return render_template('main_calculation.html',
                           result=result,
                           error=error,
                           macro=MACRO_INDICATORS_2025,
@@ -478,14 +358,6 @@ def arfr_market():
 
     return render_template('arfr/market.html',
                           market_data=market_data,
-                          macro=MACRO_INDICATORS_2025,
-                          APP_CONFIG=APP_CONFIG)
-
-
-@main_bp.route('/arfr/solvency')
-def arfr_solvency():
-    """Мониторинг платежеспособности - АРФР"""
-    return render_template('arfr/solvency.html',
                           macro=MACRO_INDICATORS_2025,
                           APP_CONFIG=APP_CONFIG)
 

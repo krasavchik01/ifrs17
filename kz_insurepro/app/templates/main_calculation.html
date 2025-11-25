@@ -1,0 +1,510 @@
+{% extends "base.html" %}
+
+{% block title %}Главный расчет - KZ-InsurePro{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h1 class="mb-1">Главный расчет</h1>
+                    <p class="text-muted">Единая система расчета ECL (МСФО 9), BEL/RA/CSM (МСФО 17) и платежеспособности</p>
+                </div>
+                <div>
+                    <span class="badge bg-info">IFRS 9 + IFRS 17 + Solvency</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Форма ввода параметров -->
+    <div class="card mb-4 border-0 shadow-sm">
+        <div class="card-header bg-light border-bottom">
+            <h5 class="mb-0">Параметры расчета</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST" id="calculationForm">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="gca" class="form-label">Валовая остаточная стоимость (GCA)</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="gca" name="gca" value="500000000" step="1000000">
+                            <span class="input-group-text">₸</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="pd" class="form-label">Вероятность дефолта (PD годовая)</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="pd" name="pd" value="0.095" step="0.001" min="0" max="1">
+                            <span class="input-group-text">%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="lgd" class="form-label">Потери при дефолте (LGD)</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="lgd" name="lgd" value="0.69" step="0.01" min="0" max="1">
+                            <span class="input-group-text">%</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="eir" class="form-label">Эффективная процентная ставка (EIR)</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="eir" name="eir" value="0.19" step="0.01" min="0">
+                            <span class="input-group-text">%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="term" class="form-label">Оставшийся срок (лет)</label>
+                        <input type="number" class="form-control" id="term" name="term" value="3" min="1" max="50">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="dpd" class="form-label">Дней просрочки (DPD)</label>
+                        <input type="number" class="form-control" id="dpd" name="dpd" value="0" min="0">
+                    </div>
+                </div>
+
+                <!-- МСФО 17 параметры -->
+                <hr class="my-4">
+                <h6 class="mb-3 text-primary">Параметры МСФО 17 (Договоры страхования)</h6>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="premiums" class="form-label">Премии (первый год)</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="premiums" name="premiums" value="100000000" step="1000000">
+                            <span class="input-group-text">₸</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="claims" class="form-label">Убытки (в год)</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="claims" name="claims" value="80000000" step="1000000">
+                            <span class="input-group-text">₸</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="expenses" class="form-label">Затраты (в год)</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="expenses" name="expenses" value="5000000" step="1000000">
+                            <span class="input-group-text">₸</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="ac" class="form-label">Затраты на приобретение</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="ac" name="ac" value="10000000" step="1000000">
+                            <span class="input-group-text">₸</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="contract_term" class="form-label">Срок договора (лет)</label>
+                        <input type="number" class="form-control" id="contract_term" name="contract_term" value="10" min="1" max="50">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="ra_method" class="form-label">Метод расчета RA</label>
+                        <select class="form-control" id="ra_method" name="ra_method">
+                            <option value="coc">Cost of Capital (CoC)</option>
+                            <option value="conditional">Conditional Tail Expectation</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Платежеспособность параметры -->
+                <hr class="my-4">
+                <h6 class="mb-3 text-primary">Параметры платежеспособности</h6>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="equity" class="form-label">Собственный капитал</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="equity" name="equity" value="20000000000" step="1000000000">
+                            <span class="input-group-text">₸</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="subordinated" class="form-label">Подчиненный долг</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="subordinated" name="subordinated" value="3000000000" step="1000000000">
+                            <span class="input-group-text">₸</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="illiquid" class="form-label">Неликвидные активы</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="illiquid" name="illiquid" value="500000000" step="100000000">
+                            <span class="input-group-text">₸</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="k_coef" class="form-label">Коэффициент K</label>
+                        <input type="number" class="form-control" id="k_coef" name="k_coef" value="0.70" step="0.01" min="0" max="1">
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="osago" name="osago">
+                            <label class="form-check-label" for="osago">Компания имеет ОСАГО</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 d-sm-flex justify-content-sm-end">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="bi bi-calculator"></i> Выполнить расчет
+                    </button>
+                    <button type="reset" class="btn btn-outline-secondary btn-lg">Очистить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Результаты расчета -->
+    {% if result %}
+    <!-- Статус -->
+    <div class="card mb-4 border-0 shadow-sm">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="text-center">
+                        <div class="display-6 mb-2">
+                            {% if result.status == 'compliant' %}
+                            <span class="badge bg-success p-3 fs-5">✓ СООТВЕТСТВИЕ</span>
+                            {% elif result.status == 'warning' %}
+                            <span class="badge bg-warning p-3 fs-5">⚠ ПРЕДУПРЕЖДЕНИЕ</span>
+                            {% else %}
+                            <span class="badge bg-danger p-3 fs-5">✗ КРИТИЧНО</span>
+                            {% endif %}
+                        </div>
+                        <p class="text-muted">Дата расчета: {{ result.calculation_date }}</p>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    {% if result.warnings %}
+                    <div class="alert alert-warning mb-0" role="alert">
+                        <h6 class="mb-2">Предупреждения:</h6>
+                        <ul class="mb-0">
+                            {% for warning in result.warnings %}
+                            <li>{{ warning }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">Расчет выполнен без ошибок.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Результаты ECL -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light border-bottom">
+                    <h5 class="mb-0">
+                        <i class="bi bi-graph-up"></i> МСФО 9: Expected Credit Loss (ECL)
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center p-3 bg-light rounded">
+                                <small class="d-block text-muted mb-2">ECL</small>
+                                <h4 class="mb-1" style="color: #dc3545;">{{ result.ecl_formatted.ecl_amount }}</h4>
+                                <small class="text-muted">Стадия: <strong>{{ result.ecl_formatted.stage }}</strong></small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center p-3 bg-light rounded">
+                                <small class="d-block text-muted mb-2">Чистая стоимость</small>
+                                <h5 class="mb-1" style="color: #28a745;">{{ result.ecl_formatted.net_value }}</h5>
+                                <small class="text-muted">После резерва</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center p-3 bg-light rounded">
+                                <small class="d-block text-muted mb-2">Коэффициент покрытия</small>
+                                <h5 class="mb-1">{{ result.ecl_formatted.coverage_ratio }}</h5>
+                                <small class="text-muted">% от брутто</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center p-3 bg-light rounded">
+                                <small class="d-block text-muted mb-2">Обоснование</small>
+                                <small class="text-muted d-block">{{ result.ecl.justification[:50] }}...</small>
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="my-3">
+                    <p><strong>Формула:</strong></p>
+                    <pre class="bg-light p-3 rounded">{{ result.ecl.formula_display }}</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Результаты МСФО 17 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light border-bottom">
+                    <h5 class="mb-0">
+                        <i class="bi bi-file-earmark-text"></i> МСФО 17: Insurance Contract Accounting
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center p-3 bg-light rounded">
+                                <small class="d-block text-muted mb-2">BEL</small>
+                                <h5 class="mb-1" style="color: #0066cc;">{{ result.ifrs17_formatted.bel }}</h5>
+                                <small class="text-muted">Best Estimate Liability</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center p-3 bg-light rounded">
+                                <small class="d-block text-muted mb-2">RA</small>
+                                <h5 class="mb-1" style="color: #ffc107;">{{ result.ifrs17_formatted.ra }}</h5>
+                                <small class="text-muted">Risk Adjustment</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center p-3 bg-light rounded">
+                                <small class="d-block text-muted mb-2">CSM</small>
+                                <h5 class="mb-1" style="color: #17a2b8;">{{ result.ifrs17_formatted.csm }}</h5>
+                                <small class="text-muted">Contractual Service Margin</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center p-3 bg-light rounded">
+                                <small class="d-block text-muted mb-2">Общая ответственность</small>
+                                <h5 class="mb-1">{{ result.ifrs17_formatted.total_liability }}</h5>
+                                <small class="text-muted">BEL + RA - CSM</small>
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="my-3">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="alert alert-info mb-0">
+                                <strong>Тяжелый договор (Onerous):</strong> {{ result.ifrs17_formatted.is_onerous }}
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="my-3">
+                    <p><strong>Формула:</strong></p>
+                    <pre class="bg-light p-3 rounded">{{ result.ifrs17.formula_display }}</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Результаты платежеспособности -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light border-bottom">
+                    <h5 class="mb-0">
+                        <i class="bi bi-shield-check"></i> Платежеспособность (Solvency)
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center p-3 bg-light rounded">
+                                <small class="d-block text-muted mb-2">MMP</small>
+                                <h5 class="mb-1" style="color: #6f42c1;">{{ result.solvency_formatted.mmp }}</h5>
+                                <small class="text-muted">Min Capital Requirement</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center p-3 bg-light rounded">
+                                <small class="d-block text-muted mb-2">FMP</small>
+                                <h5 class="mb-1" style="color: #20c997;">{{ result.solvency_formatted.fmp }}</h5>
+                                <small class="text-muted">Own Funds</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center p-3 bg-light rounded">
+                                <small class="d-block text-muted mb-2">Nmp Ratio</small>
+                                <h5 class="mb-1" style="color: #fd7e14;">{{ result.solvency_formatted.ratio }}</h5>
+                                <small class="text-muted">FMP / MMP</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center p-3 bg-light rounded">
+                                <small class="d-block text-muted mb-2">Статус</small>
+                                {% if result.solvency.is_compliant %}
+                                <h5 class="mb-1" style="color: #28a745;">✓ OK</h5>
+                                {% else %}
+                                <h5 class="mb-1" style="color: #dc3545;">✗ Fail</h5>
+                                {% endif %}
+                                <small class="text-muted">Минимум: 1.0</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-3">
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Stress Test Results</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td>Adverse Scenario Ratio:</td>
+                                    <td><strong>{{ result.solvency_formatted.stress_adverse }}</strong></td>
+                                </tr>
+                                <tr>
+                                    <td>Severe Scenario Ratio:</td>
+                                    <td><strong>{{ result.solvency_formatted.stress_severe }}</strong></td>
+                                </tr>
+                                <tr>
+                                    <td>VaR 99.5% Ratio:</td>
+                                    <td><strong>{{ result.solvency_formatted.var_99_5 }}</strong></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="alert alert-info">
+                                <small>
+                                    <strong>Интерпретация:</strong><br>
+                                    Nmp > 1.0 означает, что компания имеет достаточный собственный капитал.
+                                    Результаты стресс-теста показывают отношение FMP/MMP в худших сценариях.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-3">
+                    <p><strong>Формула:</strong></p>
+                    <pre class="bg-light p-3 rounded">{{ result.solvency.formula_display }}</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Сводная таблица -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light border-bottom">
+                    <h5 class="mb-0">
+                        <i class="bi bi-table"></i> Сводная таблица
+                    </h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Показатель</th>
+                                <th>Значение</th>
+                                <th>Статус</th>
+                                <th>Примечание</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>ECL (МСФО 9)</strong></td>
+                                <td>{{ result.ecl_formatted.ecl_amount }}</td>
+                                <td>
+                                    {% if result.ecl.stage == 'Stage 1' %}
+                                    <span class="badge bg-success">Stage 1</span>
+                                    {% elif result.ecl.stage == 'Stage 2' %}
+                                    <span class="badge bg-warning">Stage 2</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">Stage 3</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ result.ecl_formatted.coverage_ratio }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>BEL (МСФО 17)</strong></td>
+                                <td>{{ result.ifrs17_formatted.bel }}</td>
+                                <td><span class="badge bg-info">OK</span></td>
+                                <td>Best Estimate</td>
+                            </tr>
+                            <tr>
+                                <td><strong>RA (МСФО 17)</strong></td>
+                                <td>{{ result.ifrs17_formatted.ra }}</td>
+                                <td><span class="badge bg-warning">CoC</span></td>
+                                <td>Risk Adjustment</td>
+                            </tr>
+                            <tr>
+                                <td><strong>CSM (МСФО 17)</strong></td>
+                                <td>{{ result.ifrs17_formatted.csm }}</td>
+                                <td>
+                                    {% if result.ifrs17.is_onerous %}
+                                    <span class="badge bg-danger">Onerous</span>
+                                    {% else %}
+                                    <span class="badge bg-success">Profitable</span>
+                                    {% endif %}
+                                </td>
+                                <td>Contractual Service Margin</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Nmp (Платежеспособность)</strong></td>
+                                <td>{{ result.solvency_formatted.ratio }}</td>
+                                <td>
+                                    {% if result.solvency.is_compliant %}
+                                    <span class="badge bg-success">Compliant</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">Breach</span>
+                                    {% endif %}
+                                </td>
+                                <td>Минимум: 1.0</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <div class="alert alert-info" role="alert">
+        <h6>Заполните параметры выше и нажмите кнопку "Выполнить расчет"</h6>
+        <p class="mb-0">Система вычислит ECL, МСФО 17 и коэффициент платежеспособности в одном месте.</p>
+    </div>
+    {% endif %}
+
+    {% if error %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <strong>Ошибка:</strong> {{ error }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.1) !important;
+    }
+    pre {
+        font-size: 0.85rem;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+</style>
+{% endblock %}

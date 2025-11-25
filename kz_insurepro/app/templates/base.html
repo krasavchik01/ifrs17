@@ -1254,21 +1254,10 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint in ['main.ifrs9', 'main.ifrs9_advanced'] %}active{% endif %}" href="{{ url_for('main.ifrs9_advanced') }}">
-                            <i class="bi bi-calculator"></i>
-                            <span>МСФО 9 (ECL)</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint in ['main.ifrs17', 'main.ifrs17_advanced'] %}active{% endif %}" href="{{ url_for('main.ifrs17_advanced') }}">
-                            <i class="bi bi-graph-up"></i>
-                            <span>МСФО 17</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'main.solvency' %}active{% endif %}" href="{{ url_for('main.solvency') }}">
-                            <i class="bi bi-shield-fill-check"></i>
-                            <span>Платежеспособность</span>
+                        <a class="nav-link {% if request.endpoint == 'main.main_calculation' %}active{% endif %}" href="{{ url_for('main.main_calculation') }}">
+                            <i class="bi bi-calculator-lg"></i>
+                            <span>Главный расчет</span>
+                            <span class="badge bg-danger">Unified</span>
                         </a>
                     </li>
                 </ul>
