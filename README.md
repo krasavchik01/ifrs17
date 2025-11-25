@@ -311,3 +311,4 @@ Proprietary - All Rights Reserved
 Built with ❤️ for Kazakhstan Insurance Market
 
 **Enterprise IFRS 17 Automation - Big Four Quality**
+# Force rebuild
