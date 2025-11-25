@@ -44,6 +44,10 @@ def create_app(config_class=Config):
     from app.api.routes import api_bp
     app.register_blueprint(api_bp, url_prefix='/api')
 
+    # Phase 1: New calculation API
+    from app.api.calculate import calc_bp
+    app.register_blueprint(calc_bp, url_prefix='/api')
+
     # Главные маршруты
     from app.routes import main_bp
     app.register_blueprint(main_bp)
