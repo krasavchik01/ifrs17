@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+
+{% block title %}Журнал проводок - Alliot{% endblock %}
+{% block page_title %}Журнал проводок (Sub-ledger){% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="alert alert-success">
+            <i class="bi bi-check-circle me-2"></i>
+            <strong>Sub-ledger Journal:</strong> Конечный output Accounting Engine.
+            Эта таблица выгружается в 1С/SAP для автоматического формирования проводок в главной книге.
+        </div>
+    </div>
+</div>
+
+<!-- Статистика -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon primary">
+                <i class="bi bi-journal-text"></i>
+            </div>
+            <div class="stat-label">Всего проводок</div>
+            <div class="stat-value">{{ stats.total_entries|number_format }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon success">
+                <i class="bi bi-check-all"></i>
+            </div>
+            <div class="stat-label">Проведено</div>
+            <div class="stat-value">{{ stats.posted_entries|number_format }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon warning">
+                <i class="bi bi-clock"></i>
+            </div>
+            <div class="stat-label">В ожидании</div>
+            <div class="stat-value">{{ stats.pending_entries|number_format }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon info">
+                <i class="bi bi-cash-stack"></i>
+            </div>
+            <div class="stat-label">Общая сумма</div>
+            <div class="stat-value">{{ (stats.total_amount / 1000000000)|round(1) }} млрд ₸</div>
+        </div>
+    </div>
+</div>
+
+{% if entries %}
+<div class="card">
+    <div class="card-header">
+        <div class="row align-items-center">
+            <div class="col">
+                <h5 class="mb-0"><i class="bi bi-list me-2"></i>Последние 100 проводок</h5>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-sm btn-primary">
+                    <i class="bi bi-download me-1"></i>Экспорт в 1C/SAP
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-sm table-hover">
+                <thead>
+                    <tr>
+                        <th>Номер</th>
+                        <th>Дата</th>
+                        <th>Дебет</th>
+                        <th>Кредит</th>
+                        <th>Сумма</th>
+                        <th>Событие</th>
+                        <th>Источник</th>
+                        <th>Статус</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in entries %}
+                    <tr {% if entry.is_reversed %}class="table-secondary"{% endif %}>
+                        <td>
+                            <code class="small">{{ entry.entry_number }}</code>
+                        </td>
+                        <td><small>{{ entry.posting_date.strftime('%d.%m.%Y') }}</small></td>
+                        <td>
+                            <strong class="text-danger">Дт {{ entry.debit_account }}</strong>
+                        </td>
+                        <td>
+                            <strong class="text-success">Кт {{ entry.credit_account }}</strong>
+                        </td>
+                        <td class="text-end">
+                            <strong>{{ (entry.amount|float / 1000000)|round(2) }} млн ₸</strong>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary small">{{ entry.event_type.value|upper }}</span>
+                        </td>
+                        <td>
+                            <small class="text-muted">
+                                {% if entry.source_reference %}
+                                    {{ entry.source_reference }}
+                                {% else %}
+                                    {{ entry.source_type or '-' }}
+                                {% endif %}
+                            </small>
+                        </td>
+                        <td>
+                            {% if entry.is_reversed %}
+                                <span class="badge bg-secondary"><i class="bi bi-x-circle"></i> Сторнировано</span>
+                            {% elif entry.is_posted %}
+                                <span class="badge bg-success"><i class="bi bi-check-circle"></i> Проведено</span>
+                            {% else %}
+                                <span class="badge bg-warning"><i class="bi bi-clock"></i> Ожидание</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr class="collapse" id="detail{{ entry.id }}">
+                        <td colspan="8" class="bg-light">
+                            <div class="p-3">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>Описание</h6>
+                                        <p class="small">{{ entry.description }}</p>
+                                        {% if entry.narrative %}
+                                        <h6>Комментарий</h6>
+                                        <p class="small text-muted">{{ entry.narrative }}</p>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        {% if entry.formula_reference %}
+                                        <h6>Формула</h6>
+                                        <pre class="small bg-white p-2">{{ entry.formula_reference }}</pre>
+                                        {% endif %}
+                                        {% if entry.assumptions_used %}
+                                        <h6>Допущения</h6>
+                                        <pre class="small bg-white p-2">{{ entry.assumptions_used|tojson(indent=2) }}</pre>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% if entry.calculation_run %}
+                                <div class="mt-2">
+                                    <strong>Calculation Run:</strong>
+                                    <a href="{{ url_for('main.calculation_run_detail', run_id=entry.calculation_run.id) }}">
+                                        {{ entry.calculation_run.run_code }}
+                                    </a>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    <strong>Журнал проводок пуст!</strong>
+    Проводки будут генерироваться автоматически при выполнении пакетных расчетов.
+    <a href="{{ url_for('main.calculation_runs') }}" class="btn btn-sm btn-warning ms-3">
+        <i class="bi bi-lightning me-1"></i>Запустить расчет
+    </a>
+</div>
+{% endif %}
+
+<!-- Информация о Data Lineage -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0"><i class="bi bi-diagram-3 me-2"></i>Data Lineage (Прослеживаемость)</h6>
+            </div>
+            <div class="card-body">
+                <p class="mb-2">
+                    Каждая проводка в Sub-ledger содержит полную информацию для аудита:
+                </p>
+                <ul class="mb-0">
+                    <li><strong>Calculation Run:</strong> Из какого пакетного расчета создана проводка</li>
+                    <li><strong>Source:</strong> Какая группа договоров/инструмент является источником</li>
+                    <li><strong>Formula:</strong> Какая формула использовалась для расчета суммы</li>
+                    <li><strong>Assumptions:</strong> Какие допущения (discount rate, lapse rate, etc.) применялись</li>
+                    <li><strong>CSV Row:</strong> До какой строки исходного CSV файла можно проследить</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Навигация -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <a href="{{ url_for('main.accounting_mapping_rules') }}" class="btn btn-primary">
+            <i class="bi bi-arrow-left me-2"></i>Назад к правилам маппинга
+        </a>
+        <a href="{{ url_for('main.chart_of_accounts') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-list-ul me-2"></i>План счетов
+        </a>
+    </div>
+</div>
+
+<script>
+// Toggle детальной информации
+document.querySelectorAll('tbody tr:not(.collapse)').forEach(row => {
+    row.addEventListener('click', function(e) {
+        if (e.target.tagName !== 'A') {
+            const nextRow = this.nextElementSibling;
+            if (nextRow && nextRow.classList.contains('collapse')) {
+                nextRow.classList.toggle('show');
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

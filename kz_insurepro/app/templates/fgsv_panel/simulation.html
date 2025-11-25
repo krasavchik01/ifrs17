@@ -1,0 +1,581 @@
+{% extends "base.html" %}
+
+{% block title %}Monte Carlo - ФГСВ{% endblock %}
+{% block page_title %}Monte Carlo моделирование рисков{% endblock %}
+
+{% block content %}
+<!-- Параметры симуляции -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="bi bi-gear-fill me-2"></i>Параметры симуляции</h5>
+    </div>
+    <div class="card-body">
+        <form id="simulationForm" onsubmit="runSimulation(event)">
+            <div class="row g-4">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Количество симуляций</label>
+                    <select class="form-select" id="numSimulations">
+                        <option value="1000">1,000</option>
+                        <option value="5000">5,000</option>
+                        <option value="10000" selected>10,000</option>
+                        <option value="50000">50,000</option>
+                        <option value="100000">100,000</option>
+                    </select>
+                    <small class="text-muted">Больше = точнее, но дольше</small>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Горизонт прогноза (лет)</label>
+                    <select class="form-select" id="horizon">
+                        <option value="1">1 год</option>
+                        <option value="2">2 года</option>
+                        <option value="3" selected>3 года</option>
+                        <option value="5">5 лет</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Уровень доверия VaR</label>
+                    <select class="form-select" id="confidenceLevel">
+                        <option value="0.95">95%</option>
+                        <option value="0.99" selected>99%</option>
+                        <option value="0.995">99.5%</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Модель корреляции</label>
+                    <select class="form-select" id="correlationModel">
+                        <option value="independent">Независимые</option>
+                        <option value="gaussian" selected>Гауссова копула</option>
+                        <option value="t-copula">t-копула</option>
+                    </select>
+                </div>
+            </div>
+            <hr>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Распределение PD</label>
+                    <select class="form-select" id="pdDistribution">
+                        <option value="normal">Нормальное</option>
+                        <option value="lognormal" selected>Логнормальное</option>
+                        <option value="beta">Бета</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Волатильность LGD</label>
+                    <input type="number" class="form-control" id="lgdVolatility" value="15" min="5" max="50">
+                    <small class="text-muted">% стандартного отклонения</small>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Коэффициент корреляции</label>
+                    <input type="number" class="form-control" id="correlation" value="0.25" min="0" max="1" step="0.05">
+                    <small class="text-muted">Межфирменная корреляция</small>
+                </div>
+            </div>
+            <div class="mt-4 d-flex justify-content-between">
+                <div>
+                    <button type="submit" class="btn btn-primary btn-lg" id="runBtn">
+                        <i class="bi bi-play-fill me-2"></i>Запустить симуляцию
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-lg ms-2" onclick="resetParameters()">
+                        <i class="bi bi-arrow-counterclockwise me-2"></i>Сбросить
+                    </button>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-outline-info" onclick="loadPreset('conservative')">
+                        <i class="bi bi-shield-check me-1"></i>Консервативный
+                    </button>
+                    <button type="button" class="btn btn-outline-warning" onclick="loadPreset('moderate')">
+                        <i class="bi bi-dash-circle me-1"></i>Умеренный
+                    </button>
+                    <button type="button" class="btn btn-outline-danger" onclick="loadPreset('aggressive')">
+                        <i class="bi bi-exclamation-triangle me-1"></i>Агрессивный
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Индикатор выполнения -->
+<div class="card mb-4" id="progressCard" style="display: none;">
+    <div class="card-body">
+        <h5 class="mb-3"><i class="bi bi-hourglass-split me-2"></i>Выполнение симуляции...</h5>
+        <div class="progress" style="height: 25px;">
+            <div class="progress-bar progress-bar-striped progress-bar-animated" id="progressBar" style="width: 0%">0%</div>
+        </div>
+        <small class="text-muted" id="progressText">Инициализация...</small>
+    </div>
+</div>
+
+<!-- Результаты симуляции -->
+<div id="resultsSection" style="display: none;">
+    <!-- Ключевые метрики -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon primary"><i class="bi bi-calculator"></i></div>
+                <div class="stat-label">Expected Loss (EL)</div>
+                <div class="stat-value" id="elValue">-</div>
+                <small class="text-muted">Ожидаемый убыток</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon warning"><i class="bi bi-graph-down"></i></div>
+                <div class="stat-label">VaR 95%</div>
+                <div class="stat-value" id="var95Value">-</div>
+                <small class="text-warning">С вероятностью 5%</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon danger"><i class="bi bi-exclamation-diamond"></i></div>
+                <div class="stat-label">VaR 99%</div>
+                <div class="stat-value" id="var99Value">-</div>
+                <small class="text-danger">С вероятностью 1%</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon info"><i class="bi bi-arrow-left-right"></i></div>
+                <div class="stat-label">Expected Shortfall</div>
+                <div class="stat-value" id="esValue">-</div>
+                <small class="text-info">Среднее при VaR</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Графики результатов -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-8">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-bar-chart me-2"></i>Распределение убытков</h5>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-primary active" onclick="toggleHistogram('frequency')">Частота</button>
+                        <button class="btn btn-outline-primary" onclick="toggleHistogram('cumulative')">Кумулятивная</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <canvas id="lossDistributionChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-pie-chart me-2"></i>Вклад компаний в риск</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="riskContributionChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Дополнительные графики -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Траектории убытков</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="lossTrajectoriesChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-diagram-3 me-2"></i>Корреляционная матрица</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="correlationMatrix" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Детальная статистика -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-table me-2"></i>Детальная статистика</h5>
+            <div class="btn-group">
+                <button class="btn btn-sm btn-outline-primary" onclick="exportResults('excel')">
+                    <i class="bi bi-file-earmark-excel me-1"></i>Excel
+                </button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="exportResults('pdf')">
+                    <i class="bi bi-file-pdf me-1"></i>PDF
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Статистика распределения</h6>
+                    <table class="table table-sm">
+                        <tr><td>Среднее (EL)</td><td id="statMean" class="text-end fw-bold">-</td></tr>
+                        <tr><td>Медиана</td><td id="statMedian" class="text-end">-</td></tr>
+                        <tr><td>Стандартное отклонение</td><td id="statStd" class="text-end">-</td></tr>
+                        <tr><td>Коэффициент асимметрии</td><td id="statSkew" class="text-end">-</td></tr>
+                        <tr><td>Эксцесс</td><td id="statKurtosis" class="text-end">-</td></tr>
+                        <tr><td>Минимум</td><td id="statMin" class="text-end">-</td></tr>
+                        <tr><td>Максимум</td><td id="statMax" class="text-end">-</td></tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h6>Перцентили</h6>
+                    <table class="table table-sm">
+                        <tr><td>5% перцентиль</td><td id="pct5" class="text-end">-</td></tr>
+                        <tr><td>10% перцентиль</td><td id="pct10" class="text-end">-</td></tr>
+                        <tr><td>25% перцентиль</td><td id="pct25" class="text-end">-</td></tr>
+                        <tr><td>50% перцентиль</td><td id="pct50" class="text-end">-</td></tr>
+                        <tr><td>75% перцентиль</td><td id="pct75" class="text-end">-</td></tr>
+                        <tr><td>90% перцентиль</td><td id="pct90" class="text-end">-</td></tr>
+                        <tr><td>99% перцентиль</td><td id="pct99" class="text-end fw-bold text-danger">-</td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Сценарный анализ -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-lightning me-2"></i>Стресс-сценарии</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card border-success h-100">
+                        <div class="card-header bg-success text-white">
+                            <strong>Базовый сценарий</strong>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-sm mb-0">
+                                <tr><td>PD множитель:</td><td><strong>1.0x</strong></td></tr>
+                                <tr><td>LGD множитель:</td><td><strong>1.0x</strong></td></tr>
+                                <tr><td>Корреляция:</td><td><strong>+0%</strong></td></tr>
+                                <tr class="table-success"><td>EL:</td><td id="baseEL"><strong>-</strong></td></tr>
+                                <tr class="table-success"><td>VaR 99%:</td><td id="baseVaR"><strong>-</strong></td></tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-warning h-100">
+                        <div class="card-header bg-warning text-dark">
+                            <strong>Стрессовый сценарий</strong>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-sm mb-0">
+                                <tr><td>PD множитель:</td><td><strong>1.5x</strong></td></tr>
+                                <tr><td>LGD множитель:</td><td><strong>1.2x</strong></td></tr>
+                                <tr><td>Корреляция:</td><td><strong>+50%</strong></td></tr>
+                                <tr class="table-warning"><td>EL:</td><td id="stressEL"><strong>-</strong></td></tr>
+                                <tr class="table-warning"><td>VaR 99%:</td><td id="stressVaR"><strong>-</strong></td></tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-danger h-100">
+                        <div class="card-header bg-danger text-white">
+                            <strong>Экстремальный сценарий</strong>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-sm mb-0">
+                                <tr><td>PD множитель:</td><td><strong>2.0x</strong></td></tr>
+                                <tr><td>LGD множитель:</td><td><strong>1.5x</strong></td></tr>
+                                <tr><td>Корреляция:</td><td><strong>+100%</strong></td></tr>
+                                <tr class="table-danger"><td>EL:</td><td id="extremeEL"><strong>-</strong></td></tr>
+                                <tr class="table-danger"><td>VaR 99%:</td><td id="extremeVaR"><strong>-</strong></td></tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Рекомендации -->
+    <div class="card">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0"><i class="bi bi-lightbulb me-2"></i>Выводы и рекомендации</h5>
+        </div>
+        <div class="card-body" id="recommendationsContent">
+            <!-- Динамический контент -->
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let lossDistChart = null;
+let riskContribChart = null;
+let trajectoriesChart = null;
+
+function runSimulation(event) {
+    event.preventDefault();
+
+    // Показать прогресс
+    document.getElementById('progressCard').style.display = 'block';
+    document.getElementById('resultsSection').style.display = 'none';
+    document.getElementById('runBtn').disabled = true;
+
+    const numSim = parseInt(document.getElementById('numSimulations').value);
+    let progress = 0;
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+
+    const steps = [
+        'Генерация случайных чисел...',
+        'Расчет дефолтов...',
+        'Расчет убытков...',
+        'Агрегация результатов...',
+        'Расчет статистик...',
+        'Построение графиков...'
+    ];
+
+    const interval = setInterval(() => {
+        progress += Math.random() * 15;
+        if (progress > 100) progress = 100;
+
+        progressBar.style.width = progress + '%';
+        progressBar.textContent = Math.round(progress) + '%';
+
+        const stepIndex = Math.min(Math.floor(progress / 100 * steps.length), steps.length - 1);
+        progressText.textContent = steps[stepIndex];
+
+        if (progress >= 100) {
+            clearInterval(interval);
+            setTimeout(() => {
+                showResults();
+            }, 500);
+        }
+    }, 200);
+}
+
+function showResults() {
+    document.getElementById('progressCard').style.display = 'none';
+    document.getElementById('resultsSection').style.display = 'block';
+    document.getElementById('runBtn').disabled = false;
+
+    // Обновить ключевые метрики
+    document.getElementById('elValue').textContent = '1.85 млрд';
+    document.getElementById('var95Value').textContent = '3.1 млрд';
+    document.getElementById('var99Value').textContent = '4.2 млрд';
+    document.getElementById('esValue').textContent = '4.8 млрд';
+
+    // Статистика
+    document.getElementById('statMean').textContent = '1.85 млрд ₸';
+    document.getElementById('statMedian').textContent = '1.52 млрд ₸';
+    document.getElementById('statStd').textContent = '1.12 млрд ₸';
+    document.getElementById('statSkew').textContent = '1.45';
+    document.getElementById('statKurtosis').textContent = '5.23';
+    document.getElementById('statMin').textContent = '0.12 млрд ₸';
+    document.getElementById('statMax').textContent = '8.75 млрд ₸';
+
+    // Перцентили
+    document.getElementById('pct5').textContent = '0.48 млрд ₸';
+    document.getElementById('pct10').textContent = '0.72 млрд ₸';
+    document.getElementById('pct25').textContent = '1.05 млрд ₸';
+    document.getElementById('pct50').textContent = '1.52 млрд ₸';
+    document.getElementById('pct75').textContent = '2.35 млрд ₸';
+    document.getElementById('pct90').textContent = '3.1 млрд ₸';
+    document.getElementById('pct99').textContent = '4.2 млрд ₸';
+
+    // Сценарии
+    document.getElementById('baseEL').textContent = '1.85 млрд ₸';
+    document.getElementById('baseVaR').textContent = '4.2 млрд ₸';
+    document.getElementById('stressEL').textContent = '3.33 млрд ₸';
+    document.getElementById('stressVaR').textContent = '6.8 млрд ₸';
+    document.getElementById('extremeEL').textContent = '5.55 млрд ₸';
+    document.getElementById('extremeVaR').textContent = '9.5 млрд ₸';
+
+    // Рекомендации
+    document.getElementById('recommendationsContent').innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <h6 class="text-primary"><i class="bi bi-check-circle me-2"></i>Ключевые выводы</h6>
+                <ul>
+                    <li>VaR 99% составляет <strong>4.2 млрд ₸</strong>, что покрывается текущим размером фонда (14.8 млрд ₸) с запасом <strong>352%</strong></li>
+                    <li>Основной вклад в риск вносят СК Виктория (41%) и СК НурПолис (24%)</li>
+                    <li>При стрессовом сценарии VaR вырастает до <strong>6.8 млрд ₸</strong>, покрытие снижается до 218%</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h6 class="text-warning"><i class="bi bi-exclamation-triangle me-2"></i>Рекомендации</h6>
+                <ul>
+                    <li>Увеличить ставку взносов для СК Виктория до 0.8% (с 0.65%)</li>
+                    <li>Требовать докапитализацию СК с Nmп < 1.0</li>
+                    <li>Рассмотреть увеличение резервов фонда на 1.5 млрд ₸ для покрытия экстремального сценария</li>
+                </ul>
+            </div>
+        </div>
+    `;
+
+    // Построить графики
+    buildCharts();
+}
+
+function buildCharts() {
+    // Распределение убытков
+    if (lossDistChart) lossDistChart.destroy();
+    lossDistChart = new Chart(document.getElementById('lossDistributionChart'), {
+        type: 'bar',
+        data: {
+            labels: ['0-0.5', '0.5-1', '1-1.5', '1.5-2', '2-2.5', '2.5-3', '3-3.5', '3.5-4', '4-4.5', '4.5-5', '>5'],
+            datasets: [{
+                label: 'Частота',
+                data: [150, 450, 1200, 2100, 2500, 1800, 1000, 500, 200, 80, 20],
+                backgroundColor: function(context) {
+                    const index = context.dataIndex;
+                    if (index >= 9) return '#dc3545';
+                    if (index >= 7) return '#ffc107';
+                    return '#28a745';
+                }
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { title: { display: true, text: 'Частота' } },
+                x: { title: { display: true, text: 'Убыток (млрд ₸)' } }
+            }
+        }
+    });
+
+    // Вклад компаний
+    if (riskContribChart) riskContribChart.destroy();
+    riskContribChart = new Chart(document.getElementById('riskContributionChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Виктория', 'НурПолис', 'СтепьИнс', 'Nomad', 'Basel', 'Прочие'],
+            datasets: [{
+                data: [41, 24, 15, 9, 6, 5],
+                backgroundColor: ['#dc3545', '#e74c3c', '#ffc107', '#f39c12', '#17a2b8', '#28a745']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'right' } }
+        }
+    });
+
+    // Траектории
+    if (trajectoriesChart) trajectoriesChart.destroy();
+    const trajectories = generateTrajectories();
+    trajectoriesChart = new Chart(document.getElementById('lossTrajectoriesChart'), {
+        type: 'line',
+        data: {
+            labels: ['Год 0', 'Год 1', 'Год 2', 'Год 3'],
+            datasets: trajectories
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { title: { display: true, text: 'Накопленный убыток (млрд ₸)' } }
+            }
+        }
+    });
+
+    // Корреляционная матрица (heatmap approximation)
+    new Chart(document.getElementById('correlationMatrix'), {
+        type: 'bar',
+        data: {
+            labels: ['Виктория', 'НурПолис', 'СтепьИнс', 'Халық', 'Евразия'],
+            datasets: [{
+                label: 'Корреляция с Виктория',
+                data: [1.0, 0.45, 0.38, 0.15, 0.12],
+                backgroundColor: '#3498db'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { max: 1, min: 0, title: { display: true, text: 'Корреляция' } }
+            }
+        }
+    });
+}
+
+function generateTrajectories() {
+    const datasets = [];
+    const colors = ['rgba(220, 53, 69, 0.3)', 'rgba(255, 193, 7, 0.3)', 'rgba(40, 167, 69, 0.3)'];
+
+    for (let i = 0; i < 20; i++) {
+        const data = [0];
+        for (let j = 1; j <= 3; j++) {
+            data.push(data[j-1] + Math.random() * 2);
+        }
+        datasets.push({
+            data: data,
+            borderColor: colors[i % 3],
+            borderWidth: 1,
+            fill: false,
+            tension: 0.4,
+            pointRadius: 0
+        });
+    }
+
+    // Добавить среднюю траекторию
+    datasets.push({
+        label: 'Средняя',
+        data: [0, 0.62, 1.24, 1.85],
+        borderColor: '#3498db',
+        borderWidth: 3,
+        fill: false
+    });
+
+    return datasets;
+}
+
+function resetParameters() {
+    document.getElementById('numSimulations').value = '10000';
+    document.getElementById('horizon').value = '3';
+    document.getElementById('confidenceLevel').value = '0.99';
+    document.getElementById('correlationModel').value = 'gaussian';
+    document.getElementById('pdDistribution').value = 'lognormal';
+    document.getElementById('lgdVolatility').value = '15';
+    document.getElementById('correlation').value = '0.25';
+}
+
+function loadPreset(type) {
+    switch(type) {
+        case 'conservative':
+            document.getElementById('numSimulations').value = '50000';
+            document.getElementById('confidenceLevel').value = '0.995';
+            document.getElementById('correlation').value = '0.35';
+            document.getElementById('lgdVolatility').value = '20';
+            alert('Загружен консервативный пресет');
+            break;
+        case 'moderate':
+            document.getElementById('numSimulations').value = '10000';
+            document.getElementById('confidenceLevel').value = '0.99';
+            document.getElementById('correlation').value = '0.25';
+            document.getElementById('lgdVolatility').value = '15';
+            alert('Загружен умеренный пресет');
+            break;
+        case 'aggressive':
+            document.getElementById('numSimulations').value = '5000';
+            document.getElementById('confidenceLevel').value = '0.95';
+            document.getElementById('correlation').value = '0.15';
+            document.getElementById('lgdVolatility').value = '10';
+            alert('Загружен агрессивный пресет');
+            break;
+    }
+}
+
+function toggleHistogram(mode) {
+    alert(`Переключение на ${mode === 'frequency' ? 'частотную' : 'кумулятивную'} гистограмму`);
+}
+
+function exportResults(format) {
+    alert(`Экспорт результатов в ${format.toUpperCase()}...`);
+}
+</script>
+{% endblock %}

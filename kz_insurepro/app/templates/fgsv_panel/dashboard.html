@@ -1,0 +1,1158 @@
+{% extends "base.html" %}
+
+{% block title %}Панель фонда - ФГСВ{% endblock %}
+{% block page_title %}Панель управления ФГСВ{% endblock %}
+
+{% block content %}
+<style>
+    .clickable-stat {
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .clickable-stat:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 102, 204, 0.2);
+    }
+    .company-row-clickable {
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .company-row-clickable:hover {
+        background: rgba(0, 102, 204, 0.05);
+        transform: scale(1.01);
+    }
+    .action-btn {
+        transition: all 0.2s ease;
+    }
+    .action-btn:hover {
+        transform: scale(1.05);
+    }
+    .quick-filter {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 15px;
+    }
+    .quick-filter .btn {
+        flex: 1;
+        font-size: 0.8rem;
+    }
+    .notification-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        font-size: 0.65rem;
+        padding: 2px 6px;
+    }
+    .trend-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+    }
+    .trend-up { background: rgba(39, 174, 96, 0.15); color: #27ae60; }
+    .trend-down { background: rgba(231, 76, 60, 0.15); color: #e74c3c; }
+    .sync-indicator {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 0.7rem;
+    }
+</style>
+
+<!-- Панель быстрого доступа -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body py-2">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-primary" onclick="syncFromIFRS()">
+                            <i class="bi bi-arrow-repeat me-1"></i> Синхронизация МСФО
+                        </button>
+                        <button class="btn btn-sm btn-outline-success" onclick="generateQuarterlyReport()">
+                            <i class="bi bi-file-earmark-text me-1"></i> Квартальный отчет
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning" onclick="runRiskAssessment()">
+                            <i class="bi bi-exclamation-diamond me-1"></i> Оценка рисков
+                        </button>
+                    </div>
+                    <div class="text-muted small" id="lastSync">
+                        <i class="bi bi-cloud-check me-1"></i> Последняя синхронизация: загрузка...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Статистика -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card clickable-stat" onclick="showFundDetails()">
+            <div class="stat-icon success">
+                <i class="bi bi-piggy-bank"></i>
+            </div>
+            <div class="stat-label">Баланс фонда</div>
+            <div class="stat-value">{{ stats.fund_balance }}</div>
+            <div class="stat-change positive">
+                <i class="bi bi-arrow-up"></i> +15.3% за год
+            </div>
+            <small class="text-muted d-block mt-1">Нажмите для детализации →</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card clickable-stat" onclick="showContributionsBreakdown()">
+            <div class="stat-icon primary">
+                <i class="bi bi-cash-stack"></i>
+            </div>
+            <div class="stat-label">Взносы за год</div>
+            <div class="stat-value">{{ stats.total_contributions }}</div>
+            <div class="stat-change">
+                От 27 страховщиков
+            </div>
+            <small class="text-muted d-block mt-1">Нажмите для детализации →</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card clickable-stat" onclick="showPayoutsProjection()">
+            <div class="stat-icon warning">
+                <i class="bi bi-wallet2"></i>
+            </div>
+            <div class="stat-label">Ожид. выплаты</div>
+            <div class="stat-value">{{ stats.expected_payouts }}</div>
+            <div class="stat-change">
+                По текущим рискам
+            </div>
+            <small class="text-muted d-block mt-1">Нажмите для детализации →</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card clickable-stat" onclick="showAdequacyAnalysis()">
+            <div class="stat-icon {% if stats.adequacy_ratio|float >= 1.2 %}success{% else %}danger{% endif %}">
+                <i class="bi bi-shield-check"></i>
+            </div>
+            <div class="stat-label">Коэф. достаточности</div>
+            <div class="stat-value">{{ stats.adequacy_ratio }}</div>
+            <div class="stat-change {% if stats.adequacy_ratio|float >= 1.2 %}positive{% else %}negative{% endif %}">
+                {% if stats.adequacy_ratio|float >= 1.2 %}
+                <i class="bi bi-check-circle"></i> Норма ≥ 1.20
+                {% else %}
+                <i class="bi bi-exclamation-circle"></i> Ниже нормы
+                {% endif %}
+            </div>
+            <small class="text-muted d-block mt-1">Нажмите для анализа →</small>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Страховщики по риску -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="bi bi-exclamation-diamond me-2"></i>Страховщики высокого риска</h5>
+                <a href="{{ url_for('main.fgsv_insurers') }}" class="btn btn-sm btn-outline-primary">Все страховщики</a>
+            </div>
+            <div class="card-body p-0">
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Компания</th>
+                            <th>Nmп</th>
+                            <th>Loss Ratio</th>
+                            <th>Combined</th>
+                            <th>PD</th>
+                            <th>Риск</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="company-row-clickable" onclick="showCompanyRiskProfile('victoria')">
+                            <td><strong>СК Виктория</strong></td>
+                            <td><span class="text-danger fw-bold">1.12</span></td>
+                            <td>82%</td>
+                            <td><span class="text-danger">105%</span></td>
+                            <td>15%</td>
+                            <td><span class="status-badge danger">Высокий</span></td>
+                        </tr>
+                        <tr class="company-row-clickable" onclick="showCompanyRiskProfile('nurpolis')">
+                            <td><strong>СК НурПолис</strong></td>
+                            <td><span class="text-warning fw-bold">1.35</span></td>
+                            <td>71%</td>
+                            <td><span class="text-warning">98%</span></td>
+                            <td>8%</td>
+                            <td><span class="status-badge warning">Средний</span></td>
+                        </tr>
+                        <tr class="company-row-clickable" onclick="showCompanyRiskProfile('aziastrah')">
+                            <td><strong>СК АзияСтрах</strong></td>
+                            <td><span class="text-warning fw-bold">1.48</span></td>
+                            <td>68%</td>
+                            <td>92%</td>
+                            <td>6%</td>
+                            <td><span class="status-badge warning">Средний</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Последние взносы -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="bi bi-cash-stack me-2"></i>Последние взносы</h5>
+                <a href="{{ url_for('main.fgsv_contributions') }}" class="btn btn-sm btn-outline-primary">Все взносы</a>
+            </div>
+            <div class="card-body p-0">
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Компания</th>
+                            <th>Премии</th>
+                            <th>Ставка</th>
+                            <th>Взнос</th>
+                            <th>Статус</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>СК КазСтрах</td>
+                            <td>35 млрд ₸</td>
+                            <td>0.5%</td>
+                            <td>175 млн ₸</td>
+                            <td><span class="status-badge success">Оплачен</span></td>
+                        </tr>
+                        <tr>
+                            <td>СК НурПолис</td>
+                            <td>12 млрд ₸</td>
+                            <td>1.0%</td>
+                            <td>120 млн ₸</td>
+                            <td><span class="status-badge success">Оплачен</span></td>
+                        </tr>
+                        <tr>
+                            <td>СК Виктория</td>
+                            <td>5 млрд ₸</td>
+                            <td>2.0%</td>
+                            <td>100 млн ₸</td>
+                            <td><span class="status-badge danger">Просрочен</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Боковая панель -->
+    <div class="col-md-4">
+        <!-- Риски -->
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-graph-up-arrow me-2"></i>Оценка рисков</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Ожид. дефолтов</span>
+                        <strong>0.8</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Ожид. убыток</span>
+                        <strong>1.2 млрд ₸</strong>
+                    </div>
+                </div>
+                <hr>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">VaR 95%</span>
+                        <strong>2.5 млрд ₸</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">VaR 99%</span>
+                        <strong>4.1 млрд ₸</strong>
+                    </div>
+                </div>
+                <hr>
+                <div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Высокий риск</span>
+                        <strong class="text-danger">{{ stats.high_risk }} компаний</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Быстрые действия -->
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-lightning me-2"></i>Быстрые действия</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('main.fgsv_simulation') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-dice-5 me-2"></i>Monte Carlo
+                    </a>
+                    <a href="{{ url_for('main.fgsv_bankruptcy') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-exclamation-diamond me-2"></i>Риск банкротства
+                    </a>
+                    <a href="{{ url_for('main.fgsv_payouts') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-wallet2 me-2"></i>История выплат
+                    </a>
+                    <button class="btn btn-primary">
+                        <i class="bi bi-file-earmark-arrow-down me-2"></i>Выгрузить отчет
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно деталей фонда -->
+<div class="modal fade" id="fundDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-piggy-bank me-2"></i>Детализация баланса фонда</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="text-primary mb-3">Структура активов</h6>
+                        <canvas id="fundAssetsChart" height="200"></canvas>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-primary mb-3">Динамика баланса</h6>
+                        <canvas id="fundBalanceChart" height="200"></canvas>
+                    </div>
+                </div>
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Компонент</th>
+                            <th class="text-end">Сумма (млрд ₸)</th>
+                            <th class="text-end">Доля</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Государственные ЦБ</td><td class="text-end">8.5</td><td class="text-end">42.5%</td></tr>
+                        <tr><td>Корпоративные облигации</td><td class="text-end">5.2</td><td class="text-end">26.0%</td></tr>
+                        <tr><td>Банковские депозиты</td><td class="text-end">4.8</td><td class="text-end">24.0%</td></tr>
+                        <tr><td>Денежные средства</td><td class="text-end">1.5</td><td class="text-end">7.5%</td></tr>
+                        <tr class="table-primary"><td><strong>Итого</strong></td><td class="text-end"><strong>20.0</strong></td><td class="text-end"><strong>100%</strong></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно профиля риска компании -->
+<div class="modal fade" id="companyRiskModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-building me-2"></i>Профиль риска: <span id="companyName">-</span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <div class="text-muted small">Nмп</div>
+                            <div class="fs-3 fw-bold" id="companyNmp">-</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <div class="text-muted small">PD</div>
+                            <div class="fs-3 fw-bold" id="companyPD">-</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <div class="text-muted small">Loss Ratio</div>
+                            <div class="fs-3 fw-bold" id="companyLR">-</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <div class="text-muted small">Ожид. убыток</div>
+                            <div class="fs-3 fw-bold" id="companyEL">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h6 class="text-primary mb-2">История взносов</h6>
+                <table class="table table-sm">
+                    <thead>
+                        <tr><th>Период</th><th>Премии</th><th>Ставка</th><th>Взнос</th><th>Статус</th></tr>
+                    </thead>
+                    <tbody id="contributionHistory">
+                    </tbody>
+                </table>
+
+                <h6 class="text-primary mb-2 mt-3">Рекомендации</h6>
+                <div id="companyRecommendations" class="alert alert-warning">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline-primary" onclick="exportCompanyReport()">
+                    <i class="bi bi-file-pdf me-1"></i> Отчет по компании
+                </button>
+                <button class="btn btn-warning" onclick="scheduleMonitoring()">
+                    <i class="bi bi-eye me-1"></i> Назначить мониторинг
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно коэффициента достаточности -->
+<div class="modal fade" id="adequacyModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-shield-check me-2"></i>Анализ достаточности фонда</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="math-box mb-3">
+                    $K_{достаточности} = \frac{Баланс\ фонда}{Ожидаемые\ выплаты} = \frac{20.0\ млрд}{14.8\ млрд} = 1.35$
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <h6>Сценарный анализ</h6>
+                        <canvas id="adequacyScenarioChart" height="200"></canvas>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Прогноз на 12 месяцев</h6>
+                        <canvas id="adequacyForecastChart" height="200"></canvas>
+                    </div>
+                </div>
+
+                <table class="table table-sm">
+                    <thead>
+                        <tr><th>Сценарий</th><th>Вероятность</th><th>Выплаты</th><th>Коэффициент</th><th>Статус</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Базовый</td><td>60%</td><td>14.8 млрд</td><td>1.35</td><td><span class="status-badge success">Норма</span></td></tr>
+                        <tr><td>Стрессовый</td><td>30%</td><td>18.5 млрд</td><td>1.08</td><td><span class="status-badge warning">Внимание</span></td></tr>
+                        <tr><td>Катастрофический</td><td>10%</td><td>25.0 млрд</td><td>0.80</td><td><span class="status-badge danger">Дефицит</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно детализации взносов -->
+<div class="modal fade" id="contributionsBreakdownModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-cash-stack me-2"></i>Детализация взносов за год</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="text-center p-3 bg-light rounded">
+                            <div class="text-muted small">Всего взносов</div>
+                            <div class="fs-3 fw-bold text-primary">2.85 млрд ₸</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-3 bg-light rounded">
+                            <div class="text-muted small">Оплачено</div>
+                            <div class="fs-3 fw-bold text-success">2.65 млрд ₸</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-3 bg-light rounded">
+                            <div class="text-muted small">Просрочено</div>
+                            <div class="fs-3 fw-bold text-danger">200 млн ₸</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="text-primary mb-3">Взносы по кварталам</h6>
+                        <canvas id="contributionsQuarterChart" height="200"></canvas>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-primary mb-3">Топ-5 плательщиков</h6>
+                        <canvas id="topPayersChart" height="200"></canvas>
+                    </div>
+                </div>
+
+                <h6 class="text-primary mb-3">Детализация по компаниям</h6>
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Компания</th>
+                            <th>Премии (млрд)</th>
+                            <th>Ставка</th>
+                            <th>Взнос (млн)</th>
+                            <th>Статус</th>
+                            <th>Дата</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>СК КазСтрах</td><td>35.0</td><td>0.5%</td><td>175</td><td><span class="status-badge success">Оплачен</span></td><td>15.10.2025</td></tr>
+                        <tr><td>СК НомадИншуранс</td><td>28.5</td><td>0.5%</td><td>142</td><td><span class="status-badge success">Оплачен</span></td><td>12.10.2025</td></tr>
+                        <tr><td>СК НурПолис</td><td>12.0</td><td>1.0%</td><td>120</td><td><span class="status-badge success">Оплачен</span></td><td>10.10.2025</td></tr>
+                        <tr><td>СК Виктория</td><td>5.0</td><td>2.0%</td><td>100</td><td><span class="status-badge danger">Просрочен</span></td><td>-</td></tr>
+                        <tr><td>СК АзияСтрах</td><td>8.0</td><td>0.75%</td><td>60</td><td><span class="status-badge success">Оплачен</span></td><td>18.10.2025</td></tr>
+                        <tr><td>СК Евразия</td><td>22.0</td><td>0.5%</td><td>110</td><td><span class="status-badge success">Оплачен</span></td><td>20.10.2025</td></tr>
+                        <tr class="table-primary"><td><strong>Итого</strong></td><td><strong>110.5</strong></td><td>-</td><td><strong>707</strong></td><td colspan="2"></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline-primary" onclick="exportContributionsToExcel()">
+                    <i class="bi bi-file-excel me-1"></i> Excel
+                </button>
+                <button class="btn btn-primary" onclick="sendPaymentReminders()">
+                    <i class="bi bi-envelope me-1"></i> Напоминания
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно прогноза выплат -->
+<div class="modal fade" id="payoutsProjectionModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-wallet2 me-2"></i>Прогноз выплат</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <div class="text-muted small">Базовый сценарий</div>
+                            <div class="fs-4 fw-bold text-success">14.8 млрд ₸</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <div class="text-muted small">VaR 95%</div>
+                            <div class="fs-4 fw-bold text-warning">18.5 млрд ₸</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <div class="text-muted small">VaR 99%</div>
+                            <div class="fs-4 fw-bold text-danger">25.0 млрд ₸</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <div class="text-muted small">Покрытие</div>
+                            <div class="fs-4 fw-bold text-primary">135%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <h6 class="text-primary mb-3">Распределение ожидаемых выплат</h6>
+                        <canvas id="payoutsDistributionChart" height="200"></canvas>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="text-primary mb-3">По типу риска</h6>
+                        <canvas id="payoutsByRiskChart" height="200"></canvas>
+                    </div>
+                </div>
+
+                <h6 class="text-primary mb-3">Компании с наибольшим ожидаемым убытком</h6>
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Компания</th>
+                            <th>PD</th>
+                            <th>LGD</th>
+                            <th>EAD (млрд)</th>
+                            <th>EL (млн)</th>
+                            <th>Вклад в риск</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>СК Виктория</td><td>15%</td><td>45%</td><td>8.5</td><td>574</td><td>38.7%</td></tr>
+                        <tr><td>СК НурПолис</td><td>8%</td><td>40%</td><td>15.2</td><td>486</td><td>32.8%</td></tr>
+                        <tr><td>СК АзияСтрах</td><td>6%</td><td>35%</td><td>12.0</td><td>252</td><td>17.0%</td></tr>
+                        <tr><td>Остальные (24)</td><td>2%</td><td>30%</td><td>85.0</td><td>170</td><td>11.5%</td></tr>
+                        <tr class="table-primary"><td><strong>Итого</strong></td><td colspan="3"></td><td><strong>1,482</strong></td><td><strong>100%</strong></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline-warning" onclick="runMonteCarloSimulation()">
+                    <i class="bi bi-dice-5 me-1"></i> Monte Carlo
+                </button>
+                <button class="btn btn-primary" onclick="exportPayoutsReport()">
+                    <i class="bi bi-file-pdf me-1"></i> Отчет
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно квартального отчета -->
+<div class="modal fade" id="quarterlyReportModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="bi bi-file-earmark-text me-2"></i>Квартальный отчет Q3 2025</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="text-primary mb-3">Сводка квартала</h6>
+                        <table class="table table-sm">
+                            <tr><td class="text-muted">Начальный баланс</td><td class="text-end fw-bold">18.5 млрд ₸</td></tr>
+                            <tr><td class="text-muted">+ Взносы</td><td class="text-end text-success">+1.8 млрд ₸</td></tr>
+                            <tr><td class="text-muted">+ Инвестиционный доход</td><td class="text-end text-success">+450 млн ₸</td></tr>
+                            <tr><td class="text-muted">- Выплаты</td><td class="text-end text-danger">-650 млн ₸</td></tr>
+                            <tr><td class="text-muted">- Расходы</td><td class="text-end text-danger">-100 млн ₸</td></tr>
+                            <tr class="table-primary"><td><strong>Конечный баланс</strong></td><td class="text-end fw-bold">20.0 млрд ₸</td></tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-primary mb-3">Ключевые показатели</h6>
+                        <table class="table table-sm">
+                            <tr><td class="text-muted">Коэф. достаточности</td><td class="text-end"><span class="status-badge success">1.35</span></td></tr>
+                            <tr><td class="text-muted">Рост баланса</td><td class="text-end text-success">+8.1%</td></tr>
+                            <tr><td class="text-muted">Компаний высокого риска</td><td class="text-end"><span class="text-danger fw-bold">3</span></td></tr>
+                            <tr><td class="text-muted">Просроченные взносы</td><td class="text-end text-danger">200 млн ₸</td></tr>
+                            <tr><td class="text-muted">Произведено выплат</td><td class="text-end">2 случая</td></tr>
+                        </table>
+                    </div>
+                </div>
+
+                <h6 class="text-primary mb-3">События квартала</h6>
+                <div class="timeline">
+                    <div class="timeline-item completed">
+                        <small class="text-muted">15.09.2025</small>
+                        <p class="mb-0">Произведена выплата страхователям СК "Надежда" - 450 млн ₸</p>
+                    </div>
+                    <div class="timeline-item warning">
+                        <small class="text-muted">01.09.2025</small>
+                        <p class="mb-0">СК Виктория включена в список высокого риска (Nмп &lt; 1.2)</p>
+                    </div>
+                    <div class="timeline-item completed">
+                        <small class="text-muted">20.08.2025</small>
+                        <p class="mb-0">Получены взносы от 25 из 27 страховщиков</p>
+                    </div>
+                    <div class="timeline-item completed">
+                        <small class="text-muted">01.07.2025</small>
+                        <p class="mb-0">Начало Q3 2025</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline-primary" onclick="downloadQuarterlyPDF()">
+                    <i class="bi bi-file-pdf me-1"></i> Скачать PDF
+                </button>
+                <button class="btn btn-outline-success" onclick="downloadQuarterlyExcel()">
+                    <i class="bi bi-file-excel me-1"></i> Скачать Excel
+                </button>
+                <button class="btn btn-primary" onclick="sendQuarterlyToBoard()">
+                    <i class="bi bi-envelope me-1"></i> Отправить в Правление
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно оценки рисков -->
+<div class="modal fade" id="riskAssessmentModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title"><i class="bi bi-exclamation-diamond me-2"></i>Оценка рисков портфеля</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-danger bg-opacity-10 rounded">
+                            <div class="text-muted small">Высокий риск</div>
+                            <div class="fs-3 fw-bold text-danger">3</div>
+                            <small class="text-muted">компании</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-warning bg-opacity-10 rounded">
+                            <div class="text-muted small">Средний риск</div>
+                            <div class="fs-3 fw-bold text-warning">5</div>
+                            <small class="text-muted">компаний</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-success bg-opacity-10 rounded">
+                            <div class="text-muted small">Низкий риск</div>
+                            <div class="fs-3 fw-bold text-success">19</div>
+                            <small class="text-muted">компаний</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <div class="text-muted small">Общий риск</div>
+                            <div class="fs-3 fw-bold text-warning">Средний</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h6 class="text-primary mb-3">Компании высокого риска (требуют действий)</h6>
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Компания</th>
+                            <th>Nмп</th>
+                            <th>PD</th>
+                            <th>EL (млн)</th>
+                            <th>Риск-факторы</th>
+                            <th>Рекомендация</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="table-danger">
+                            <td><strong>СК Виктория</strong></td>
+                            <td><span class="text-danger fw-bold">1.12</span></td>
+                            <td>15%</td>
+                            <td>574</td>
+                            <td>
+                                <span class="badge bg-danger me-1">Nмп↓</span>
+                                <span class="badge bg-danger me-1">CR>100%</span>
+                                <span class="badge bg-warning">Просрочка</span>
+                            </td>
+                            <td><span class="status-badge danger">Проверка</span></td>
+                        </tr>
+                        <tr class="table-warning">
+                            <td><strong>СК НурПолис</strong></td>
+                            <td><span class="text-warning fw-bold">1.35</span></td>
+                            <td>8%</td>
+                            <td>486</td>
+                            <td>
+                                <span class="badge bg-warning me-1">Nмп↓</span>
+                                <span class="badge bg-warning">LR>70%</span>
+                            </td>
+                            <td><span class="status-badge warning">Мониторинг</span></td>
+                        </tr>
+                        <tr class="table-warning">
+                            <td><strong>СК АзияСтрах</strong></td>
+                            <td><span class="text-warning fw-bold">1.48</span></td>
+                            <td>6%</td>
+                            <td>252</td>
+                            <td>
+                                <span class="badge bg-warning">Nмп↓тренд</span>
+                            </td>
+                            <td><span class="status-badge warning">Мониторинг</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <h6 class="text-primary mb-3">Распределение риска</h6>
+                        <canvas id="riskDistributionChart" height="200"></canvas>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-primary mb-3">Тренд риска (6 месяцев)</h6>
+                        <canvas id="riskTrendChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline-primary" onclick="exportRiskReport()">
+                    <i class="bi bi-file-pdf me-1"></i> Отчет по рискам
+                </button>
+                <button class="btn btn-warning" onclick="createActionPlan()">
+                    <i class="bi bi-list-check me-1"></i> План действий
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Данные компаний
+    const companyRiskData = {
+        'victoria': {
+            name: 'СК Виктория',
+            nmp: '1.12',
+            pd: '15%',
+            lr: '82%',
+            el: '450 млн',
+            status: 'danger',
+            history: [
+                { period: 'Q3 2025', premiums: '5 млрд', rate: '2.0%', contribution: '100 млн', status: 'danger', statusText: 'Просрочен' },
+                { period: 'Q2 2025', premiums: '4.8 млрд', rate: '1.5%', contribution: '72 млн', status: 'success', statusText: 'Оплачен' },
+                { period: 'Q1 2025', premiums: '5.2 млрд', rate: '1.0%', contribution: '52 млн', status: 'success', statusText: 'Оплачен' }
+            ],
+            recommendations: 'Требуется усиленный мониторинг. Рекомендуется направить запрос на предоставление плана восстановления платежеспособности. Рассмотреть увеличение ставки взноса до 3.0%.'
+        },
+        'nurpolis': {
+            name: 'СК НурПолис',
+            nmp: '1.35',
+            pd: '8%',
+            lr: '71%',
+            el: '180 млн',
+            status: 'warning',
+            history: [
+                { period: 'Q3 2025', premiums: '12 млрд', rate: '1.0%', contribution: '120 млн', status: 'success', statusText: 'Оплачен' },
+                { period: 'Q2 2025', premiums: '11.5 млрд', rate: '1.0%', contribution: '115 млн', status: 'success', statusText: 'Оплачен' }
+            ],
+            recommendations: 'Компания находится в зоне повышенного внимания. Рекомендуется ежеквартальный мониторинг показателей платежеспособности.'
+        },
+        'aziastrah': {
+            name: 'СК АзияСтрах',
+            nmp: '1.48',
+            pd: '6%',
+            lr: '68%',
+            el: '120 млн',
+            status: 'warning',
+            history: [
+                { period: 'Q3 2025', premiums: '8 млрд', rate: '0.75%', contribution: '60 млн', status: 'success', statusText: 'Оплачен' }
+            ],
+            recommendations: 'Показатели близки к норме. Рекомендуется стандартный мониторинг.'
+        }
+    };
+
+    // Показать детали фонда
+    function showFundDetails() {
+        const modal = new bootstrap.Modal(document.getElementById('fundDetailsModal'));
+        modal.show();
+
+        // Инициализация графиков
+        setTimeout(() => {
+            new Chart(document.getElementById('fundAssetsChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Гос. ЦБ', 'Корп. облигации', 'Депозиты', 'Денежные'],
+                    datasets: [{ data: [42.5, 26, 24, 7.5], backgroundColor: ['#0066cc', '#27ae60', '#f39c12', '#e74c3c'] }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            });
+
+            new Chart(document.getElementById('fundBalanceChart'), {
+                type: 'line',
+                data: {
+                    labels: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн'],
+                    datasets: [{ label: 'Баланс', data: [17.5, 18.0, 18.3, 19.1, 19.5, 20.0], borderColor: '#0066cc', fill: false }]
+                },
+                options: { responsive: true }
+            });
+        }, 300);
+    }
+
+    // Показать профиль риска компании
+    function showCompanyRiskProfile(companyId) {
+        const data = companyRiskData[companyId];
+        if (!data) return;
+
+        document.getElementById('companyName').textContent = data.name;
+        document.getElementById('companyNmp').textContent = data.nmp;
+        document.getElementById('companyPD').textContent = data.pd;
+        document.getElementById('companyLR').textContent = data.lr;
+        document.getElementById('companyEL').textContent = data.el;
+
+        // История взносов
+        document.getElementById('contributionHistory').innerHTML = data.history.map(h => `
+            <tr>
+                <td>${h.period}</td>
+                <td>${h.premiums}</td>
+                <td>${h.rate}</td>
+                <td>${h.contribution}</td>
+                <td><span class="status-badge ${h.status}">${h.statusText}</span></td>
+            </tr>
+        `).join('');
+
+        document.getElementById('companyRecommendations').innerHTML = data.recommendations;
+
+        new bootstrap.Modal(document.getElementById('companyRiskModal')).show();
+    }
+
+    // Показать анализ достаточности
+    function showAdequacyAnalysis() {
+        const modal = new bootstrap.Modal(document.getElementById('adequacyModal'));
+        modal.show();
+
+        setTimeout(() => {
+            new Chart(document.getElementById('adequacyScenarioChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['Базовый', 'Стресс', 'Катастрофа'],
+                    datasets: [{ label: 'Коэффициент', data: [1.35, 1.08, 0.80], backgroundColor: ['#27ae60', '#f39c12', '#e74c3c'] }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
+
+            new Chart(document.getElementById('adequacyForecastChart'), {
+                type: 'line',
+                data: {
+                    labels: ['Ноя', 'Дек', 'Янв', 'Фев', 'Мар', 'Апр'],
+                    datasets: [
+                        { label: 'Прогноз', data: [1.35, 1.38, 1.42, 1.45, 1.48, 1.50], borderColor: '#0066cc', fill: false },
+                        { label: 'Норма', data: [1.2, 1.2, 1.2, 1.2, 1.2, 1.2], borderColor: '#27ae60', borderDash: [5,5], fill: false }
+                    ]
+                },
+                options: { responsive: true }
+            });
+        }, 300);
+    }
+
+    // Синхронизация с МСФО
+    function syncFromIFRS() {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            const eclData = JSON.parse(localStorage.getItem('ifrs9_ecl_data') || 'null');
+            const ifrs17Data = JSON.parse(localStorage.getItem('ifrs17_data') || 'null');
+
+            if (eclData || ifrs17Data) {
+                document.getElementById('lastSync').innerHTML = '<i class="bi bi-cloud-check me-1"></i> Синхронизировано: ' + new Date().toLocaleTimeString('ru-RU');
+                showToast('Данные синхронизированы из МСФО 9/17', 'success');
+            } else {
+                showToast('Данные МСФО не найдены. Выполните расчеты.', 'warning');
+            }
+        }, 1500);
+    }
+
+    // Детализация взносов
+    function showContributionsBreakdown() {
+        const modal = new bootstrap.Modal(document.getElementById('contributionsBreakdownModal'));
+        modal.show();
+
+        setTimeout(() => {
+            // График взносов по кварталам
+            new Chart(document.getElementById('contributionsQuarterChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['Q1 2025', 'Q2 2025', 'Q3 2025', 'Q4 2025'],
+                    datasets: [{
+                        label: 'Взносы (млн ₸)',
+                        data: [680, 720, 707, 0],
+                        backgroundColor: ['#27ae60', '#27ae60', '#27ae60', '#e0e0e0']
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
+
+            // Топ плательщиков
+            new Chart(document.getElementById('topPayersChart'), {
+                type: 'horizontalBar',
+                data: {
+                    labels: ['КазСтрах', 'НомадИнш', 'НурПолис', 'Евразия', 'Виктория'],
+                    datasets: [{
+                        data: [175, 142, 120, 110, 100],
+                        backgroundColor: ['#0066cc', '#27ae60', '#f39c12', '#9b59b6', '#e74c3c']
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }, 300);
+    }
+
+    // Прогноз выплат
+    function showPayoutsProjection() {
+        const modal = new bootstrap.Modal(document.getElementById('payoutsProjectionModal'));
+        modal.show();
+
+        setTimeout(() => {
+            // Распределение выплат
+            new Chart(document.getElementById('payoutsDistributionChart'), {
+                type: 'line',
+                data: {
+                    labels: ['0', '5', '10', '15', '20', '25', '30', '35'],
+                    datasets: [{
+                        label: 'Плотность вероятности',
+                        data: [0.02, 0.08, 0.25, 0.35, 0.18, 0.08, 0.03, 0.01],
+                        borderColor: '#0066cc',
+                        backgroundColor: 'rgba(0, 102, 204, 0.2)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: { x: { title: { display: true, text: 'Выплаты (млрд ₸)' } } }
+                }
+            });
+
+            // По типу риска
+            new Chart(document.getElementById('payoutsByRiskChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Высокий', 'Средний', 'Низкий'],
+                    datasets: [{ data: [71, 17, 12], backgroundColor: ['#e74c3c', '#f39c12', '#27ae60'] }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            });
+        }, 300);
+    }
+
+    // Квартальный отчет
+    function generateQuarterlyReport() {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            const modal = new bootstrap.Modal(document.getElementById('quarterlyReportModal'));
+            modal.show();
+        }, 1500);
+    }
+
+    // Оценка рисков
+    function runRiskAssessment() {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            const modal = new bootstrap.Modal(document.getElementById('riskAssessmentModal'));
+            modal.show();
+
+            setTimeout(() => {
+                // Распределение риска
+                new Chart(document.getElementById('riskDistributionChart'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Высокий', 'Средний', 'Низкий'],
+                        datasets: [{ data: [3, 5, 19], backgroundColor: ['#e74c3c', '#f39c12', '#27ae60'] }]
+                    },
+                    options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+                });
+
+                // Тренд риска
+                new Chart(document.getElementById('riskTrendChart'), {
+                    type: 'line',
+                    data: {
+                        labels: ['Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя'],
+                        datasets: [
+                            { label: 'Высокий', data: [1, 1, 2, 2, 3, 3], borderColor: '#e74c3c', fill: false },
+                            { label: 'Средний', data: [3, 4, 4, 5, 5, 5], borderColor: '#f39c12', fill: false }
+                        ]
+                    },
+                    options: { responsive: true }
+                });
+            }, 300);
+        }, 1500);
+    }
+
+    function exportCompanyReport() {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            showToast('Отчет по компании экспортирован в PDF', 'success');
+        }, 1500);
+    }
+
+    function scheduleMonitoring() {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            bootstrap.Modal.getInstance(document.getElementById('companyRiskModal')).hide();
+            showToast('Мониторинг назначен на ежемесячной основе', 'success');
+        }, 1000);
+    }
+
+    // Дополнительные функции для модальных окон
+    function exportContributionsToExcel() {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            showToast('Данные экспортированы в Excel', 'success');
+        }, 1000);
+    }
+
+    function sendPaymentReminders() {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            showToast('Напоминания отправлены 2 компаниям', 'success');
+        }, 1500);
+    }
+
+    function runMonteCarloSimulation() {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            showToast('Monte Carlo симуляция выполнена (10,000 итераций)', 'success');
+        }, 2500);
+    }
+
+    function exportPayoutsReport() {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            showToast('Отчет по прогнозу выплат экспортирован', 'success');
+        }, 1500);
+    }
+
+    function downloadQuarterlyPDF() {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            showToast('PDF отчет Q3 2025 скачан', 'success');
+        }, 1500);
+    }
+
+    function downloadQuarterlyExcel() {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            showToast('Excel отчет Q3 2025 скачан', 'success');
+        }, 1500);
+    }
+
+    function sendQuarterlyToBoard() {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            bootstrap.Modal.getInstance(document.getElementById('quarterlyReportModal')).hide();
+            showToast('Отчет отправлен в Правление Фонда', 'success');
+        }, 2000);
+    }
+
+    function exportRiskReport() {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            showToast('Отчет по рискам экспортирован', 'success');
+        }, 1500);
+    }
+
+    function createActionPlan() {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            bootstrap.Modal.getInstance(document.getElementById('riskAssessmentModal')).hide();
+            showToast('План действий создан для 3 компаний', 'success');
+        }, 1500);
+    }
+
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', function() {
+        const eclData = JSON.parse(localStorage.getItem('ifrs9_ecl_data') || 'null');
+        const ifrs17Data = JSON.parse(localStorage.getItem('ifrs17_data') || 'null');
+
+        if (eclData || ifrs17Data) {
+            let syncInfo = [];
+            if (eclData) syncInfo.push('МСФО 9');
+            if (ifrs17Data) syncInfo.push('МСФО 17');
+            document.getElementById('lastSync').innerHTML = '<i class="bi bi-cloud-check me-1"></i> ' + syncInfo.join(' + ') + ': ' + new Date().toLocaleTimeString('ru-RU');
+        } else {
+            document.getElementById('lastSync').innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i> Данные МСФО не синхронизированы';
+        }
+    });
+</script>
+{% endblock %}

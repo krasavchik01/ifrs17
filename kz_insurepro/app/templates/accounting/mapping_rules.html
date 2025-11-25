@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block title %}Правила маппинга - Alliot{% endblock %}
+{% block page_title %}Правила бухгалтерского маппинга{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>
+            <strong>Accounting Engine:</strong> Правила маппинга определяют какие бухгалтерские проводки (Дебет/Кредит)
+            генерировать для каждого события МСФО 17/9. Это "мозг" системы автоматического формирования проводок.
+        </div>
+    </div>
+</div>
+
+<!-- Кнопка создания нового правила -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <a href="{{ url_for('main.new_accounting_rule') }}" class="btn btn-primary btn-lg">
+            <i class="bi bi-plus-circle me-2"></i>Создать новое правило
+        </a>
+        <a href="{{ url_for('main.chart_of_accounts') }}" class="btn btn-outline-secondary btn-lg">
+            <i class="bi bi-list-ul me-2"></i>План счетов
+        </a>
+        <a href="{{ url_for('main.journal_entries') }}" class="btn btn-outline-success btn-lg">
+            <i class="bi bi-journal-text me-2"></i>Журнал проводок
+        </a>
+    </div>
+</div>
+
+<!-- Статистика -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon primary">
+                <i class="bi bi-lightning"></i>
+            </div>
+            <div class="stat-label">Всего правил</div>
+            <div class="stat-value">{{ rules|length }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon success">
+                <i class="bi bi-check-circle"></i>
+            </div>
+            <div class="stat-label">Активных</div>
+            <div class="stat-value">{{ rules|selectattr('is_active')|list|length }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon warning">
+                <i class="bi bi-exclamation-triangle"></i>
+            </div>
+            <div class="stat-label">Типов событий</div>
+            <div class="stat-value">{{ all_events|length }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon info">
+                <i class="bi bi-grid"></i>
+            </div>
+            <div class="stat-label">Событий с правилами</div>
+            <div class="stat-value">{{ rules_by_event|length }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Правила по событиям -->
+{% if rules_by_event %}
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="bi bi-diagram-3 me-2"></i>Правила маппинга по типам событий</h5>
+    </div>
+    <div class="card-body">
+        <!-- Accordion для каждого типа события -->
+        <div class="accordion" id="rulesAccordion">
+            {% for event in all_events %}
+            {% set event_name = event.value %}
+            {% set event_rules = rules_by_event.get(event_name, []) %}
+
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="heading{{ loop.index }}">
+                    <button class="accordion-button {% if not event_rules %}collapsed{% endif %}" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#collapse{{ loop.index }}"
+                            aria-expanded="{% if event_rules %}true{% else %}false{% endif %}">
+                        <div class="d-flex w-100 justify-content-between align-items-center">
+                            <span>
+                                <i class="bi bi-{{ 'check-circle text-success' if event_rules else 'x-circle text-danger' }} me-2"></i>
+                                <strong>{{ event_name|upper|replace('_', ' ') }}</strong>
+                            </span>
+                            <span class="badge bg-{% if event_rules %}success{% else %}secondary{% endif %} ms-3">
+                                {{ event_rules|length }} правил{% if not event_rules %}а{% endif %}
+                            </span>
+                        </div>
+                    </button>
+                </h2>
+                <div id="collapse{{ loop.index }}"
+                     class="accordion-collapse collapse {% if event_rules %}show{% endif %}"
+                     data-bs-parent="#rulesAccordion">
+                    <div class="accordion-body">
+                        {% if event_rules %}
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Приоритет</th>
+                                        <th>Фильтры</th>
+                                        <th>Дебет</th>
+                                        <th>Кредит</th>
+                                        <th>Описание</th>
+                                        <th>Статус</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for rule in event_rules %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge bg-secondary">{{ rule.priority }}</span>
+                                        </td>
+                                        <td>
+                                            {% if rule.insurance_type %}
+                                                <span class="badge bg-info small">{{ rule.insurance_type.value }}</span>
+                                            {% endif %}
+                                            {% if rule.contract_type %}
+                                                <span class="badge bg-warning small">{{ rule.contract_type.value }}</span>
+                                            {% endif %}
+                                            {% if rule.measurement_model %}
+                                                <span class="badge bg-primary small">{{ rule.measurement_model.value }}</span>
+                                            {% endif %}
+                                            {% if not (rule.insurance_type or rule.contract_type or rule.measurement_model) %}
+                                                <span class="text-muted small">Все</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <strong class="text-danger">Дт {{ rule.debit_account_code }}</strong>
+                                            <br><small class="text-muted">{{ rule.debit_account.account_name if rule.debit_account else '' }}</small>
+                                        </td>
+                                        <td>
+                                            <strong class="text-success">Кт {{ rule.credit_account_code }}</strong>
+                                            <br><small class="text-muted">{{ rule.credit_account.account_name if rule.credit_account else '' }}</small>
+                                        </td>
+                                        <td>
+                                            <small>{{ rule.description or '-' }}</small>
+                                        </td>
+                                        <td>
+                                            {% if rule.is_active %}
+                                                <span class="badge bg-success"><i class="bi bi-check"></i> Активно</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary"><i class="bi bi-x"></i> Неактивно</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-warning mb-0">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            Правила для этого события не настроены.
+                            <a href="{{ url_for('main.new_accounting_rule') }}" class="alert-link">Создать правило</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    <strong>Правила маппинга не настроены!</strong>
+    Создайте правила, чтобы система могла автоматически генерировать бухгалтерские проводки.
+    <a href="{{ url_for('main.new_accounting_rule') }}" class="btn btn-sm btn-warning ms-3">
+        <i class="bi bi-plus me-1"></i>Создать первое правило
+    </a>
+</div>
+{% endif %}
+
+<!-- Информационная панель -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Как работает Accounting Engine</h6>
+            </div>
+            <div class="card-body">
+                <ol class="mb-0">
+                    <li class="mb-2">
+                        <strong>Событие происходит:</strong> Например, расчет показывает CSM Release = 10 млн ₸
+                    </li>
+                    <li class="mb-2">
+                        <strong>Система ищет правило:</strong> Находит правило для события "CSM_RELEASE" с учетом фильтров (Insurance Type, Contract Type, etc.)
+                    </li>
+                    <li class="mb-2">
+                        <strong>Генерируется проводка:</strong>
+                        <code>Дт 3310 (Обязательства) 10,000,000 ₸ / Кт 6010 (Доходы) 10,000,000 ₸</code>
+                    </li>
+                    <li class="mb-0">
+                        <strong>Проводка записывается в Sub-ledger:</strong> С полным audit trail (формула, допущения, source data)
+                    </li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

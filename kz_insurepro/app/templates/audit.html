@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Аудиторский след - Alliot{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+    <h1 class="h2"><i class="bi bi-journal-text"></i> Аудиторский след</h1>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <i class="bi bi-clock-history"></i> История расчетов
+    </div>
+    <div class="card-body">
+        <p>Все расчеты автоматически логируются с полной детализацией:</p>
+        <ul>
+            <li>Входные параметры</li>
+            <li>Применённые формулы</li>
+            <li>Ссылки на стандарты (МСФО, АРФР)</li>
+            <li>Обоснование каждого решения</li>
+        </ul>
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i>
+            Аудиторский след соответствует требованиям АРФР для проверок и аудита.
+            Каждый расчет содержит полное обоснование до точности 0.001 KZT.
+        </div>
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle"></i>
+            {{ DEMO_CONFIG.UPGRADE_MESSAGE }}
+        </div>
+    </div>
+</div>
+{% endblock %}

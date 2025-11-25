@@ -1,0 +1,395 @@
+{% extends "base.html" %}
+
+{% block title %}Отчеты - Alliot{% endblock %}
+{% block page_title %}Отчеты и экспорт{% endblock %}
+
+{% block content %}
+<style>
+    .report-card {
+        transition: all 0.3s ease;
+        cursor: pointer;
+        height: 100%;
+    }
+    .report-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    .report-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    .report-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
+    .history-item {
+        border-left: 3px solid #3498db;
+        padding-left: 15px;
+        margin-bottom: 15px;
+    }
+    .history-item.success { border-color: #27ae60; }
+    .history-item.warning { border-color: #f39c12; }
+    .history-item.error { border-color: #e74c3c; }
+</style>
+
+<!-- Статистика отчетности -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon primary"><i class="bi bi-file-earmark-text"></i></div>
+            <div class="stat-label">Отчетов за квартал</div>
+            <div class="stat-value">47</div>
+            <div class="stat-change">Q3 2025</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon success"><i class="bi bi-check-circle"></i></div>
+            <div class="stat-label">Успешно сданы</div>
+            <div class="stat-value">45</div>
+            <div class="stat-change positive">96% успеха</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon warning"><i class="bi bi-clock"></i></div>
+            <div class="stat-label">Ожидают подачи</div>
+            <div class="stat-value">2</div>
+            <div class="stat-change">Срок: 30.11.2025</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon danger"><i class="bi bi-calendar-event"></i></div>
+            <div class="stat-label">Следующий дедлайн</div>
+            <div class="stat-value">15.12</div>
+            <div class="stat-change">Годовая отчетность</div>
+        </div>
+    </div>
+</div>
+
+<!-- Типы отчетов -->
+<h5 class="mb-3"><i class="bi bi-grid me-2"></i>Генерация отчетов</h5>
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card report-card" onclick="generateReport('xbrl')">
+            <span class="badge bg-primary report-badge">АРФР</span>
+            <div class="card-body text-center">
+                <i class="bi bi-filetype-xml text-primary report-icon"></i>
+                <h5>XBRL Экспорт</h5>
+                <p class="text-muted">Экспорт в формате XBRL для подачи в АРФР</p>
+                <ul class="list-unstyled text-start small">
+                    <li><i class="bi bi-check text-success me-1"></i>МСФО 9 - ECL резервы</li>
+                    <li><i class="bi bi-check text-success me-1"></i>МСФО 17 - Обязательства</li>
+                    <li><i class="bi bi-check text-success me-1"></i>Платежеспособность MMP/FMP</li>
+                    <li><i class="bi bi-check text-success me-1"></i>Таксономия АРФР 2025</li>
+                </ul>
+                <button class="btn btn-primary w-100">
+                    <i class="bi bi-download me-1"></i>Сформировать XBRL
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card report-card" onclick="generateReport('pdf')">
+            <span class="badge bg-danger report-badge">Аудит</span>
+            <div class="card-body text-center">
+                <i class="bi bi-file-pdf text-danger report-icon"></i>
+                <h5>PDF Отчеты</h5>
+                <p class="text-muted">Отчеты с формулами для аудита</p>
+                <ul class="list-unstyled text-start small">
+                    <li><i class="bi bi-check text-success me-1"></i>Аудиторский след</li>
+                    <li><i class="bi bi-check text-success me-1"></i>Обоснование параметров</li>
+                    <li><i class="bi bi-check text-success me-1"></i>Сравнительный анализ</li>
+                    <li><i class="bi bi-check text-success me-1"></i>Графики и диаграммы</li>
+                </ul>
+                <button class="btn btn-danger w-100">
+                    <i class="bi bi-file-pdf me-1"></i>Сформировать PDF
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card report-card" onclick="generateReport('excel')">
+            <span class="badge bg-success report-badge">Анализ</span>
+            <div class="card-body text-center">
+                <i class="bi bi-file-earmark-excel text-success report-icon"></i>
+                <h5>Excel Выгрузка</h5>
+                <p class="text-muted">Детальные данные для анализа</p>
+                <ul class="list-unstyled text-start small">
+                    <li><i class="bi bi-check text-success me-1"></i>Расчетные таблицы</li>
+                    <li><i class="bi bi-check text-success me-1"></i>Исторические данные</li>
+                    <li><i class="bi bi-check text-success me-1"></i>Сценарный анализ</li>
+                    <li><i class="bi bi-check text-success me-1"></i>Pivot таблицы</li>
+                </ul>
+                <button class="btn btn-success w-100">
+                    <i class="bi bi-file-excel me-1"></i>Экспорт в Excel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Настройка отчета -->
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-gear me-2"></i>Настройка отчета</h5>
+            </div>
+            <div class="card-body">
+                <form id="reportConfigForm">
+                    <div class="mb-3">
+                        <label class="form-label">Тип отчета</label>
+                        <select class="form-select" id="reportType">
+                            <option value="quarterly">Квартальный</option>
+                            <option value="annual">Годовой</option>
+                            <option value="custom">Пользовательский</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Период</label>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <input type="date" class="form-control" value="2025-01-01">
+                            </div>
+                            <div class="col-6">
+                                <input type="date" class="form-control" value="2025-09-30">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Включить разделы</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" checked id="incIFRS17">
+                            <label class="form-check-label" for="incIFRS17">МСФО 17 - Страховые обязательства</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" checked id="incIFRS9">
+                            <label class="form-check-label" for="incIFRS9">МСФО 9 - ECL резервы</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" checked id="incSolvency">
+                            <label class="form-check-label" for="incSolvency">Платежеспособность (Nmп)</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="incStress">
+                            <label class="form-check-label" for="incStress">Стресс-тестирование</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Детализация</label>
+                        <select class="form-select">
+                            <option>Стандартная</option>
+                            <option>Расширенная (с формулами)</option>
+                            <option>Полная (аудиторская)</option>
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-primary w-100" onclick="previewReport()">
+                        <i class="bi bi-eye me-1"></i>Предпросмотр
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- История отчетов -->
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>История отчетов</h5>
+                <button class="btn btn-sm btn-outline-primary" onclick="showAllHistory()">Все</button>
+            </div>
+            <div class="card-body">
+                <div class="history-item success">
+                    <div class="d-flex justify-content-between">
+                        <strong>XBRL Q3 2025</strong>
+                        <span class="badge bg-success">Сдан</span>
+                    </div>
+                    <small class="text-muted">15.10.2025 14:32 • АРФР принят</small>
+                    <div class="mt-1">
+                        <button class="btn btn-sm btn-outline-primary" onclick="downloadReport('xbrl-q3')">
+                            <i class="bi bi-download"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="viewReport('xbrl-q3')">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="history-item success">
+                    <div class="d-flex justify-content-between">
+                        <strong>PDF Аудит Q3</strong>
+                        <span class="badge bg-success">Готов</span>
+                    </div>
+                    <small class="text-muted">14.10.2025 10:15 • 45 страниц</small>
+                    <div class="mt-1">
+                        <button class="btn btn-sm btn-outline-danger" onclick="downloadReport('pdf-q3')">
+                            <i class="bi bi-file-pdf"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="history-item warning">
+                    <div class="d-flex justify-content-between">
+                        <strong>Excel Анализ</strong>
+                        <span class="badge bg-warning">Черновик</span>
+                    </div>
+                    <small class="text-muted">12.10.2025 16:45 • Требует проверки</small>
+                    <div class="mt-1">
+                        <button class="btn btn-sm btn-outline-success" onclick="downloadReport('excel-draft')">
+                            <i class="bi bi-file-excel"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="history-item success">
+                    <div class="d-flex justify-content-between">
+                        <strong>XBRL Q2 2025</strong>
+                        <span class="badge bg-success">Сдан</span>
+                    </div>
+                    <small class="text-muted">15.07.2025 11:20 • АРФР принят</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Календарь отчетности -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-calendar3 me-2"></i>Календарь отчетности 2025</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Отчет</th>
+                        <th>Период</th>
+                        <th>Дедлайн</th>
+                        <th>Статус</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Квартальный Q1</strong></td>
+                        <td>Янв-Мар 2025</td>
+                        <td>15.04.2025</td>
+                        <td><span class="badge bg-success">Сдан</span></td>
+                        <td><button class="btn btn-sm btn-outline-primary">Просмотр</button></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Квартальный Q2</strong></td>
+                        <td>Апр-Июн 2025</td>
+                        <td>15.07.2025</td>
+                        <td><span class="badge bg-success">Сдан</span></td>
+                        <td><button class="btn btn-sm btn-outline-primary">Просмотр</button></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Квартальный Q3</strong></td>
+                        <td>Июл-Сен 2025</td>
+                        <td>15.10.2025</td>
+                        <td><span class="badge bg-success">Сдан</span></td>
+                        <td><button class="btn btn-sm btn-outline-primary">Просмотр</button></td>
+                    </tr>
+                    <tr class="table-warning">
+                        <td><strong>Квартальный Q4</strong></td>
+                        <td>Окт-Дек 2025</td>
+                        <td>15.01.2026</td>
+                        <td><span class="badge bg-warning">Ожидает</span></td>
+                        <td><button class="btn btn-sm btn-primary" onclick="generateReport('quarterly')">Сформировать</button></td>
+                    </tr>
+                    <tr class="table-info">
+                        <td><strong>Годовой 2025</strong></td>
+                        <td>Янв-Дек 2025</td>
+                        <td>31.03.2026</td>
+                        <td><span class="badge bg-secondary">Предстоит</span></td>
+                        <td><button class="btn btn-sm btn-outline-secondary" disabled>Сформировать</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно прогресса -->
+<div class="modal fade" id="progressModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-gear-fill me-2"></i>Генерация отчета</h5>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Загрузка...</span>
+                    </div>
+                </div>
+                <div class="progress mb-2" style="height: 25px;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" id="reportProgress" style="width: 0%">0%</div>
+                </div>
+                <p class="text-center text-muted mb-0" id="progressStatus">Инициализация...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function generateReport(type) {
+        const modal = new bootstrap.Modal(document.getElementById('progressModal'));
+        modal.show();
+
+        const progressBar = document.getElementById('reportProgress');
+        const statusText = document.getElementById('progressStatus');
+
+        const steps = {
+            'xbrl': ['Загрузка данных...', 'Валидация МСФО 17...', 'Валидация МСФО 9...', 'Формирование XBRL...', 'Проверка таксономии...', 'Готово!'],
+            'pdf': ['Сбор данных...', 'Генерация графиков...', 'Формирование страниц...', 'Добавление формул...', 'Финализация...', 'Готово!'],
+            'excel': ['Загрузка данных...', 'Создание листов...', 'Добавление формул...', 'Форматирование...', 'Готово!'],
+            'quarterly': ['Загрузка данных...', 'Расчет показателей...', 'Формирование отчета...', 'Готово!']
+        };
+
+        const currentSteps = steps[type] || steps['pdf'];
+        let progress = 0;
+
+        const interval = setInterval(() => {
+            progress += Math.random() * 25;
+            if (progress > 100) progress = 100;
+
+            progressBar.style.width = progress + '%';
+            progressBar.textContent = Math.round(progress) + '%';
+
+            const stepIndex = Math.min(Math.floor(progress / 100 * currentSteps.length), currentSteps.length - 1);
+            statusText.textContent = currentSteps[stepIndex];
+
+            if (progress >= 100) {
+                clearInterval(interval);
+                setTimeout(() => {
+                    modal.hide();
+                    showToast(`Отчет ${type.toUpperCase()} успешно сформирован`, 'success');
+                }, 500);
+            }
+        }, 300);
+    }
+
+    function previewReport() {
+        showToast('Предпросмотр отчета...', 'info');
+    }
+
+    function downloadReport(reportId) {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            showToast('Отчет скачан', 'success');
+        }, 1000);
+    }
+
+    function viewReport(reportId) {
+        showToast('Открытие отчета...', 'info');
+    }
+
+    function showAllHistory() {
+        showToast('История отчетов', 'info');
+    }
+</script>
+{% endblock %}

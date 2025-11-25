@@ -1,0 +1,662 @@
+{% extends "base.html" %}
+
+{% block title %}Стресс-тесты - АРФР{% endblock %}
+{% block page_title %}Стресс-тестирование страхового рынка{% endblock %}
+
+{% block content %}
+<style>
+    .scenario-card {
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border-left: 4px solid transparent;
+    }
+    .scenario-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    .scenario-card.selected {
+        border-left-color: #3498db;
+        background: rgba(52, 152, 219, 0.05);
+    }
+    .scenario-mild { border-left-color: #27ae60; }
+    .scenario-moderate { border-left-color: #f39c12; }
+    .scenario-severe { border-left-color: #e74c3c; }
+    .scenario-extreme { border-left-color: #8e44ad; }
+    .impact-meter {
+        height: 8px;
+        border-radius: 4px;
+        background: #e9ecef;
+        overflow: hidden;
+    }
+    .impact-fill {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.5s ease;
+    }
+    .company-row.failed {
+        background: rgba(231, 76, 60, 0.1);
+    }
+    .company-row.warning {
+        background: rgba(243, 156, 18, 0.1);
+    }
+</style>
+
+<!-- Основная информация -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card" style="cursor: pointer;" onclick="showTestHistory()">
+            <div class="stat-icon primary"><i class="bi bi-lightning-charge"></i></div>
+            <div class="stat-label">Проведено тестов</div>
+            <div class="stat-value">24</div>
+            <div class="stat-change">За 2025 год</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="cursor: pointer;" onclick="showLastTest()">
+            <div class="stat-icon success"><i class="bi bi-calendar-check"></i></div>
+            <div class="stat-label">Последний тест</div>
+            <div class="stat-value">15.10.2025</div>
+            <div class="stat-change">Базовый + 3 сценария</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="cursor: pointer;" onclick="showFailedCompanies()">
+            <div class="stat-icon danger"><i class="bi bi-exclamation-octagon"></i></div>
+            <div class="stat-label">Не прошли тест</div>
+            <div class="stat-value">3</div>
+            <div class="stat-change">из 27 компаний</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="cursor: pointer;" onclick="showCapitalShortfall()">
+            <div class="stat-icon warning"><i class="bi bi-cash-coin"></i></div>
+            <div class="stat-label">Дефицит капитала</div>
+            <div class="stat-value">45.2 млрд ₸</div>
+            <div class="stat-change">При жестком сценарии</div>
+        </div>
+    </div>
+</div>
+
+<!-- Запуск стресс-теста -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5><i class="bi bi-play-circle me-2"></i>Запуск стресс-тестирования</h5>
+    </div>
+    <div class="card-body">
+        <div class="row g-4">
+            <!-- Выбор сценариев -->
+            <div class="col-md-8">
+                <h6 class="mb-3">Выберите сценарии:</h6>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="scenario-card card p-3 scenario-mild selected" onclick="toggleScenario(this, 'mild')">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong><i class="bi bi-check-circle text-success me-2"></i>Мягкий сценарий</strong>
+                                    <div class="small text-muted mt-1">Умеренное замедление экономики</div>
+                                </div>
+                                <i class="bi bi-check2 text-primary" id="check-mild"></i>
+                            </div>
+                            <div class="mt-2">
+                                <small>ВВП: -1% | Инфляция: +3% | Тенге: -10%</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="scenario-card card p-3 scenario-moderate selected" onclick="toggleScenario(this, 'moderate')">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong><i class="bi bi-exclamation-circle text-warning me-2"></i>Умеренный сценарий</strong>
+                                    <div class="small text-muted mt-1">Рецессия и финансовый стресс</div>
+                                </div>
+                                <i class="bi bi-check2 text-primary" id="check-moderate"></i>
+                            </div>
+                            <div class="mt-2">
+                                <small>ВВП: -3% | Инфляция: +8% | Тенге: -25%</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="scenario-card card p-3 scenario-severe" onclick="toggleScenario(this, 'severe')">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong><i class="bi bi-exclamation-triangle text-danger me-2"></i>Жесткий сценарий</strong>
+                                    <div class="small text-muted mt-1">Глубокий кризис</div>
+                                </div>
+                                <i class="bi bi-check2 text-primary d-none" id="check-severe"></i>
+                            </div>
+                            <div class="mt-2">
+                                <small>ВВП: -8% | Инфляция: +15% | Тенге: -40%</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="scenario-card card p-3 scenario-extreme" onclick="toggleScenario(this, 'extreme')">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong><i class="bi bi-radioactive text-purple me-2"></i>Экстремальный сценарий</strong>
+                                    <div class="small text-muted mt-1">Системный коллапс</div>
+                                </div>
+                                <i class="bi bi-check2 text-primary d-none" id="check-extreme"></i>
+                            </div>
+                            <div class="mt-2">
+                                <small>ВВП: -15% | Инфляция: +25% | Тенге: -60%</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Параметры -->
+            <div class="col-md-4">
+                <h6 class="mb-3">Параметры теста:</h6>
+                <div class="mb-3">
+                    <label class="form-label">Горизонт прогноза</label>
+                    <select class="form-select">
+                        <option>1 год</option>
+                        <option selected>2 года</option>
+                        <option>3 года</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Компании</label>
+                    <select class="form-select">
+                        <option selected>Все компании (27)</option>
+                        <option>Life (8)</option>
+                        <option>Non-life (14)</option>
+                        <option>Композитные (5)</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Методология</label>
+                    <select class="form-select">
+                        <option selected>АРФР стандартная</option>
+                        <option>EIOPA</option>
+                        <option>Solvency II</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary w-100" onclick="runStressTest()">
+                    <i class="bi bi-play-fill me-1"></i>Запустить тест
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Прогресс выполнения -->
+<div class="card mb-4 d-none" id="progressCard">
+    <div class="card-body">
+        <h6>Выполнение стресс-теста...</h6>
+        <div class="progress mb-2" style="height: 25px;">
+            <div class="progress-bar progress-bar-striped progress-bar-animated" id="testProgress" style="width: 0%">0%</div>
+        </div>
+        <small class="text-muted" id="progressText">Инициализация...</small>
+    </div>
+</div>
+
+<!-- Результаты последнего теста -->
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5><i class="bi bi-clipboard-data me-2"></i>Результаты стресс-теста (15.10.2025)</h5>
+        <div>
+            <button class="btn btn-sm btn-outline-primary me-2" onclick="exportResults()">
+                <i class="bi bi-download me-1"></i>Экспорт
+            </button>
+            <button class="btn btn-sm btn-outline-primary" onclick="compareTests()">
+                <i class="bi bi-arrow-left-right me-1"></i>Сравнить
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        <!-- Сводка по сценариям -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-3">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <h6 class="text-success">Базовый</h6>
+                        <div class="h3 mb-0">27/27</div>
+                        <small class="text-muted">Прошли тест</small>
+                        <div class="impact-meter mt-2">
+                            <div class="impact-fill bg-success" style="width: 100%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <h6 class="text-warning">Мягкий</h6>
+                        <div class="h3 mb-0">26/27</div>
+                        <small class="text-muted">Прошли тест</small>
+                        <div class="impact-meter mt-2">
+                            <div class="impact-fill bg-warning" style="width: 96%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <h6 class="text-danger">Умеренный</h6>
+                        <div class="h3 mb-0">24/27</div>
+                        <small class="text-muted">Прошли тест</small>
+                        <div class="impact-meter mt-2">
+                            <div class="impact-fill bg-danger" style="width: 89%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <h6 class="text-purple">Жесткий</h6>
+                        <div class="h3 mb-0">21/27</div>
+                        <small class="text-muted">Прошли тест</small>
+                        <div class="impact-meter mt-2">
+                            <div class="impact-fill" style="width: 78%; background: #8e44ad;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Графики -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-6">
+                <h6>Влияние на Nmп по сценариям</h6>
+                <canvas id="solvencyImpactChart" height="250"></canvas>
+            </div>
+            <div class="col-md-6">
+                <h6>Дефицит капитала по сценариям (млрд ₸)</h6>
+                <canvas id="capitalShortfallChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Детальные результаты по компаниям -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5><i class="bi bi-table me-2"></i>Результаты по компаниям (Умеренный сценарий)</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Компания</th>
+                        <th>Тип</th>
+                        <th>Nmп (до)</th>
+                        <th>Nmп (после)</th>
+                        <th>Изменение</th>
+                        <th>Дефицит капитала</th>
+                        <th>Статус</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="company-row failed" onclick="showCompanyStressDetails('asia')">
+                        <td><strong>СК Азия</strong></td>
+                        <td>Non-life</td>
+                        <td>0.85</td>
+                        <td><span class="text-danger fw-bold">0.42</span></td>
+                        <td><span class="text-danger">-50.6%</span></td>
+                        <td>18.5 млрд ₸</td>
+                        <td><span class="badge bg-danger">Не пройден</span></td>
+                        <td><button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); createAction('asia')">Меры</button></td>
+                    </tr>
+                    <tr class="company-row failed" onclick="showCompanyStressDetails('centr')">
+                        <td><strong>СК Центр</strong></td>
+                        <td>Non-life</td>
+                        <td>0.92</td>
+                        <td><span class="text-danger fw-bold">0.58</span></td>
+                        <td><span class="text-danger">-37.0%</span></td>
+                        <td>12.8 млрд ₸</td>
+                        <td><span class="badge bg-danger">Не пройден</span></td>
+                        <td><button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); createAction('centr')">Меры</button></td>
+                    </tr>
+                    <tr class="company-row warning" onclick="showCompanyStressDetails('kazakh')">
+                        <td><strong>Казахинстрах</strong></td>
+                        <td>Non-life</td>
+                        <td>1.78</td>
+                        <td><span class="text-warning fw-bold">0.95</span></td>
+                        <td><span class="text-danger">-46.6%</span></td>
+                        <td>5.2 млрд ₸</td>
+                        <td><span class="badge bg-danger">Не пройден</span></td>
+                        <td><button class="btn btn-sm btn-outline-warning" onclick="event.stopPropagation(); createAction('kazakh')">Меры</button></td>
+                    </tr>
+                    <tr onclick="showCompanyStressDetails('victoria')">
+                        <td><strong>Виктория</strong></td>
+                        <td>Non-life</td>
+                        <td>1.92</td>
+                        <td><span class="text-warning fw-bold">1.12</span></td>
+                        <td><span class="text-danger">-41.7%</span></td>
+                        <td>-</td>
+                        <td><span class="badge bg-warning">Критический</span></td>
+                        <td><button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation();">Детали</button></td>
+                    </tr>
+                    <tr onclick="showCompanyStressDetails('eurasia')">
+                        <td><strong>Евразия</strong></td>
+                        <td>Non-life</td>
+                        <td>2.12</td>
+                        <td><span class="text-primary fw-bold">1.35</span></td>
+                        <td><span class="text-danger">-36.3%</span></td>
+                        <td>-</td>
+                        <td><span class="badge bg-success">Пройден</span></td>
+                        <td><button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation();">Детали</button></td>
+                    </tr>
+                    <tr onclick="showCompanyStressDetails('halyk')">
+                        <td><strong>Халык-Life</strong></td>
+                        <td>Life</td>
+                        <td>2.85</td>
+                        <td><span class="text-success fw-bold">1.82</span></td>
+                        <td><span class="text-danger">-36.1%</span></td>
+                        <td>-</td>
+                        <td><span class="badge bg-success">Пройден</span></td>
+                        <td><button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation();">Детали</button></td>
+                    </tr>
+                    <tr onclick="showCompanyStressDetails('nomad')">
+                        <td><strong>Nomad Life</strong></td>
+                        <td>Life</td>
+                        <td>3.15</td>
+                        <td><span class="text-success fw-bold">2.05</span></td>
+                        <td><span class="text-danger">-34.9%</span></td>
+                        <td>-</td>
+                        <td><span class="badge bg-success">Пройден</span></td>
+                        <td><button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation();">Детали</button></td>
+                    </tr>
+                    <tr onclick="showCompanyStressDetails('amanat')">
+                        <td><strong>Аманат</strong></td>
+                        <td>Life</td>
+                        <td>3.45</td>
+                        <td><span class="text-success fw-bold">2.25</span></td>
+                        <td><span class="text-danger">-34.8%</span></td>
+                        <td>-</td>
+                        <td><span class="badge bg-success">Пройден</span></td>
+                        <td><button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation();">Детали</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Рекомендации -->
+<div class="card">
+    <div class="card-header bg-warning bg-opacity-10">
+        <h5><i class="bi bi-lightbulb me-2"></i>Рекомендации по результатам стресс-теста</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h6 class="text-danger">Срочные меры (3 компании)</h6>
+                <ul>
+                    <li><strong>СК Азия:</strong> Немедленная докапитализация на 18.5 млрд ₸</li>
+                    <li><strong>СК Центр:</strong> План финансового оздоровления, докапитализация 12.8 млрд ₸</li>
+                    <li><strong>Казахинстрах:</strong> Пересмотр резервной политики, докапитализация 5.2 млрд ₸</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h6 class="text-warning">Рекомендации для рынка</h6>
+                <ul>
+                    <li>Повысить требования к качеству активов</li>
+                    <li>Усилить мониторинг компаний с Nmп < 1.5</li>
+                    <li>Разработать план действий на случай системного кризиса</li>
+                    <li>Увеличить буфер ФГСВ на 15%</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно деталей компании -->
+<div class="modal fade" id="companyStressModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="companyStressModalTitle">-</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="companyStressModalBody">
+                <!-- Заполняется динамически -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Инициализация страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        initCharts();
+    });
+
+    // Выбранные сценарии
+    let selectedScenarios = ['mild', 'moderate'];
+
+    // Инициализация графиков
+    function initCharts() {
+        // Влияние на Nmп
+        new Chart(document.getElementById('solvencyImpactChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Базовый', 'Мягкий', 'Умеренный', 'Жесткий'],
+                datasets: [
+                    {
+                        label: 'Средний Nmп',
+                        data: [2.15, 1.72, 1.38, 0.98],
+                        backgroundColor: ['#27ae60', '#f39c12', '#e74c3c', '#8e44ad']
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 3
+                    }
+                }
+            }
+        });
+
+        // Дефицит капитала
+        new Chart(document.getElementById('capitalShortfallChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Базовый', 'Мягкий', 'Умеренный', 'Жесткий'],
+                datasets: [
+                    {
+                        label: 'Дефицит (млрд ₸)',
+                        data: [0, 8.5, 36.5, 125.8],
+                        backgroundColor: ['#27ae60', '#f39c12', '#e74c3c', '#8e44ad']
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
+    // Переключить сценарий
+    function toggleScenario(element, scenario) {
+        element.classList.toggle('selected');
+        const checkIcon = document.getElementById('check-' + scenario);
+
+        if (element.classList.contains('selected')) {
+            selectedScenarios.push(scenario);
+            checkIcon.classList.remove('d-none');
+        } else {
+            selectedScenarios = selectedScenarios.filter(s => s !== scenario);
+            checkIcon.classList.add('d-none');
+        }
+    }
+
+    // Запустить стресс-тест
+    function runStressTest() {
+        if (selectedScenarios.length === 0) {
+            showToast('Выберите хотя бы один сценарий', 'warning');
+            return;
+        }
+
+        document.getElementById('progressCard').classList.remove('d-none');
+        const progressBar = document.getElementById('testProgress');
+        const progressText = document.getElementById('progressText');
+
+        const steps = [
+            'Загрузка данных компаний...',
+            'Применение шоков к активам...',
+            'Пересчет резервов...',
+            'Расчет платежеспособности...',
+            'Оценка дефицита капитала...',
+            'Формирование отчета...'
+        ];
+
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += Math.random() * 20;
+            if (progress > 100) progress = 100;
+
+            progressBar.style.width = progress + '%';
+            progressBar.textContent = Math.round(progress) + '%';
+
+            const stepIndex = Math.min(Math.floor(progress / 100 * steps.length), steps.length - 1);
+            progressText.textContent = steps[stepIndex];
+
+            if (progress >= 100) {
+                clearInterval(interval);
+                setTimeout(() => {
+                    document.getElementById('progressCard').classList.add('d-none');
+                    showToast('Стресс-тест завершен успешно', 'success');
+                }, 500);
+            }
+        }, 300);
+    }
+
+    // Показать детали стресс-теста компании
+    function showCompanyStressDetails(companyId) {
+        const companies = {
+            'asia': { name: 'СК Азия', nmBefore: 0.85, nmAfter: 0.42, deficit: 18.5 },
+            'centr': { name: 'СК Центр', nmBefore: 0.92, nmAfter: 0.58, deficit: 12.8 },
+            'kazakh': { name: 'Казахинстрах', nmBefore: 1.78, nmAfter: 0.95, deficit: 5.2 },
+            'victoria': { name: 'Виктория', nmBefore: 1.92, nmAfter: 1.12, deficit: 0 },
+            'eurasia': { name: 'Евразия', nmBefore: 2.12, nmAfter: 1.35, deficit: 0 },
+            'halyk': { name: 'Халык-Life', nmBefore: 2.85, nmAfter: 1.82, deficit: 0 },
+            'nomad': { name: 'Nomad Life', nmBefore: 3.15, nmAfter: 2.05, deficit: 0 },
+            'amanat': { name: 'Аманат', nmBefore: 3.45, nmAfter: 2.25, deficit: 0 }
+        };
+
+        const c = companies[companyId];
+        if (!c) return;
+
+        document.getElementById('companyStressModalTitle').textContent = c.name + ' - Результаты стресс-теста';
+        document.getElementById('companyStressModalBody').innerHTML = `
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="text-primary">Показатели платежеспособности</h6>
+                    <table class="table">
+                        <tr><td>Nmп до стресса</td><td class="text-end fw-bold">${c.nmBefore.toFixed(2)}</td></tr>
+                        <tr><td>Nmп после стресса</td><td class="text-end fw-bold ${c.nmAfter < 1 ? 'text-danger' : 'text-warning'}">${c.nmAfter.toFixed(2)}</td></tr>
+                        <tr><td>Изменение</td><td class="text-end text-danger">${(((c.nmAfter - c.nmBefore) / c.nmBefore) * 100).toFixed(1)}%</td></tr>
+                        <tr><td>Дефицит капитала</td><td class="text-end ${c.deficit > 0 ? 'text-danger fw-bold' : ''}">${c.deficit > 0 ? c.deficit + ' млрд ₸' : '-'}</td></tr>
+                    </table>
+
+                    <h6 class="text-primary mt-4">Основные шоки</h6>
+                    <table class="table table-sm">
+                        <tr><td>Обесценение акций</td><td class="text-end">-35%</td></tr>
+                        <tr><td>Расширение кредитных спредов</td><td class="text-end">+200 bp</td></tr>
+                        <tr><td>Девальвация тенге</td><td class="text-end">-25%</td></tr>
+                        <tr><td>Рост убыточности</td><td class="text-end">+15%</td></tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-primary">Влияние по компонентам</h6>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>Рыночный риск</span>
+                            <span class="text-danger">-${(c.nmBefore * 0.15).toFixed(2)}</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-danger" style="width: 45%"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>Кредитный риск</span>
+                            <span class="text-warning">-${(c.nmBefore * 0.12).toFixed(2)}</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-warning" style="width: 35%"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>Страховой риск</span>
+                            <span class="text-info">-${(c.nmBefore * 0.08).toFixed(2)}</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-info" style="width: 20%"></div>
+                        </div>
+                    </div>
+
+                    ${c.deficit > 0 ? `
+                    <div class="alert alert-danger mt-4">
+                        <strong>Требуется докапитализация!</strong>
+                        <p class="mb-0 mt-2">Необходимо увеличить капитал на ${c.deficit} млрд ₸ для соответствия минимальным требованиям.</p>
+                    </div>
+                    ` : `
+                    <div class="alert alert-success mt-4">
+                        <strong>Тест пройден</strong>
+                        <p class="mb-0 mt-2">Компания сохраняет платежеспособность даже в стрессовых условиях.</p>
+                    </div>
+                    `}
+                </div>
+            </div>
+        `;
+
+        new bootstrap.Modal(document.getElementById('companyStressModal')).show();
+    }
+
+    // Экспорт результатов
+    function exportResults() {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            showToast('Результаты экспортированы в PDF', 'success');
+        }, 1500);
+    }
+
+    // Сравнить тесты
+    function compareTests() {
+        showToast('Сравнение тестов', 'info');
+    }
+
+    // Создать меры
+    function createAction(companyId) {
+        showToast('План мероприятий создан', 'info');
+    }
+
+    // Показать историю тестов
+    function showTestHistory() {
+        showToast('История тестов за 2025 год', 'info');
+    }
+
+    // Показать последний тест
+    function showLastTest() {
+        showToast('Результаты теста от 15.10.2025', 'info');
+    }
+
+    // Показать компании не прошедшие тест
+    function showFailedCompanies() {
+        showToast('3 компании не прошли стресс-тест', 'warning');
+    }
+
+    // Показать дефицит капитала
+    function showCapitalShortfall() {
+        showToast('Общий дефицит: 45.2 млрд ₸', 'danger');
+    }
+</script>
+{% endblock %}

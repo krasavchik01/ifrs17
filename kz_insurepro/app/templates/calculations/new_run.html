@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}Новый расчет - Alliot{% endblock %}
+{% block page_title %}Запуск пакетного расчета{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-play-circle me-2"></i>Параметры расчета</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <!-- Тип расчета -->
+                    <div class="mb-3">
+                        <label for="calculation_type" class="form-label">Тип расчета</label>
+                        <select class="form-select" id="calculation_type" name="calculation_type" required>
+                            <option value="ifrs17">МСФО 17 (BEL/RA/CSM)</option>
+                            <option value="ifrs9">МСФО 9 (ECL)</option>
+                            <option value="solvency">Платежеспособность (MMP/FMP)</option>
+                            <option value="all">Полный расчет (Все модули)</option>
+                        </select>
+                        <div class="form-text">
+                            Выберите какие расчеты выполнить для портфеля
+                        </div>
+                    </div>
+
+                    <!-- Дата отчетности -->
+                    <div class="mb-3">
+                        <label for="reporting_date" class="form-label">Дата отчетности</label>
+                        <input type="date" class="form-control" id="reporting_date" name="reporting_date"
+                               value="{{ today }}" required>
+                        <div class="form-text">
+                            Point-in-Time дата для расчетов (обычно конец месяца/квартала)
+                        </div>
+                    </div>
+
+                    <!-- Описание -->
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Описание (опционально)</label>
+                        <input type="text" class="form-control" id="description" name="description"
+                               placeholder="Например: Квартальный расчет Q4 2025">
+                        <div class="form-text">
+                            Комментарий для идентификации расчета
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <h6 class="mb-3">Фильтры портфеля (опционально)</h6>
+                    <p class="text-muted small">
+                        Если не указаны - будут рассчитаны все группы договоров
+                    </p>
+
+                    <!-- Тип страхования -->
+                    <div class="mb-3">
+                        <label for="insurance_type" class="form-label">Тип страхования</label>
+                        <select class="form-select" id="insurance_type" name="insurance_type">
+                            <option value="">Все типы</option>
+                            <option value="life">Life (Жизнь)</option>
+                            <option value="non_life">Non-Life (Не-жизнь)</option>
+                            <option value="health">Health (Здоровье)</option>
+                            <option value="annuity">Annuity (Аннуитет)</option>
+                        </select>
+                    </div>
+
+                    <!-- Год когорты -->
+                    <div class="mb-3">
+                        <label for="cohort_year" class="form-label">Год когорты</label>
+                        <select class="form-select" id="cohort_year" name="cohort_year">
+                            <option value="">Все годы</option>
+                            <option value="2025">2025</option>
+                            <option value="2024">2024</option>
+                            <option value="2023">2023</option>
+                            <option value="2022">2022</option>
+                            <option value="2021">2021</option>
+                        </select>
+                    </div>
+
+                    <!-- Тип договора -->
+                    <div class="mb-3">
+                        <label for="contract_type" class="form-label">Тип договора</label>
+                        <select class="form-select" id="contract_type" name="contract_type">
+                            <option value="">Все типы</option>
+                            <option value="direct">Прямые (Direct)</option>
+                            <option value="reinsurance_held">Входящее перестрахование</option>
+                            <option value="reinsurance_issued">Исходящее перестрахование</option>
+                        </select>
+                    </div>
+
+                    <hr>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-play-circle me-2"></i>Запустить расчет
+                        </button>
+                        <a href="{{ url_for('main.calculation_runs') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>Назад к истории
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- Информационная панель -->
+        <div class="card mb-3">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Как это работает</h6>
+            </div>
+            <div class="card-body">
+                <ol class="small">
+                    <li>Система получает все группы договоров (не отдельные договоры!)</li>
+                    <li>Для каждой группы выполняется расчет BEL/RA/CSM</li>
+                    <li>Результаты сохраняются в GroupCalculationResult</li>
+                    <li>Генерируются бухгалтерские проводки</li>
+                    <li>Создается аудиторский след с детальными логами</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header bg-warning">
+                <h6 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>Важно</h6>
+            </div>
+            <div class="card-body">
+                <p class="small mb-0">
+                    <strong>Point-in-Time архитектура:</strong> Все расчеты привязаны к конкретной дате.
+                    Это позволяет сравнивать результаты разных периодов и восстанавливать историческое состояние системы.
+                </p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h6 class="mb-0"><i class="bi bi-shield-check me-2"></i>Enterprise функции</h6>
+            </div>
+            <div class="card-body">
+                <ul class="small mb-0">
+                    <li>Обработка 100K+ договоров</li>
+                    <li>Resilient (ошибка в одном договоре не останавливает процесс)</li>
+                    <li>Прогресс в реальном времени</li>
+                    <li>Полная аудируемость</li>
+                    <li>Data Lineage (прослеживаемость до источника)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Устанавливаем сегодняшнюю дату по умолчанию
+document.addEventListener('DOMContentLoaded', function() {
+    const dateInput = document.getElementById('reporting_date');
+    if (!dateInput.value) {
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.value = today;
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,852 @@
+{% extends "base.html" %}
+
+{% block title %}Нарушения - АРФР{% endblock %}
+{% block page_title %}Реестр нарушений и предписаний{% endblock %}
+
+{% block content %}
+<style>
+    .violation-card {
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    .violation-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    .severity-badge {
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    .severity-critical { background: #e74c3c; color: white; }
+    .severity-high { background: #f39c12; color: white; }
+    .severity-medium { background: #3498db; color: white; }
+    .severity-low { background: #95a5a6; color: white; }
+    .timeline-item {
+        position: relative;
+        padding-left: 30px;
+        padding-bottom: 20px;
+        border-left: 2px solid #dee2e6;
+    }
+    .timeline-item:last-child {
+        border-left: none;
+    }
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -6px;
+        top: 5px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #3498db;
+    }
+    .timeline-item.completed::before { background: #27ae60; }
+    .timeline-item.pending::before { background: #f39c12; }
+    .timeline-item.overdue::before { background: #e74c3c; }
+    .deadline-urgent {
+        animation: urgentPulse 2s infinite;
+    }
+    @keyframes urgentPulse {
+        0%, 100% { background-color: #f8d7da; }
+        50% { background-color: #f5c6cb; }
+    }
+</style>
+
+<!-- Сводная статистика -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card" style="cursor: pointer;" onclick="filterByStatus('all')">
+            <div class="stat-icon danger"><i class="bi bi-exclamation-triangle"></i></div>
+            <div class="stat-label">Всего нарушений</div>
+            <div class="stat-value">47</div>
+            <div class="stat-change">За 2025 год</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="cursor: pointer;" onclick="filterByStatus('open')">
+            <div class="stat-icon warning"><i class="bi bi-clock-history"></i></div>
+            <div class="stat-label">Активные</div>
+            <div class="stat-value">12</div>
+            <div class="stat-change negative">3 просрочены</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="cursor: pointer;" onclick="filterByStatus('resolved')">
+            <div class="stat-icon success"><i class="bi bi-check-circle"></i></div>
+            <div class="stat-label">Устранено</div>
+            <div class="stat-value">31</div>
+            <div class="stat-change positive">66% устранения</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="cursor: pointer;" onclick="showFinesModal()">
+            <div class="stat-icon primary"><i class="bi bi-currency-dollar"></i></div>
+            <div class="stat-label">Штрафы</div>
+            <div class="stat-value">285 млн ₸</div>
+            <div class="stat-change">Взыскано: 198 млн</div>
+        </div>
+    </div>
+</div>
+
+<!-- Алерт о просроченных нарушениях -->
+<div class="alert alert-danger d-flex align-items-center mb-4" role="alert">
+    <i class="bi bi-alarm-fill me-3" style="font-size: 1.5rem;"></i>
+    <div>
+        <strong>Просрочено!</strong> 3 нарушения превысили сроки устранения. Требуется применение санкций.
+        <button class="btn btn-sm btn-outline-danger ms-3" onclick="showOverdueViolations()">Показать просроченные</button>
+    </div>
+</div>
+
+<!-- Графики -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5><i class="bi bi-pie-chart me-2"></i>По типам нарушений</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="violationsByTypeChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5><i class="bi bi-bar-chart me-2"></i>По компаниям</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="violationsByCompanyChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5><i class="bi bi-graph-up me-2"></i>Динамика по месяцам</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="violationsTrendChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Фильтры -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-2">
+                <label class="form-label">Статус</label>
+                <select class="form-select" id="filterStatus" onchange="filterViolations()">
+                    <option value="">Все статусы</option>
+                    <option value="open">Открыто</option>
+                    <option value="in_progress">В работе</option>
+                    <option value="resolved">Устранено</option>
+                    <option value="overdue">Просрочено</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Тип нарушения</label>
+                <select class="form-select" id="filterType" onchange="filterViolations()">
+                    <option value="">Все типы</option>
+                    <option value="solvency">Платежеспособность</option>
+                    <option value="reporting">Отчетность</option>
+                    <option value="reserves">Резервы</option>
+                    <option value="aml">ПОД/ФТ</option>
+                    <option value="other">Прочие</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Серьезность</label>
+                <select class="form-select" id="filterSeverity" onchange="filterViolations()">
+                    <option value="">Любая</option>
+                    <option value="critical">Критическая</option>
+                    <option value="high">Высокая</option>
+                    <option value="medium">Средняя</option>
+                    <option value="low">Низкая</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Поиск</label>
+                <input type="text" class="form-control" id="searchViolation" placeholder="Компания или описание..." oninput="filterViolations()">
+            </div>
+            <div class="col-md-3">
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-secondary flex-grow-1" onclick="resetFilters()">
+                        <i class="bi bi-x-circle me-1"></i>Сбросить
+                    </button>
+                    <button class="btn btn-danger flex-grow-1" onclick="createNewViolation()">
+                        <i class="bi bi-plus-circle me-1"></i>Новое
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Таблица нарушений -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5><i class="bi bi-list-check me-2"></i>Реестр нарушений</h5>
+        <div>
+            <button class="btn btn-sm btn-outline-primary me-2" onclick="exportViolations()">
+                <i class="bi bi-download me-1"></i>Экспорт
+            </button>
+            <span class="badge bg-warning" id="violationsCount">12 активных</span>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" id="violationsTable">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Компания</th>
+                        <th>Тип нарушения</th>
+                        <th>Описание</th>
+                        <th>Серьезность</th>
+                        <th>Дата выявления</th>
+                        <th>Срок устранения</th>
+                        <th>Штраф</th>
+                        <th>Статус</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody id="violationsBody">
+                    <!-- Заполняется динамически -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно деталей нарушения -->
+<div class="modal fade" id="violationModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Нарушение <span id="modalViolationId">-</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="violationModalBody">
+                <!-- Заполняется динамически -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline-primary" onclick="printViolation()">
+                    <i class="bi bi-printer me-1"></i>Печать
+                </button>
+                <button class="btn btn-warning" onclick="issueFine()">
+                    <i class="bi bi-currency-dollar me-1"></i>Назначить штраф
+                </button>
+                <button class="btn btn-success" onclick="resolveViolation()">
+                    <i class="bi bi-check-circle me-1"></i>Закрыть нарушение
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно просроченных нарушений -->
+<div class="modal fade" id="overdueModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-alarm me-2"></i>Просроченные нарушения
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <strong>Внимание!</strong> Следующие нарушения превысили сроки устранения и требуют применения санкций.
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Компания</th>
+                            <th>Описание</th>
+                            <th>Просрочка</th>
+                            <th>Действие</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="table-danger">
+                            <td>#V-2025-008</td>
+                            <td><strong>СК Азия</strong></td>
+                            <td>Нарушение норматива Nmп</td>
+                            <td><span class="text-danger fw-bold">45 дней</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-danger" onclick="escalateViolation('V-2025-008')">Санкции</button>
+                            </td>
+                        </tr>
+                        <tr class="table-danger">
+                            <td>#V-2025-012</td>
+                            <td><strong>СК Центр</strong></td>
+                            <td>Несвоевременная подача отчетности</td>
+                            <td><span class="text-danger fw-bold">30 дней</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-danger" onclick="escalateViolation('V-2025-012')">Санкции</button>
+                            </td>
+                        </tr>
+                        <tr class="table-warning">
+                            <td>#V-2025-015</td>
+                            <td><strong>Казахинстрах</strong></td>
+                            <td>Недостаточность резервов</td>
+                            <td><span class="text-warning fw-bold">7 дней</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-warning" onclick="sendReminder('V-2025-015')">Напомнить</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <h6 class="mt-4">Возможные санкции:</h6>
+                <ul>
+                    <li>Увеличение штрафа за каждый день просрочки</li>
+                    <li>Ограничение на выдачу новых лицензий</li>
+                    <li>Приостановление отдельных видов деятельности</li>
+                    <li>Инициирование процедуры отзыва лицензии</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" onclick="applyMassSanctions()">
+                    <i class="bi bi-exclamation-octagon me-1"></i>Применить санкции ко всем
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно создания нарушения -->
+<div class="modal fade" id="newViolationModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-plus-circle me-2"></i>Новое нарушение
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="newViolationForm">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Компания *</label>
+                            <select class="form-select" required>
+                                <option value="">Выберите компанию</option>
+                                <option>Халык-Life</option>
+                                <option>Евразия</option>
+                                <option>Nomad Life</option>
+                                <option>СК Азия</option>
+                                <option>СК Центр</option>
+                                <option>Казахинстрах</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Тип нарушения *</label>
+                            <select class="form-select" required>
+                                <option value="">Выберите тип</option>
+                                <option>Платежеспособность</option>
+                                <option>Отчетность</option>
+                                <option>Резервы</option>
+                                <option>ПОД/ФТ</option>
+                                <option>Прочие</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Серьезность *</label>
+                            <select class="form-select" required>
+                                <option value="">Выберите серьезность</option>
+                                <option>Критическая</option>
+                                <option>Высокая</option>
+                                <option>Средняя</option>
+                                <option>Низкая</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Срок устранения *</label>
+                            <input type="date" class="form-control" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Описание нарушения *</label>
+                            <textarea class="form-control" rows="3" required placeholder="Опишите выявленное нарушение..."></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Требуемые действия</label>
+                            <textarea class="form-control" rows="2" placeholder="Укажите необходимые меры по устранению..."></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Штраф (₸)</label>
+                            <input type="number" class="form-control" placeholder="0">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Основание</label>
+                            <input type="text" class="form-control" placeholder="Статья, пункт нормативного акта">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button class="btn btn-danger" onclick="saveNewViolation()">
+                    <i class="bi bi-save me-1"></i>Создать нарушение
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Данные нарушений
+    const violationsData = {
+        'V-2025-001': {
+            company: 'СК Азия',
+            type: 'solvency',
+            typeName: 'Платежеспособность',
+            description: 'Коэффициент Nmп ниже нормативного минимума (0.85 при норме 1.0)',
+            severity: 'critical',
+            date: '15.08.2025',
+            deadline: '15.09.2025',
+            fine: 25000000,
+            status: 'overdue',
+            inspector: 'Алиев К.Б.',
+            actions: 'Немедленная докапитализация или план финансового оздоровления',
+            basis: 'Закон о страховой деятельности, ст. 45',
+            history: [
+                { date: '15.08.2025', action: 'Выявлено нарушение', user: 'Алиев К.Б.' },
+                { date: '20.08.2025', action: 'Направлено предписание', user: 'Система' },
+                { date: '01.09.2025', action: 'Запрошен план оздоровления', user: 'Алиев К.Б.' },
+                { date: '15.09.2025', action: 'Срок истек - не устранено', user: 'Система' }
+            ]
+        },
+        'V-2025-002': {
+            company: 'Евразия',
+            type: 'reporting',
+            typeName: 'Отчетность',
+            description: 'Задержка подачи квартальной отчетности на 5 дней',
+            severity: 'medium',
+            date: '22.07.2025',
+            deadline: '22.08.2025',
+            fine: 5000000,
+            status: 'resolved',
+            inspector: 'Сериков М.А.',
+            actions: 'Подача отчетности и пояснительной записки',
+            basis: 'Правила представления отчетности, п. 3.5',
+            history: [
+                { date: '22.07.2025', action: 'Выявлено нарушение', user: 'Сериков М.А.' },
+                { date: '25.07.2025', action: 'Назначен штраф', user: 'Сериков М.А.' },
+                { date: '10.08.2025', action: 'Отчетность подана', user: 'СК Евразия' },
+                { date: '15.08.2025', action: 'Нарушение устранено', user: 'Сериков М.А.' }
+            ]
+        },
+        'V-2025-003': {
+            company: 'СК Центр',
+            type: 'reserves',
+            typeName: 'Резервы',
+            description: 'Недостаточность страховых резервов (дефицит 15%)',
+            severity: 'high',
+            date: '01.09.2025',
+            deadline: '01.10.2025',
+            fine: 15000000,
+            status: 'in_progress',
+            inspector: 'Касымов Д.Е.',
+            actions: 'Доформирование резервов и перерасчет',
+            basis: 'Закон о страховой деятельности, ст. 52',
+            history: [
+                { date: '01.09.2025', action: 'Выявлено нарушение', user: 'Касымов Д.Е.' },
+                { date: '05.09.2025', action: 'Направлено предписание', user: 'Система' },
+                { date: '15.09.2025', action: 'Получен план устранения', user: 'СК Центр' }
+            ]
+        },
+        'V-2025-004': {
+            company: 'Казахинстрах',
+            type: 'aml',
+            typeName: 'ПОД/ФТ',
+            description: 'Нарушение процедур идентификации клиентов',
+            severity: 'high',
+            date: '10.09.2025',
+            deadline: '10.10.2025',
+            fine: 20000000,
+            status: 'open',
+            inspector: 'Нурланова А.С.',
+            actions: 'Устранение недостатков в процедурах ПОД/ФТ',
+            basis: 'Закон о ПОД/ФТ, ст. 12',
+            history: [
+                { date: '10.09.2025', action: 'Выявлено нарушение', user: 'Нурланова А.С.' },
+                { date: '12.09.2025', action: 'Направлено предписание', user: 'Система' }
+            ]
+        },
+        'V-2025-005': {
+            company: 'Freedom Life',
+            type: 'reporting',
+            typeName: 'Отчетность',
+            description: 'Ошибки в расчете CSM (МСФО 17)',
+            severity: 'medium',
+            date: '05.10.2025',
+            deadline: '05.11.2025',
+            fine: 3000000,
+            status: 'in_progress',
+            inspector: 'Алиев К.Б.',
+            actions: 'Пересчет CSM и подача исправленной отчетности',
+            basis: 'МСФО 17, требования к раскрытию',
+            history: [
+                { date: '05.10.2025', action: 'Выявлено нарушение', user: 'Алиев К.Б.' },
+                { date: '08.10.2025', action: 'Направлено уведомление', user: 'Система' }
+            ]
+        },
+        'V-2025-006': {
+            company: 'Виктория',
+            type: 'other',
+            typeName: 'Прочие',
+            description: 'Несоблюдение требований к корпоративному управлению',
+            severity: 'low',
+            date: '12.10.2025',
+            deadline: '12.11.2025',
+            fine: 1000000,
+            status: 'open',
+            inspector: 'Сериков М.А.',
+            actions: 'Приведение в соответствие устава и внутренних документов',
+            basis: 'Правила корпоративного управления, п. 8',
+            history: [
+                { date: '12.10.2025', action: 'Выявлено нарушение', user: 'Сериков М.А.' }
+            ]
+        }
+    };
+
+    // Инициализация страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        renderViolationsTable();
+        initCharts();
+    });
+
+    // Отрисовка таблицы нарушений
+    function renderViolationsTable() {
+        const tbody = document.getElementById('violationsBody');
+        tbody.innerHTML = '';
+
+        Object.entries(violationsData).forEach(([id, v]) => {
+            const severityText = {
+                'critical': 'Критическая',
+                'high': 'Высокая',
+                'medium': 'Средняя',
+                'low': 'Низкая'
+            };
+
+            const statusText = {
+                'open': 'Открыто',
+                'in_progress': 'В работе',
+                'resolved': 'Устранено',
+                'overdue': 'Просрочено'
+            };
+
+            const statusClass = {
+                'open': 'danger',
+                'in_progress': 'warning',
+                'resolved': 'success',
+                'overdue': 'dark'
+            };
+
+            const rowClass = v.status === 'overdue' ? 'deadline-urgent' : '';
+
+            tbody.innerHTML += `
+                <tr class="${rowClass}" onclick="showViolationDetails('${id}')" style="cursor: pointer;"
+                    data-status="${v.status}" data-type="${v.type}" data-severity="${v.severity}">
+                    <td><strong>#${id}</strong></td>
+                    <td><strong>${v.company}</strong></td>
+                    <td>${v.typeName}</td>
+                    <td style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${v.description}">${v.description}</td>
+                    <td><span class="severity-badge severity-${v.severity}">${severityText[v.severity]}</span></td>
+                    <td>${v.date}</td>
+                    <td class="${v.status === 'overdue' ? 'text-danger fw-bold' : ''}">${v.deadline}</td>
+                    <td>${(v.fine / 1000000).toFixed(1)} млн ₸</td>
+                    <td><span class="status-badge ${statusClass[v.status]}">${statusText[v.status]}</span></td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-primary" onclick="event.stopPropagation(); showViolationDetails('${id}')" title="Подробнее">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button class="btn btn-outline-danger" onclick="event.stopPropagation(); createPrescription('${id}')" title="Предписание">
+                                <i class="bi bi-file-text"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+
+        updateViolationsCount();
+    }
+
+    // Обновить счетчик
+    function updateViolationsCount() {
+        const active = Object.values(violationsData).filter(v => v.status === 'open' || v.status === 'in_progress' || v.status === 'overdue').length;
+        document.getElementById('violationsCount').textContent = `${active} активных`;
+    }
+
+    // Инициализация графиков
+    function initCharts() {
+        // По типам нарушений
+        new Chart(document.getElementById('violationsByTypeChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Платежеспособность', 'Отчетность', 'Резервы', 'ПОД/ФТ', 'Прочие'],
+                datasets: [{
+                    data: [8, 15, 10, 7, 7],
+                    backgroundColor: ['#e74c3c', '#3498db', '#f39c12', '#9b59b6', '#95a5a6']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { position: 'right' } }
+            }
+        });
+
+        // По компаниям
+        new Chart(document.getElementById('violationsByCompanyChart'), {
+            type: 'bar',
+            data: {
+                labels: ['СК Азия', 'СК Центр', 'Казахинстрах', 'Евразия', 'Freedom'],
+                datasets: [{
+                    label: 'Нарушений',
+                    data: [5, 4, 3, 2, 2],
+                    backgroundColor: '#e74c3c'
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        // Динамика
+        new Chart(document.getElementById('violationsTrendChart'), {
+            type: 'line',
+            data: {
+                labels: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт'],
+                datasets: [
+                    {
+                        label: 'Выявлено',
+                        data: [3, 5, 4, 6, 4, 5, 7, 6, 4, 3],
+                        borderColor: '#e74c3c',
+                        tension: 0.3,
+                        fill: false
+                    },
+                    {
+                        label: 'Устранено',
+                        data: [2, 4, 3, 5, 4, 4, 5, 5, 3, 2],
+                        borderColor: '#27ae60',
+                        tension: 0.3,
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { position: 'top' } }
+            }
+        });
+    }
+
+    // Показать детали нарушения
+    function showViolationDetails(violationId) {
+        const v = violationsData[violationId];
+        if (!v) return;
+
+        document.getElementById('modalViolationId').textContent = '#' + violationId;
+
+        const severityText = {
+            'critical': 'Критическая',
+            'high': 'Высокая',
+            'medium': 'Средняя',
+            'low': 'Низкая'
+        };
+
+        const statusText = {
+            'open': 'Открыто',
+            'in_progress': 'В работе',
+            'resolved': 'Устранено',
+            'overdue': 'Просрочено'
+        };
+
+        let historyHtml = '';
+        v.history.forEach(h => {
+            const nodeClass = h.action.includes('устранено') ? 'completed' :
+                              h.action.includes('истек') ? 'overdue' : 'pending';
+            historyHtml += `
+                <div class="timeline-item ${nodeClass}">
+                    <div class="fw-bold">${h.action}</div>
+                    <div class="small text-muted">${h.date} • ${h.user}</div>
+                </div>
+            `;
+        });
+
+        document.getElementById('violationModalBody').innerHTML = `
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="text-primary mb-3"><i class="bi bi-info-circle me-2"></i>Информация о нарушении</h6>
+                    <table class="table table-sm">
+                        <tr><td>Компания</td><td class="text-end fw-bold">${v.company}</td></tr>
+                        <tr><td>Тип нарушения</td><td class="text-end">${v.typeName}</td></tr>
+                        <tr><td>Серьезность</td><td class="text-end"><span class="severity-badge severity-${v.severity}">${severityText[v.severity]}</span></td></tr>
+                        <tr><td>Статус</td><td class="text-end"><span class="status-badge ${v.status === 'overdue' ? 'danger' : v.status === 'resolved' ? 'success' : 'warning'}">${statusText[v.status]}</span></td></tr>
+                        <tr><td>Инспектор</td><td class="text-end">${v.inspector}</td></tr>
+                    </table>
+
+                    <h6 class="text-primary mb-3 mt-4"><i class="bi bi-calendar me-2"></i>Сроки</h6>
+                    <table class="table table-sm">
+                        <tr><td>Дата выявления</td><td class="text-end">${v.date}</td></tr>
+                        <tr><td>Срок устранения</td><td class="text-end ${v.status === 'overdue' ? 'text-danger fw-bold' : ''}">${v.deadline}</td></tr>
+                    </table>
+
+                    <h6 class="text-primary mb-3 mt-4"><i class="bi bi-currency-dollar me-2"></i>Санкции</h6>
+                    <table class="table table-sm">
+                        <tr><td>Штраф</td><td class="text-end fw-bold">${(v.fine / 1000000).toFixed(1)} млн ₸</td></tr>
+                        <tr><td>Основание</td><td class="text-end">${v.basis}</td></tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-primary mb-3"><i class="bi bi-file-text me-2"></i>Описание</h6>
+                    <div class="p-3 bg-light rounded mb-4">${v.description}</div>
+
+                    <h6 class="text-primary mb-3"><i class="bi bi-tools me-2"></i>Требуемые действия</h6>
+                    <div class="p-3 bg-light rounded mb-4">${v.actions}</div>
+
+                    <h6 class="text-primary mb-3"><i class="bi bi-clock-history me-2"></i>История</h6>
+                    <div class="ps-3">
+                        ${historyHtml}
+                    </div>
+                </div>
+            </div>
+        `;
+
+        new bootstrap.Modal(document.getElementById('violationModal')).show();
+    }
+
+    // Показать просроченные нарушения
+    function showOverdueViolations() {
+        new bootstrap.Modal(document.getElementById('overdueModal')).show();
+    }
+
+    // Создать новое нарушение
+    function createNewViolation() {
+        new bootstrap.Modal(document.getElementById('newViolationModal')).show();
+    }
+
+    // Фильтрация нарушений
+    function filterViolations() {
+        const status = document.getElementById('filterStatus').value;
+        const type = document.getElementById('filterType').value;
+        const severity = document.getElementById('filterSeverity').value;
+        const search = document.getElementById('searchViolation').value.toLowerCase();
+
+        const rows = document.querySelectorAll('#violationsBody tr');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            let show = true;
+
+            if (status && row.dataset.status !== status) show = false;
+            if (type && row.dataset.type !== type) show = false;
+            if (severity && row.dataset.severity !== severity) show = false;
+            if (search && !row.textContent.toLowerCase().includes(search)) show = false;
+
+            row.style.display = show ? '' : 'none';
+            if (show) visibleCount++;
+        });
+
+        document.getElementById('violationsCount').textContent = `${visibleCount} нарушений`;
+    }
+
+    // Сброс фильтров
+    function resetFilters() {
+        document.getElementById('filterStatus').value = '';
+        document.getElementById('filterType').value = '';
+        document.getElementById('filterSeverity').value = '';
+        document.getElementById('searchViolation').value = '';
+        filterViolations();
+    }
+
+    // Фильтр по статусу
+    function filterByStatus(status) {
+        document.getElementById('filterStatus').value = status === 'all' ? '' : status;
+        filterViolations();
+    }
+
+    // Экспорт нарушений
+    function exportViolations() {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            showToast('Реестр нарушений экспортирован в Excel', 'success');
+        }, 1500);
+    }
+
+    // Сохранить новое нарушение
+    function saveNewViolation() {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            bootstrap.Modal.getInstance(document.getElementById('newViolationModal')).hide();
+            showToast('Нарушение зарегистрировано', 'success');
+        }, 1000);
+    }
+
+    // Создать предписание
+    function createPrescription(violationId) {
+        showToast('Предписание формируется...', 'info');
+    }
+
+    // Печать нарушения
+    function printViolation() {
+        window.print();
+    }
+
+    // Назначить штраф
+    function issueFine() {
+        showToast('Штраф назначен', 'warning');
+    }
+
+    // Закрыть нарушение
+    function resolveViolation() {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            bootstrap.Modal.getInstance(document.getElementById('violationModal')).hide();
+            showToast('Нарушение закрыто', 'success');
+        }, 1000);
+    }
+
+    // Эскалация нарушения
+    function escalateViolation(violationId) {
+        showToast('Санкции применены к ' + violationId, 'danger');
+    }
+
+    // Напоминание
+    function sendReminder(violationId) {
+        showToast('Напоминание отправлено', 'info');
+    }
+
+    // Массовые санкции
+    function applyMassSanctions() {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            bootstrap.Modal.getInstance(document.getElementById('overdueModal')).hide();
+            showToast('Санкции применены ко всем просроченным нарушениям', 'danger');
+        }, 1500);
+    }
+
+    // Показать штрафы
+    function showFinesModal() {
+        showToast('Реестр штрафов', 'info');
+    }
+</script>
+{% endblock %}

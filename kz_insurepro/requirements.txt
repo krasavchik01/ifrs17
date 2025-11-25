@@ -1,0 +1,51 @@
+# KZ-InsurePro - Зависимости проекта
+# Демо-версия для страховых компаний Казахстана
+
+# Веб-фреймворк
+Flask==3.0.0
+Flask-SQLAlchemy==3.1.1
+Flask-WTF==1.2.1
+Werkzeug==3.0.1
+
+# База данных
+SQLAlchemy==2.0.23
+
+# Обработка данных
+pandas==2.1.4
+numpy==1.26.2
+openpyxl==3.1.2
+xlrd==2.0.1
+
+# Математика и статистика
+scipy==1.11.4
+sympy==1.12
+statsmodels==0.14.1
+
+# Машинное обучение
+scikit-learn==1.3.2
+joblib==1.3.2
+
+# Визуализация
+matplotlib==3.8.2
+seaborn==0.13.0
+
+# Точные вычисления
+
+# XBRL и XML
+lxml==4.9.4
+
+# Утилиты
+python-dateutil==2.8.2
+pytz==2023.3
+requests==2.31.0
+
+# Тестирование
+pytest==7.4.3
+pytest-cov==4.1.0
+pytest-flask==1.3.0
+
+# Форматирование
+wtforms==3.1.1
+
+# Логирование
+colorlog==6.8.0

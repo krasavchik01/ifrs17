@@ -1,0 +1,1010 @@
+{% extends "base.html" %}
+
+{% block title %}Страховые компании - АРФР{% endblock %}
+{% block page_title %}Мониторинг страховых компаний{% endblock %}
+
+{% block content %}
+<style>
+    .company-card {
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    .company-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    .risk-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 8px;
+    }
+    .risk-low { background: #27ae60; }
+    .risk-medium { background: #f39c12; }
+    .risk-high { background: #e74c3c; }
+    .risk-critical { background: #8e44ad; animation: criticalPulse 2s infinite; }
+    @keyframes criticalPulse {
+        0%, 100% { box-shadow: 0 0 5px rgba(142, 68, 173, 0.5); }
+        50% { box-shadow: 0 0 20px rgba(142, 68, 173, 0.8); }
+    }
+    .metric-badge {
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    .trend-up { color: #27ae60; }
+    .trend-down { color: #e74c3c; }
+    .trend-stable { color: #7f8c8d; }
+    .supervision-badge {
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    .supervision-normal { background: #d4edda; color: #155724; }
+    .supervision-enhanced { background: #fff3cd; color: #856404; }
+    .supervision-intensive { background: #f8d7da; color: #721c24; }
+    .supervision-special { background: #e2d5f1; color: #4a1d6b; }
+</style>
+
+<!-- Сводная статистика -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card" style="cursor: pointer;" onclick="showModal('totalModal')">
+            <div class="stat-icon primary"><i class="bi bi-building"></i></div>
+            <div class="stat-label">Всего компаний</div>
+            <div class="stat-value">27</div>
+            <div class="stat-change">Life: 8 | Non-life: 14 | Комп: 5</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="cursor: pointer;" onclick="showModal('assetsModal')">
+            <div class="stat-icon success"><i class="bi bi-cash-stack"></i></div>
+            <div class="stat-label">Совокупные активы</div>
+            <div class="stat-value">2.85 трлн ₸</div>
+            <div class="stat-change positive"><i class="bi bi-arrow-up"></i> +12.3% YoY</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="cursor: pointer;" onclick="showModal('solvencyModal')">
+            <div class="stat-icon warning"><i class="bi bi-shield-check"></i></div>
+            <div class="stat-label">Средний Nmп</div>
+            <div class="stat-value">2.15</div>
+            <div class="stat-change">Min: 0.85 | Max: 4.12</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="cursor: pointer;" onclick="showModal('riskModal')">
+            <div class="stat-icon danger"><i class="bi bi-exclamation-triangle"></i></div>
+            <div class="stat-label">Под надзором</div>
+            <div class="stat-value">4</div>
+            <div class="stat-change">Критические: 2</div>
+        </div>
+    </div>
+</div>
+
+<!-- Алерт о критических компаниях -->
+<div class="alert alert-danger d-flex align-items-center mb-4" role="alert">
+    <i class="bi bi-exclamation-octagon-fill me-3" style="font-size: 1.5rem;"></i>
+    <div>
+        <strong>Требуется внимание!</strong> 2 компании имеют Nmп ниже нормативного минимума (1.0). Рекомендуется усиленный надзор.
+        <button class="btn btn-sm btn-outline-danger ms-3" onclick="showCriticalCompanies()">Показать компании</button>
+    </div>
+</div>
+
+<!-- Графики -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5><i class="bi bi-pie-chart me-2"></i>Распределение по типам</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="typeDistributionChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5><i class="bi bi-graph-up me-2"></i>Динамика активов (млрд ₸)</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="assetsGrowthChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5><i class="bi bi-speedometer me-2"></i>Nmп по категориям</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="solvencyDistChart" height="220"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5><i class="bi bi-bar-chart me-2"></i>Топ-10 по активам</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="topCompaniesChart" height="220"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5><i class="bi bi-activity me-2"></i>Loss Ratio по рынку</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="lossRatioChart" height="220"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Фильтры -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-2">
+                <label class="form-label">Тип</label>
+                <select class="form-select" id="filterType" onchange="filterCompanies()">
+                    <option value="">Все типы</option>
+                    <option value="life">Life</option>
+                    <option value="nonlife">Non-life</option>
+                    <option value="composite">Композитные</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Риск</label>
+                <select class="form-select" id="filterRisk" onchange="filterCompanies()">
+                    <option value="">Все уровни</option>
+                    <option value="low">Низкий</option>
+                    <option value="medium">Средний</option>
+                    <option value="high">Высокий</option>
+                    <option value="critical">Критический</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Nmп</label>
+                <select class="form-select" id="filterSolvency" onchange="filterCompanies()">
+                    <option value="">Любое</option>
+                    <option value="below1">< 1.0</option>
+                    <option value="1to15">1.0 - 1.5</option>
+                    <option value="15to2">1.5 - 2.0</option>
+                    <option value="above2">> 2.0</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Поиск</label>
+                <input type="text" class="form-control" id="searchCompany" placeholder="Название или БИН..." oninput="filterCompanies()">
+            </div>
+            <div class="col-md-3">
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-secondary flex-grow-1" onclick="resetFilters()">
+                        <i class="bi bi-x-circle me-1"></i>Сбросить
+                    </button>
+                    <button class="btn btn-primary flex-grow-1" onclick="exportData()">
+                        <i class="bi bi-download me-1"></i>Экспорт
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Таблица компаний -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5><i class="bi bi-table me-2"></i>Реестр страховых компаний Казахстана</h5>
+        <span class="badge bg-primary" id="companiesCount">27 компаний</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" id="companiesTable">
+                <thead class="table-light">
+                    <tr>
+                        <th style="cursor:pointer" onclick="sortTable(0)">Компания <i class="bi bi-arrow-down-up"></i></th>
+                        <th>БИН</th>
+                        <th>Тип</th>
+                        <th style="cursor:pointer" onclick="sortTable(3)">Активы <i class="bi bi-arrow-down-up"></i></th>
+                        <th style="cursor:pointer" onclick="sortTable(4)">Nmп <i class="bi bi-arrow-down-up"></i></th>
+                        <th>ECL</th>
+                        <th>CSM</th>
+                        <th>Loss Ratio</th>
+                        <th>Надзор</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody id="companiesBody">
+                    <!-- Заполняется динамически -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Сводка по типам -->
+<div class="row mt-4 g-4">
+    <div class="col-md-4">
+        <div class="card company-card" onclick="showTypeDetails('life')">
+            <div class="card-body text-center">
+                <i class="bi bi-heart-pulse text-primary" style="font-size: 2.5rem;"></i>
+                <h5 class="mt-3">Life страхование</h5>
+                <div class="d-flex justify-content-around mt-3">
+                    <div>
+                        <div class="h4 mb-0 text-primary">8</div>
+                        <small class="text-muted">Компаний</small>
+                    </div>
+                    <div>
+                        <div class="h4 mb-0 text-success">2.85</div>
+                        <small class="text-muted">Ср. Nmп</small>
+                    </div>
+                    <div>
+                        <div class="h4 mb-0">1.2 трлн</div>
+                        <small class="text-muted">Активы</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card company-card" onclick="showTypeDetails('nonlife')">
+            <div class="card-body text-center">
+                <i class="bi bi-car-front text-success" style="font-size: 2.5rem;"></i>
+                <h5 class="mt-3">Non-life страхование</h5>
+                <div class="d-flex justify-content-around mt-3">
+                    <div>
+                        <div class="h4 mb-0 text-primary">14</div>
+                        <small class="text-muted">Компаний</small>
+                    </div>
+                    <div>
+                        <div class="h4 mb-0 text-warning">1.92</div>
+                        <small class="text-muted">Ср. Nmп</small>
+                    </div>
+                    <div>
+                        <div class="h4 mb-0">1.3 трлн</div>
+                        <small class="text-muted">Активы</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card company-card" onclick="showTypeDetails('composite')">
+            <div class="card-body text-center">
+                <i class="bi bi-layers text-warning" style="font-size: 2.5rem;"></i>
+                <h5 class="mt-3">Композитные</h5>
+                <div class="d-flex justify-content-around mt-3">
+                    <div>
+                        <div class="h4 mb-0 text-primary">5</div>
+                        <small class="text-muted">Компаний</small>
+                    </div>
+                    <div>
+                        <div class="h4 mb-0 text-success">2.41</div>
+                        <small class="text-muted">Ср. Nmп</small>
+                    </div>
+                    <div>
+                        <div class="h4 mb-0">0.35 трлн</div>
+                        <small class="text-muted">Активы</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно деталей компании -->
+<div class="modal fade" id="companyModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-building me-2"></i><span id="modalCompanyName">-</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="companyModalBody">
+                <!-- Заполняется динамически -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline-primary" onclick="downloadCompanyReport()">
+                    <i class="bi bi-file-pdf me-1"></i>Скачать отчет
+                </button>
+                <button class="btn btn-warning" onclick="createSupervisionOrder()">
+                    <i class="bi bi-file-earmark-text me-1"></i>Предписание
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно критических компаний -->
+<div class="modal fade" id="criticalModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-octagon me-2"></i>Критические компании
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <strong>Внимание!</strong> Следующие компании требуют немедленного внимания регулятора.
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Компания</th>
+                            <th>Nmп</th>
+                            <th>Проблема</th>
+                            <th>Рекомендация</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="table-danger">
+                            <td><strong>СК Азия</strong></td>
+                            <td><span class="text-danger fw-bold">0.85</span></td>
+                            <td>Критическая недостаточность капитала</td>
+                            <td>Немедленная докапитализация</td>
+                        </tr>
+                        <tr class="table-danger">
+                            <td><strong>СК Центр</strong></td>
+                            <td><span class="text-danger fw-bold">0.92</span></td>
+                            <td>Низкая платежеспособность</td>
+                            <td>План финансового оздоровления</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <h6 class="mt-4">Рекомендуемые действия:</h6>
+                <ul>
+                    <li>Провести внеплановую проверку финансового состояния</li>
+                    <li>Запросить план мероприятий по восстановлению платежеспособности</li>
+                    <li>Рассмотреть введение ограничений на деятельность</li>
+                    <li>Уведомить ФГСВ о повышенном риске</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" onclick="createMassOrder()">
+                    <i class="bi bi-file-earmark-text me-1"></i>Создать предписания
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно по типам -->
+<div class="modal fade" id="typeDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="typeModalTitle">-</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="typeModalBody">
+                <!-- Заполняется динамически -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Данные компаний
+    const companiesData = {
+        'halyk': {
+            name: 'Халык-Life',
+            bin: '111222333444',
+            type: 'life',
+            assets: 485.2,
+            solvency: 2.85,
+            ecl: 12.1,
+            csm: 45.3,
+            lossRatio: 62,
+            combined: 89,
+            premiums: 125.4,
+            fmp: 85.2,
+            mmp: 29.9,
+            pd: 0.5,
+            lgd: 35,
+            supervision: 'normal',
+            trend: 'up',
+            rating: 'A+',
+            violations: 0
+        },
+        'eurasia': {
+            name: 'Евразия',
+            bin: '222333444555',
+            type: 'nonlife',
+            assets: 312.8,
+            solvency: 2.12,
+            ecl: 8.5,
+            csm: 28.7,
+            lossRatio: 68,
+            combined: 94,
+            premiums: 98.5,
+            fmp: 52.3,
+            mmp: 24.7,
+            pd: 1.2,
+            lgd: 40,
+            supervision: 'normal',
+            trend: 'stable',
+            rating: 'A',
+            violations: 0
+        },
+        'nomad': {
+            name: 'Nomad Life',
+            bin: '333444555666',
+            type: 'life',
+            assets: 298.5,
+            solvency: 3.15,
+            ecl: 7.2,
+            csm: 38.9,
+            lossRatio: 58,
+            combined: 85,
+            premiums: 89.3,
+            fmp: 68.5,
+            mmp: 21.7,
+            pd: 0.3,
+            lgd: 30,
+            supervision: 'normal',
+            trend: 'up',
+            rating: 'AA-',
+            violations: 0
+        },
+        'freedom': {
+            name: 'Freedom Life',
+            bin: '444555666777',
+            type: 'life',
+            assets: 245.3,
+            solvency: 2.45,
+            ecl: 6.8,
+            csm: 32.1,
+            lossRatio: 61,
+            combined: 88,
+            premiums: 78.2,
+            fmp: 48.7,
+            mmp: 19.9,
+            pd: 0.8,
+            lgd: 38,
+            supervision: 'normal',
+            trend: 'stable',
+            rating: 'A',
+            violations: 0
+        },
+        'kazakh': {
+            name: 'Казахинстрах',
+            bin: '555666777888',
+            type: 'nonlife',
+            assets: 198.7,
+            solvency: 1.78,
+            ecl: 5.9,
+            csm: 18.5,
+            lossRatio: 72,
+            combined: 98,
+            premiums: 65.4,
+            fmp: 32.1,
+            mmp: 18.0,
+            pd: 2.5,
+            lgd: 45,
+            supervision: 'enhanced',
+            trend: 'down',
+            rating: 'BBB+',
+            violations: 1
+        },
+        'victoria': {
+            name: 'Виктория',
+            bin: '666777888999',
+            type: 'nonlife',
+            assets: 156.4,
+            solvency: 1.92,
+            ecl: 4.5,
+            csm: 15.2,
+            lossRatio: 69,
+            combined: 95,
+            premiums: 52.8,
+            fmp: 28.4,
+            mmp: 14.8,
+            pd: 1.8,
+            lgd: 42,
+            supervision: 'normal',
+            trend: 'stable',
+            rating: 'A-',
+            violations: 0
+        },
+        'interteach': {
+            name: 'Интертич',
+            bin: '777888999000',
+            type: 'nonlife',
+            assets: 142.3,
+            solvency: 2.08,
+            ecl: 3.8,
+            csm: 12.9,
+            lossRatio: 65,
+            combined: 91,
+            premiums: 48.5,
+            fmp: 26.3,
+            mmp: 12.6,
+            pd: 1.5,
+            lgd: 40,
+            supervision: 'normal',
+            trend: 'up',
+            rating: 'A-',
+            violations: 0
+        },
+        'kompetenz': {
+            name: 'Компетенц',
+            bin: '888999000111',
+            type: 'composite',
+            assets: 98.5,
+            solvency: 2.35,
+            ecl: 2.9,
+            csm: 9.8,
+            lossRatio: 64,
+            combined: 90,
+            premiums: 35.2,
+            fmp: 18.9,
+            mmp: 8.0,
+            pd: 1.0,
+            lgd: 38,
+            supervision: 'normal',
+            trend: 'stable',
+            rating: 'A-',
+            violations: 0
+        },
+        'asia': {
+            name: 'СК Азия',
+            bin: '999000111222',
+            type: 'nonlife',
+            assets: 85.2,
+            solvency: 0.85,
+            ecl: 4.2,
+            csm: 5.1,
+            lossRatio: 82,
+            combined: 115,
+            premiums: 42.1,
+            fmp: 12.8,
+            mmp: 15.1,
+            pd: 8.5,
+            lgd: 55,
+            supervision: 'special',
+            trend: 'down',
+            rating: 'CCC',
+            violations: 3
+        },
+        'centr': {
+            name: 'СК Центр',
+            bin: '000111222333',
+            type: 'nonlife',
+            assets: 72.4,
+            solvency: 0.92,
+            ecl: 3.8,
+            csm: 4.2,
+            lossRatio: 78,
+            combined: 108,
+            premiums: 38.5,
+            fmp: 11.2,
+            mmp: 12.2,
+            pd: 7.2,
+            lgd: 52,
+            supervision: 'intensive',
+            trend: 'down',
+            rating: 'B-',
+            violations: 2
+        },
+        'basel': {
+            name: 'Базель',
+            bin: '123456789012',
+            type: 'composite',
+            assets: 68.9,
+            solvency: 2.78,
+            ecl: 1.8,
+            csm: 7.5,
+            lossRatio: 59,
+            combined: 86,
+            premiums: 28.4,
+            fmp: 14.5,
+            mmp: 5.2,
+            pd: 0.6,
+            lgd: 32,
+            supervision: 'normal',
+            trend: 'up',
+            rating: 'A',
+            violations: 0
+        },
+        'amanat': {
+            name: 'Аманат',
+            bin: '234567890123',
+            type: 'life',
+            assets: 128.5,
+            solvency: 3.45,
+            ecl: 3.2,
+            csm: 18.5,
+            lossRatio: 55,
+            combined: 82,
+            premiums: 45.8,
+            fmp: 32.5,
+            mmp: 9.4,
+            pd: 0.4,
+            lgd: 28,
+            supervision: 'normal',
+            trend: 'up',
+            rating: 'AA',
+            violations: 0
+        }
+    };
+
+    // Инициализация страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        renderCompaniesTable();
+        initCharts();
+    });
+
+    // Отрисовка таблицы компаний
+    function renderCompaniesTable() {
+        const tbody = document.getElementById('companiesBody');
+        tbody.innerHTML = '';
+
+        Object.entries(companiesData).forEach(([id, company]) => {
+            const solvencyClass = company.solvency >= 2.0 ? 'success' :
+                                  company.solvency >= 1.5 ? 'primary' :
+                                  company.solvency >= 1.0 ? 'warning' : 'danger';
+
+            const riskClass = company.solvency >= 2.0 ? 'low' :
+                              company.solvency >= 1.5 ? 'medium' :
+                              company.solvency >= 1.0 ? 'high' : 'critical';
+
+            const supervisionClass = company.supervision === 'normal' ? 'normal' :
+                                     company.supervision === 'enhanced' ? 'enhanced' :
+                                     company.supervision === 'intensive' ? 'intensive' : 'special';
+
+            const supervisionText = company.supervision === 'normal' ? 'Норма' :
+                                    company.supervision === 'enhanced' ? 'Усиленный' :
+                                    company.supervision === 'intensive' ? 'Интенсивный' : 'Особый';
+
+            const trendIcon = company.trend === 'up' ? '<i class="bi bi-arrow-up trend-up"></i>' :
+                              company.trend === 'down' ? '<i class="bi bi-arrow-down trend-down"></i>' :
+                              '<i class="bi bi-dash trend-stable"></i>';
+
+            const typeText = company.type === 'life' ? 'Life' :
+                             company.type === 'nonlife' ? 'Non-life' : 'Комп.';
+
+            tbody.innerHTML += `
+                <tr onclick="showCompanyDetails('${id}')" style="cursor: pointer;" data-type="${company.type}" data-risk="${riskClass}" data-solvency="${company.solvency}">
+                    <td>
+                        <span class="risk-indicator risk-${riskClass}"></span>
+                        <strong>${company.name}</strong>
+                    </td>
+                    <td>${company.bin}</td>
+                    <td><span class="badge bg-secondary">${typeText}</span></td>
+                    <td>${company.assets.toFixed(1)} млрд ₸ ${trendIcon}</td>
+                    <td><span class="text-${solvencyClass} fw-bold">${company.solvency.toFixed(2)}</span></td>
+                    <td>${company.ecl.toFixed(1)} млрд</td>
+                    <td>${company.csm.toFixed(1)} млрд</td>
+                    <td>
+                        <span class="metric-badge ${company.lossRatio > 75 ? 'bg-danger text-white' : company.lossRatio > 65 ? 'bg-warning' : 'bg-success text-white'}">${company.lossRatio}%</span>
+                    </td>
+                    <td><span class="supervision-badge supervision-${supervisionClass}">${supervisionText}</span></td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-primary" onclick="event.stopPropagation(); showCompanyDetails('${id}')" title="Подробнее">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button class="btn btn-outline-primary" onclick="event.stopPropagation(); showCompanyReports('${id}')" title="Отчеты">
+                                <i class="bi bi-file-text"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+
+        document.getElementById('companiesCount').textContent = `${Object.keys(companiesData).length} компаний`;
+    }
+
+    // Инициализация графиков
+    function initCharts() {
+        // Распределение по типам
+        new Chart(document.getElementById('typeDistributionChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Life', 'Non-life', 'Композитные'],
+                datasets: [{
+                    data: [8, 14, 5],
+                    backgroundColor: ['#3498db', '#27ae60', '#f39c12']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'right' }
+                }
+            }
+        });
+
+        // Динамика активов
+        new Chart(document.getElementById('assetsGrowthChart'), {
+            type: 'line',
+            data: {
+                labels: ['2021', '2022', '2023', '2024', 'Q3 2025'],
+                datasets: [
+                    {
+                        label: 'Life',
+                        data: [850, 920, 1050, 1150, 1200],
+                        borderColor: '#3498db',
+                        tension: 0.3,
+                        fill: false
+                    },
+                    {
+                        label: 'Non-life',
+                        data: [950, 1020, 1100, 1220, 1300],
+                        borderColor: '#27ae60',
+                        tension: 0.3,
+                        fill: false
+                    },
+                    {
+                        label: 'Композитные',
+                        data: [280, 295, 310, 340, 350],
+                        borderColor: '#f39c12',
+                        tension: 0.3,
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { position: 'top' } }
+            }
+        });
+
+        // Nmп по категориям
+        new Chart(document.getElementById('solvencyDistChart'), {
+            type: 'bar',
+            data: {
+                labels: ['< 1.0', '1.0-1.5', '1.5-2.0', '> 2.0'],
+                datasets: [{
+                    label: 'Компаний',
+                    data: [2, 3, 8, 14],
+                    backgroundColor: ['#e74c3c', '#f39c12', '#3498db', '#27ae60']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        // Топ-10 по активам
+        new Chart(document.getElementById('topCompaniesChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Халык', 'Евразия', 'Nomad', 'Freedom', 'Казахинстрах'],
+                datasets: [{
+                    label: 'Активы (млрд)',
+                    data: [485, 313, 299, 245, 199],
+                    backgroundColor: '#3498db'
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        // Loss Ratio по рынку
+        new Chart(document.getElementById('lossRatioChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['< 60%', '60-70%', '70-80%', '> 80%'],
+                datasets: [{
+                    data: [5, 12, 7, 3],
+                    backgroundColor: ['#27ae60', '#3498db', '#f39c12', '#e74c3c']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { position: 'right' } }
+            }
+        });
+    }
+
+    // Показать детали компании
+    function showCompanyDetails(companyId) {
+        const company = companiesData[companyId];
+        if (!company) return;
+
+        document.getElementById('modalCompanyName').textContent = company.name;
+
+        const solvencyClass = company.solvency >= 2.0 ? 'success' :
+                              company.solvency >= 1.5 ? 'primary' :
+                              company.solvency >= 1.0 ? 'warning' : 'danger';
+
+        document.getElementById('companyModalBody').innerHTML = `
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="text-primary mb-3"><i class="bi bi-info-circle me-2"></i>Основная информация</h6>
+                    <table class="table table-sm">
+                        <tr><td>БИН</td><td class="text-end fw-bold">${company.bin}</td></tr>
+                        <tr><td>Тип</td><td class="text-end">${company.type === 'life' ? 'Life страхование' : company.type === 'nonlife' ? 'Non-life страхование' : 'Композитная'}</td></tr>
+                        <tr><td>Рейтинг</td><td class="text-end fw-bold">${company.rating}</td></tr>
+                        <tr><td>Режим надзора</td><td class="text-end"><span class="supervision-badge supervision-${company.supervision}">${company.supervision === 'normal' ? 'Нормальный' : company.supervision === 'enhanced' ? 'Усиленный' : company.supervision === 'intensive' ? 'Интенсивный' : 'Особый'}</span></td></tr>
+                        <tr><td>Нарушения</td><td class="text-end ${company.violations > 0 ? 'text-danger fw-bold' : ''}">${company.violations}</td></tr>
+                    </table>
+
+                    <h6 class="text-primary mb-3 mt-4"><i class="bi bi-currency-exchange me-2"></i>Финансовые показатели</h6>
+                    <table class="table table-sm">
+                        <tr><td>Активы</td><td class="text-end fw-bold">${company.assets.toFixed(1)} млрд ₸</td></tr>
+                        <tr><td>Премии</td><td class="text-end">${company.premiums.toFixed(1)} млрд ₸</td></tr>
+                        <tr><td>ФМП</td><td class="text-end">${company.fmp.toFixed(1)} млрд ₸</td></tr>
+                        <tr><td>ММП</td><td class="text-end">${company.mmp.toFixed(1)} млрд ₸</td></tr>
+                        <tr><td>ECL (МСФО 9)</td><td class="text-end">${company.ecl.toFixed(1)} млрд ₸</td></tr>
+                        <tr><td>CSM (МСФО 17)</td><td class="text-end">${company.csm.toFixed(1)} млрд ₸</td></tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-primary mb-3"><i class="bi bi-shield-check me-2"></i>Показатели платежеспособности</h6>
+                    <div class="text-center mb-3">
+                        <div class="display-4 text-${solvencyClass}">${company.solvency.toFixed(2)}</div>
+                        <div class="text-muted">Коэффициент Nmп</div>
+                    </div>
+                    <div class="progress mb-3" style="height: 25px;">
+                        <div class="progress-bar bg-${solvencyClass}" style="width: ${Math.min(company.solvency / 4 * 100, 100)}%">${company.solvency.toFixed(2)}</div>
+                    </div>
+                    <small class="text-muted">Нормативный минимум: 1.0 | Целевой: 1.5</small>
+
+                    <h6 class="text-primary mb-3 mt-4"><i class="bi bi-graph-up me-2"></i>Операционные показатели</h6>
+                    <table class="table table-sm">
+                        <tr><td>Loss Ratio</td><td class="text-end"><span class="metric-badge ${company.lossRatio > 75 ? 'bg-danger text-white' : company.lossRatio > 65 ? 'bg-warning' : 'bg-success text-white'}">${company.lossRatio}%</span></td></tr>
+                        <tr><td>Combined Ratio</td><td class="text-end"><span class="metric-badge ${company.combined > 100 ? 'bg-danger text-white' : company.combined > 95 ? 'bg-warning' : 'bg-success text-white'}">${company.combined}%</span></td></tr>
+                        <tr><td>PD (вероятность дефолта)</td><td class="text-end">${company.pd}%</td></tr>
+                        <tr><td>LGD</td><td class="text-end">${company.lgd}%</td></tr>
+                    </table>
+
+                    ${company.solvency < 1.0 ? `
+                    <div class="alert alert-danger mt-3">
+                        <strong><i class="bi bi-exclamation-triangle me-2"></i>Критическое состояние!</strong>
+                        <p class="mb-0 mt-2">Требуется немедленное вмешательство регулятора. Компания не соответствует минимальным требованиям платежеспособности.</p>
+                    </div>
+                    ` : company.solvency < 1.5 ? `
+                    <div class="alert alert-warning mt-3">
+                        <strong><i class="bi bi-exclamation-circle me-2"></i>Требуется внимание</strong>
+                        <p class="mb-0 mt-2">Рекомендуется усиленный мониторинг и план мероприятий по улучшению показателей.</p>
+                    </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+
+        new bootstrap.Modal(document.getElementById('companyModal')).show();
+    }
+
+    // Показать критические компании
+    function showCriticalCompanies() {
+        new bootstrap.Modal(document.getElementById('criticalModal')).show();
+    }
+
+    // Показать детали по типу
+    function showTypeDetails(type) {
+        const typeNames = {
+            'life': 'Life страхование',
+            'nonlife': 'Non-life страхование',
+            'composite': 'Композитные компании'
+        };
+
+        document.getElementById('typeModalTitle').textContent = typeNames[type];
+
+        const companies = Object.entries(companiesData).filter(([id, c]) => c.type === type);
+
+        let html = '<table class="table"><thead><tr><th>Компания</th><th>Активы</th><th>Nmп</th><th>Рейтинг</th></tr></thead><tbody>';
+        companies.forEach(([id, c]) => {
+            html += `<tr><td>${c.name}</td><td>${c.assets.toFixed(1)} млрд</td><td>${c.solvency.toFixed(2)}</td><td>${c.rating}</td></tr>`;
+        });
+        html += '</tbody></table>';
+
+        document.getElementById('typeModalBody').innerHTML = html;
+        new bootstrap.Modal(document.getElementById('typeDetailsModal')).show();
+    }
+
+    // Фильтрация компаний
+    function filterCompanies() {
+        const type = document.getElementById('filterType').value;
+        const risk = document.getElementById('filterRisk').value;
+        const solvency = document.getElementById('filterSolvency').value;
+        const search = document.getElementById('searchCompany').value.toLowerCase();
+
+        const rows = document.querySelectorAll('#companiesBody tr');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            let show = true;
+
+            if (type && row.dataset.type !== type) show = false;
+            if (risk && row.dataset.risk !== risk) show = false;
+
+            const s = parseFloat(row.dataset.solvency);
+            if (solvency === 'below1' && s >= 1.0) show = false;
+            if (solvency === '1to15' && (s < 1.0 || s >= 1.5)) show = false;
+            if (solvency === '15to2' && (s < 1.5 || s >= 2.0)) show = false;
+            if (solvency === 'above2' && s < 2.0) show = false;
+
+            if (search && !row.textContent.toLowerCase().includes(search)) show = false;
+
+            row.style.display = show ? '' : 'none';
+            if (show) visibleCount++;
+        });
+
+        document.getElementById('companiesCount').textContent = `${visibleCount} компаний`;
+    }
+
+    // Сброс фильтров
+    function resetFilters() {
+        document.getElementById('filterType').value = '';
+        document.getElementById('filterRisk').value = '';
+        document.getElementById('filterSolvency').value = '';
+        document.getElementById('searchCompany').value = '';
+        filterCompanies();
+    }
+
+    // Экспорт данных
+    function exportData() {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            showToast('Данные экспортированы в Excel', 'success');
+        }, 1500);
+    }
+
+    // Сортировка таблицы
+    function sortTable(columnIndex) {
+        // Упрощенная сортировка
+        showToast('Сортировка применена', 'info');
+    }
+
+    // Скачать отчет компании
+    function downloadCompanyReport() {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            showToast('Отчет скачан в формате PDF', 'success');
+        }, 1500);
+    }
+
+    // Создать предписание
+    function createSupervisionOrder() {
+        showToast('Форма предписания создана', 'info');
+    }
+
+    // Массовое создание предписаний
+    function createMassOrder() {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            bootstrap.Modal.getInstance(document.getElementById('criticalModal')).hide();
+            showToast('Предписания созданы для 2 компаний', 'success');
+        }, 1000);
+    }
+
+    // Показать отчеты компании
+    function showCompanyReports(companyId) {
+        showToast('Открытие реестра отчетов...', 'info');
+    }
+
+    // Показать модальное окно
+    function showModal(modalId) {
+        showToast('Детальная информация', 'info');
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}План счетов - Alliot{% endblock %}
+{% block page_title %}План счетов (Chart of Accounts){% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>
+            <strong>План счетов:</strong> Список бухгалтерских счетов для формирования проводок.
+            В production системе план счетов загружается из 1C/SAP клиента.
+        </div>
+    </div>
+</div>
+
+<!-- Статистика -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon primary">
+                <i class="bi bi-list-ul"></i>
+            </div>
+            <div class="stat-label">Всего счетов</div>
+            <div class="stat-value">{{ accounts|length }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon success">
+                <i class="bi bi-check-circle"></i>
+            </div>
+            <div class="stat-label">Активных</div>
+            <div class="stat-value">{{ accounts|selectattr('is_active')|list|length }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon warning">
+                <i class="bi bi-briefcase"></i>
+            </div>
+            <div class="stat-label">Активы</div>
+            <div class="stat-value">{{ accounts|selectattr('account_type', 'equalto', 'asset')|list|length }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon danger">
+                <i class="bi bi-receipt"></i>
+            </div>
+            <div class="stat-label">Обязательства</div>
+            <div class="stat-value">{{ accounts|selectattr('account_type', 'equalto', 'liability')|list|length }}</div>
+        </div>
+    </div>
+</div>
+
+{% if accounts %}
+<div class="card">
+    <div class="card-header">
+        <div class="row align-items-center">
+            <div class="col">
+                <h5 class="mb-0"><i class="bi bi-table me-2"></i>Список счетов</h5>
+            </div>
+            <div class="col-auto">
+                <input type="text" id="searchAccounts" class="form-control" placeholder="Поиск по коду или названию...">
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover" id="accountsTable">
+                <thead>
+                    <tr>
+                        <th>Код счета</th>
+                        <th>Название</th>
+                        <th>Тип</th>
+                        <th>Подтип</th>
+                        <th>Категория Баланса</th>
+                        <th>Категория P&L</th>
+                        <th>Статус</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for account in accounts %}
+                    <tr>
+                        <td><strong>{{ account.account_code }}</strong></td>
+                        <td>{{ account.account_name }}</td>
+                        <td>
+                            {% if account.account_type == 'asset' %}
+                                <span class="badge bg-success">Asset</span>
+                            {% elif account.account_type == 'liability' %}
+                                <span class="badge bg-danger">Liability</span>
+                            {% elif account.account_type == 'equity' %}
+                                <span class="badge bg-primary">Equity</span>
+                            {% elif account.account_type == 'revenue' %}
+                                <span class="badge bg-info">Revenue</span>
+                            {% elif account.account_type == 'expense' %}
+                                <span class="badge bg-warning">Expense</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ account.account_type }}</span>
+                            {% endif %}
+                        </td>
+                        <td><small class="text-muted">{{ account.account_subtype or '-' }}</small></td>
+                        <td><small class="text-muted">{{ account.balance_sheet_category or '-' }}</small></td>
+                        <td><small class="text-muted">{{ account.pnl_category or '-' }}</small></td>
+                        <td>
+                            {% if account.is_active %}
+                                <span class="badge bg-success"><i class="bi bi-check"></i> Активен</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Неактивен</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    <strong>План счетов пуст!</strong>
+    Загрузите план счетов из вашей системы 1C/SAP или создайте счета вручную.
+</div>
+{% endif %}
+
+<!-- Навигация -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <a href="{{ url_for('main.accounting_mapping_rules') }}" class="btn btn-primary">
+            <i class="bi bi-arrow-left me-2"></i>Назад к правилам маппинга
+        </a>
+        <a href="{{ url_for('main.journal_entries') }}" class="btn btn-outline-success">
+            <i class="bi bi-journal-text me-2"></i>Журнал проводок
+        </a>
+    </div>
+</div>
+
+<script>
+// Поиск по таблице
+document.getElementById('searchAccounts').addEventListener('keyup', function() {
+    const searchValue = this.value.toLowerCase();
+    const table = document.getElementById('accountsTable');
+    const rows = table.getElementsByTagName('tr');
+
+    for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchValue) ? '' : 'none';
+    }
+});
+</script>
+{% endblock %}

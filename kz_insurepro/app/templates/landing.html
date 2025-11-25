@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alliot - Комплексная Регуляторная Система для Страхового Рынка</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --dark-bg: #0f172a;
+            --light-bg: #f8fafc;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Hero Section */
+        .hero-section {
+            min-height: 100vh;
+            background: var(--dark-bg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-gradient {
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: var(--primary-gradient);
+            opacity: 0.1;
+            animation: gradientShift 15s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { transform: translate(-25%, -25%) rotate(0deg); }
+            50% { transform: translate(-25%, -25%) rotate(180deg); }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            padding: 120px 0 80px;
+        }
+
+        .hero-title {
+            font-size: 4rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 0%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+        }
+
+        .hero-subtitle {
+            font-size: 1.5rem;
+            color: #cbd5e1;
+            margin-bottom: 2rem;
+            font-weight: 300;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 3rem;
+            margin-top: 3rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            background: var(--success-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Pain Points Section */
+        .pain-section {
+            padding: 100px 0;
+            background: var(--light-bg);
+        }
+
+        .pain-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+            height: 100%;
+            border-left: 4px solid transparent;
+        }
+
+        .pain-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+        }
+
+        .pain-card.critical { border-left-color: #ef4444; }
+        .pain-card.major { border-left-color: #f59e0b; }
+        .pain-card.moderate { border-left-color: #3b82f6; }
+
+        .pain-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .pain-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #1e293b;
+        }
+
+        .pain-description {
+            color: #64748b;
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+        }
+
+        .pain-metric {
+            background: #fef2f2;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .pain-metric strong {
+            color: #dc2626;
+            font-size: 1.8rem;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        /* Solution Section */
+        .solution-section {
+            padding: 100px 0;
+            background: white;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 40px;
+            color: white;
+            height: 100%;
+            transition: transform 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 200px;
+            height: 200px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            transform: translate(50%, -50%);
+        }
+
+        .feature-card:hover {
+            transform: scale(1.05);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .feature-benefit {
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 1.5rem;
+        }
+
+        .feature-benefit strong {
+            font-size: 2rem;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        /* Roles Section */
+        .roles-section {
+            padding: 100px 0;
+            background: var(--light-bg);
+        }
+
+        .role-card {
+            background: white;
+            border-radius: 20px;
+            padding: 50px 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+            border-top: 5px solid transparent;
+        }
+
+        .role-card.insurer { border-top-color: #3b82f6; }
+        .role-card.regulator { border-top-color: #8b5cf6; }
+        .role-card.fgsv { border-top-color: #06b6d4; }
+
+        .role-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 70px rgba(0,0,0,0.15);
+        }
+
+        .role-icon-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            margin: 0 auto 2rem;
+        }
+
+        .role-card.insurer .role-icon-circle { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; }
+        .role-card.regulator .role-icon-circle { background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: white; }
+        .role-card.fgsv .role-icon-circle { background: linear-gradient(135deg, #06b6d4, #0891b2); color: white; }
+
+        .role-title {
+            font-size: 2rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: #1e293b;
+        }
+
+        .role-benefits {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 2rem;
+        }
+
+        .role-benefits li {
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            align-items: start;
+            gap: 12px;
+        }
+
+        .role-benefits li i {
+            color: #10b981;
+            font-size: 1.2rem;
+            margin-top: 2px;
+        }
+
+        /* Pricing Section */
+        .pricing-section {
+            padding: 100px 0;
+            background: var(--dark-bg);
+            color: white;
+        }
+
+        .pricing-card {
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 50px 40px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+            height: 100%;
+        }
+
+        .pricing-card:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.3);
+            transform: scale(1.05);
+        }
+
+        .pricing-card.popular {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-color: transparent;
+            transform: scale(1.05);
+        }
+
+        .pricing-tier {
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 1rem;
+            opacity: 0.8;
+        }
+
+        .pricing-amount {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .pricing-period {
+            opacity: 0.7;
+            margin-bottom: 2rem;
+        }
+
+        .pricing-features {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 2rem;
+        }
+
+        .pricing-features li {
+            padding: 12px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .pricing-features li i {
+            color: #10b981;
+        }
+
+        /* Technical Requirements */
+        .tech-section {
+            padding: 100px 0;
+            background: white;
+        }
+
+        .tech-card {
+            background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+            border-radius: 15px;
+            padding: 30px;
+            height: 100%;
+        }
+
+        .tech-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .tech-title i {
+            font-size: 2rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .tech-specs {
+            list-style: none;
+            padding: 0;
+        }
+
+        .tech-specs li {
+            padding: 10px 0;
+            color: #475569;
+            display: flex;
+            align-items: start;
+            gap: 10px;
+        }
+
+        .tech-specs li i {
+            color: #3b82f6;
+            margin-top: 3px;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            padding: 100px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+        }
+
+        .cta-title {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+        }
+
+        .cta-subtitle {
+            font-size: 1.3rem;
+            margin-bottom: 3rem;
+            opacity: 0.9;
+        }
+
+        .btn-cta {
+            background: white;
+            color: #667eea;
+            padding: 20px 50px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            border-radius: 50px;
+            border: none;
+            transition: all 0.3s;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .btn-cta:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            color: #764ba2;
+        }
+
+        /* Compliance Section */
+        .compliance-section {
+            padding: 80px 0;
+            background: #fafafa;
+        }
+
+        .compliance-badge {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            transition: transform 0.3s;
+        }
+
+        .compliance-badge:hover {
+            transform: translateY(-5px);
+        }
+
+        .compliance-icon {
+            font-size: 3rem;
+            color: #10b981;
+            margin-bottom: 1rem;
+        }
+
+        .compliance-title {
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .compliance-text {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        /* Animation */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s, transform 0.8s;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-title { font-size: 2.5rem; }
+            .hero-subtitle { font-size: 1.2rem; }
+            .hero-stats { flex-direction: column; gap: 1.5rem; }
+            .stat-number { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top" style="background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px);">
+        <div class="container">
+            <a class="navbar-brand fw-bold fs-3" href="#">
+                <i class="bi bi-shield-check"></i> Alliot
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="#features">Возможности</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#roles">Роли</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#pricing">Цены</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#tech">Требования</a></li>
+                    <li class="nav-item ms-3">
+                        <a href="{{ url_for('main.select_role') }}" class="btn btn-light px-4">
+                            Начать работу <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-gradient"></div>
+        <div class="container hero-content">
+            <div class="row align-items-center">
+                <div class="col-lg-7">
+                    <h1 class="hero-title fade-in">Alliot</h1>
+                    <p class="hero-subtitle fade-in">Комплексная Регуляторная Система для Страхового Рынка Казахстана</p>
+                    <p class="text-white-50 mb-4 fade-in" style="font-size: 1.1rem;">
+                        Единая платформа для страховых компаний, АРФР и ФГСВ. <br>
+                        Автоматизация расчетов МСФО 17, МСФО 9, платежеспособности и регуляторной отчетности.
+                    </p>
+                    <div class="d-flex gap-3 mb-4 fade-in">
+                        <a href="{{ url_for('main.select_role') }}" class="btn btn-light btn-lg px-5">
+                            <i class="bi bi-play-circle"></i> Демо-версия
+                        </a>
+                        <a href="#pricing" class="btn btn-outline-light btn-lg px-5">
+                            <i class="bi bi-tag"></i> Цены
+                        </a>
+                    </div>
+                    <div class="hero-stats fade-in">
+                        <div class="stat-item">
+                            <div class="stat-number">95%</div>
+                            <div class="stat-label">Сокращение времени</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">100%</div>
+                            <div class="stat-label">Соответствие АРФР</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">3 недели</div>
+                            <div class="stat-label">Внедрение</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-5 text-center fade-in">
+                    <i class="bi bi-shield-shaded" style="font-size: 25rem; color: rgba(167,139,250,0.2);"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pain Points Section -->
+    <section class="pain-section" id="problems">
+        <div class="container">
+            <div class="text-center mb-5 fade-in">
+                <h2 class="display-4 fw-bold mb-3">Проблемы страхового рынка</h2>
+                <p class="lead text-muted">С которыми сталкиваются ВСЕ участники рынка каждый день</p>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-4 fade-in">
+                    <div class="pain-card critical">
+                        <div class="pain-icon">⚠️</div>
+                        <h3 class="pain-title">Ручной труд и ошибки</h3>
+                        <p class="pain-description">
+                            Excel-таблицы на тысячи строк, ручной перенос данных между системами,
+                            формулы которые ломаются, потеря данных, невозможность отследить кто и когда изменил цифры.
+                        </p>
+                        <div class="pain-metric">
+                            <strong>200+ часов</strong>
+                            <span>в месяц на ручные расчеты</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 fade-in">
+                    <div class="pain-card major">
+                        <div class="pain-icon">💸</div>
+                        <h3 class="pain-title">Штрафы и санкции АРФР</h3>
+                        <p class="pain-description">
+                            Опоздание с отчетностью, ошибки в расчете ММП и ФМП, несоответствие требованиям
+                            Постановления №304, нарушение сроков предоставления данных.
+                        </p>
+                        <div class="pain-metric">
+                            <strong>До 50 млн ₸</strong>
+                            <span>штрафы за нарушения</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 fade-in">
+                    <div class="pain-card moderate">
+                        <div class="pain-icon">🔄</div>
+                        <h3 class="pain-title">Разные цифры везде</h3>
+                        <p class="pain-description">
+                            ECL в одной системе, CSM в другой, платежеспособность в третьей.
+                            Данные не сходятся, аудиторы задают вопросы, регулятор требует объяснений.
+                        </p>
+                        <div class="pain-metric">
+                            <strong>5-10%</strong>
+                            <span>расхождение между системами</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 fade-in">
+                    <div class="pain-card major">
+                        <div class="pain-icon">⏰</div>
+                        <h3 class="pain-title">Долгое закрытие периода</h3>
+                        <p class="pain-description">
+                            15-20 дней на закрытие квартала: сбор данных из филиалов, консолидация,
+                            проверка, исправление ошибок, пересчет, согласования, подготовка отчетов.
+                        </p>
+                        <div class="pain-metric">
+                            <strong>20 дней</strong>
+                            <span>на закрытие квартала</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 fade-in">
+                    <div class="pain-card critical">
+                        <div class="pain-icon">🤯</div>
+                        <h3 class="pain-title">Сложность МСФО 17</h3>
+                        <p class="pain-description">
+                            BEL, RA, CSM, Roll-forward, Onerous contracts, GMM vs VFA vs PAA -
+                            команда тратит месяцы на понимание стандарта и разработку методологии расчетов.
+                        </p>
+                        <div class="pain-metric">
+                            <strong>$20 млрд</strong>
+                            <span>потрачено отраслью на МСФО 17</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 fade-in">
+                    <div class="pain-card major">
+                        <div class="pain-icon">🔐</div>
+                        <h3 class="pain-title">Отсутствие аудита</h3>
+                        <p class="pain-description">
+                            Невозможно понять кто, когда и почему изменил данные. Аудиторы требуют
+                            полный trail, регулятор хочет видеть все расчеты. Excel этого не дает.
+                        </p>
+                        <div class="pain-metric">
+                            <strong>100%</strong>
+                            <span>требование аудиторского следа</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Solution Section -->
+    <section class="solution-section" id="features">
+        <div class="container">
+            <div class="text-center mb-5 fade-in">
+                <h2 class="display-4 fw-bold mb-3">Как Alliot решает эти проблемы</h2>
+                <p class="lead text-muted">Автоматизация, точность и соответствие требованиям</p>
+            </div>
+
+            <div class="row g-4 mb-5">
+                <div class="col-lg-4 fade-in">
+                    <div class="feature-card">
+                        <div class="feature-icon">🚀</div>
+                        <h3 class="feature-title">Автоматизация 95% расчетов</h3>
+                        <p>
+                            Загрузили портфель договоров → нажали кнопку → получили полные расчеты
+                            МСФО 17 (BEL, RA, CSM), МСФО 9 (ECL по стадиям), платежеспособности (ММП, ФМП, Нмп).
+                        </p>
+                        <div class="feature-benefit">
+                            <strong>С 200 часов → 10 часов</strong>
+                            <span>время на расчеты в месяц</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 fade-in">
+                    <div class="feature-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                        <div class="feature-icon">✅</div>
+                        <h3 class="feature-title">100% соответствие АРФР</h3>
+                        <p>
+                            Все формулы и требования Постановления АРФР №304, автоматическая проверка
+                            лимитов, встроенные шаблоны отчетов, валидация данных перед отправкой.
+                        </p>
+                        <div class="feature-benefit">
+                            <strong>0 штрафов</strong>
+                            <span>за ошибки в расчетах</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 fade-in">
+                    <div class="feature-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                        <div class="feature-icon">🎯</div>
+                        <h3 class="feature-title">Единый источник истины</h3>
+                        <p>
+                            Все расчеты из ОДНОЙ базы данных. ECL, CSM, платежеспособность -
+                            все цифры сходятся идеально. Полный аудиторский след каждого изменения.
+                        </p>
+                        <div class="feature-benefit">
+                            <strong>100% точность</strong>
+                            <span>одинаковые цифры везде</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-3 fade-in">
+                    <div class="text-center p-4 bg-light rounded-4">
+                        <i class="bi bi-lightning-charge-fill display-3 text-warning mb-3"></i>
+                        <h4 class="fw-bold">Быстрое внедрение</h4>
+                        <p class="text-muted">3 недели vs 6-12 месяцев у конкурентов</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 fade-in">
+                    <div class="text-center p-4 bg-light rounded-4">
+                        <i class="bi bi-graph-up-arrow display-3 text-success mb-3"></i>
+                        <h4 class="fw-bold">ROI за 3 месяца</h4>
+                        <p class="text-muted">Экономия на зарплатах и штрафах</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 fade-in">
+                    <div class="text-center p-4 bg-light rounded-4">
+                        <i class="bi bi-shield-fill-check display-3 text-primary mb-3"></i>
+                        <h4 class="fw-bold">Безопасность</h4>
+                        <p class="text-muted">Шифрование, аудит, резервное копирование</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 fade-in">
+                    <div class="text-center p-4 bg-light rounded-4">
+                        <i class="bi bi-headset display-3 text-info mb-3"></i>
+                        <h4 class="fw-bold">Поддержка 24/7</h4>
+                        <p class="text-muted">Команда экспертов всегда на связи</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Roles Section -->
+    <section class="roles-section" id="roles">
+        <div class="container">
+            <div class="text-center mb-5 fade-in">
+                <h2 class="display-4 fw-bold mb-3">Решение для каждой роли</h2>
+                <p class="lead text-muted">Единая платформа объединяющая всех участников рынка</p>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-4 fade-in">
+                    <div class="role-card insurer">
+                        <div class="role-icon-circle">
+                            <i class="bi bi-building"></i>
+                        </div>
+                        <h3 class="role-title">Страховые компании</h3>
+                        <ul class="role-benefits">
+                            <li>
+                                <i class="bi bi-check-circle-fill"></i>
+                                <span>Автоматические расчеты МСФО 17 (GMM/VFA/PAA)</span>
+                            </li>
+                            <li>
+                                <i class="bi bi-check-circle-fill"></i>
+                                <span>Расчет ECL по МСФО 9 с распределением по стадиям</span>
+                            </li>
+                            <li>
+                                <i class="bi bi-check-circle-fill"></i>
+                                <span>Платежеспособность (ММП, ФМП, Нмп) в реальном времени</span>
+                            </li>
+                            <li>
+                                <i class="bi bi-check-circle-fill"></i>
+                                <span>Реестры договоров и финансовых инструментов</span>
+                            </li>
+                            <li>
+                                <i class="bi bi-check-circle-fill"></i>
+                                <span>Загрузка портфелей из Excel/CSV</span>
+                            </li>
+                            <li>
+                                <i class="bi bi-check-circle-fill"></i>
+                                <span>Автоматическая отчетность в АРФР</span>
+                            </li>
+                            <li>
+                                <i class="bi bi-check-circle-fill"></i>
+                                <span>Расчет взносов в ФГСВ</span>
+                            </li>
+                            <li>
+                                <i class="bi bi-check-circle-fill"></i>
+                                <span>Полный аудиторский след</span>
+                            </li>
+                        </ul>
+                        <div class="text-center">
+                            <a href="{{ url_for('main.select_role') }}?role=insurer" class="btn btn-primary btn-lg px-5">
+                                Перейти в панель <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 fade-in">
+                    <div class="role-card regulator">
+                        <div class="role-icon-circle">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+                        <h3 class="role-title">АРФР (Регулятор)</h3>
+                        <ul class="role-benefits">
+                            <li>
+                                <i class="bi bi-check-circle-fill"></i>
+                                <span>Мониторинг всех страховых компаний на одной панели</span>
+                            </li>
+                            <li>
+                                <i class="bi bi-check-circle-fill"></i>
+                                <span>Автоматическая проверка соблюдения нормативов</span>
+                            </li>
+                            <li>
+                                <i class="bi bi-check-circle-fill"></i>
+                                <span>Отслеживание Нмп в реальном времени</span>
+                            </li>
+                            <li>
+                                <i class="bi bi-check-circle-fill"></i>
+                                <span>Реестр нарушений с автоматическими уведомлениями</span>
+                            </li>
+                            <li>
+                                <i class="bi bi-check-circle-fill"></i>
+                                <span>Аналитика рынка (концентрация, риски)</span>
+                            </li>
+                            <li>
+                                <i class="bi bi-check-circle-fill"></i>
+                                <span>Стресс-тестирование всего рынка</span>
+                            </li>
+                            <li>
+                                <i class="bi bi-check-circle-fill"></i>
+                                <span>Экспорт отчетов для НБК и МФ РК</span>
+                            </li>
+                            <li>
+                                <i class="bi bi-check-circle-fill"></i>
+                                <span>API для интеграции с системами АРФР</span>
+                            </li>
+                        </ul>
+                        <div class="text-center">
+                            <a href="{{ url_for('main.select_role') }}?role=arfr" class="btn btn-primary btn-lg px-5" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9); border: none;">
+                                Перейти в панель <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 fade-in">
+                    <div class="role-card fgsv">
+                        <div class="role-icon-circle">
+                            <i class="bi bi-bank"></i>
+                        </div>
+                        <h3 class="role-title">ФГСВ (Фонд)</h3>
+                        <ul class="role-benefits">
+                            <li>
+                                <i class="bi bi-check-circle-fill"></i>
+                                <span>Автоматический расчет взносов страховщиков</span>
+                            </li>
+                            <li>
+                                <i class="bi bi-check-circle-fill"></i>
+                                <span>Мониторинг финансового состояния участников</span>
+                            </li>
+                            <li>
+                                <i class="bi bi-check-circle-fill"></i>
+                                <span>Оценка риска банкротства (PD модели)</span>
+                            </li>
+                            <li>
+                                <i class="bi bi-check-circle-fill"></i>
+                                <span>Прогноз выплат по гарантиям</span>
+                            </li>
+                            <li>
+                                <i class="bi bi-check-circle-fill"></i>
+                                <span>Monte Carlo симуляции адекватности фонда</span>
+                            </li>
+                            <li>
+                                <i class="bi bi-check-circle-fill"></i>
+                                <span>История выплат и recovery rate</span>
+                            </li>
+                            <li>
+                                <i class="bi bi-check-circle-fill"></i>
+                                <span>Реестр застрахованных договоров</span>
+                            </li>
+                            <li>
+                                <i class="bi bi-check-circle-fill"></i>
+                                <span>Интеграция с платежной системой</span>
+                            </li>
+                        </ul>
+                        <div class="text-center">
+                            <a href="{{ url_for('main.select_role') }}?role=fgsv" class="btn btn-primary btn-lg px-5" style="background: linear-gradient(135deg, #06b6d4, #0891b2); border: none;">
+                                Перейти в панель <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="pricing-section" id="pricing">
+        <div class="container">
+            <div class="text-center mb-5 fade-in">
+                <h2 class="display-4 fw-bold mb-3">Прозрачные цены</h2>
+                <p class="lead" style="opacity: 0.9;">Выберите тариф в зависимости от размера компании</p>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-3 fade-in">
+                    <div class="pricing-card">
+                        <div class="pricing-tier">Стартап</div>
+                        <div class="pricing-amount">25 млн ₸</div>
+                        <div class="pricing-period">в год</div>
+                        <ul class="pricing-features">
+                            <li><i class="bi bi-check-circle-fill"></i> До 3,000 договоров</li>
+                            <li><i class="bi bi-check-circle-fill"></i> 5 пользователей</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Базовая отчетность</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Email поддержка</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Облачная версия</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Обновления включены</li>
+                        </ul>
+                        <div class="text-muted small">
+                            Для компаний с премией до 300 млн ₸/год
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 fade-in">
+                    <div class="pricing-card">
+                        <div class="pricing-tier">Малая СК</div>
+                        <div class="pricing-amount">70 млн ₸</div>
+                        <div class="pricing-period">в год</div>
+                        <ul class="pricing-features">
+                            <li><i class="bi bi-check-circle-fill"></i> До 15,000 договоров</li>
+                            <li><i class="bi bi-check-circle-fill"></i> 15 пользователей</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Расширенная отчетность</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Приоритетная поддержка</li>
+                            <li><i class="bi bi-check-circle-fill"></i> API доступ</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Обучение команды</li>
+                        </ul>
+                        <div class="text-muted small">
+                            Для компаний с премией 300 млн - 2 млрд ₸/год
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 fade-in">
+                    <div class="pricing-card popular">
+                        <div class="badge bg-warning text-dark mb-3 px-3 py-2">ПОПУЛЯРНЫЙ</div>
+                        <div class="pricing-tier">Средняя СК</div>
+                        <div class="pricing-amount">150 млн ₸</div>
+                        <div class="pricing-period">в год</div>
+                        <ul class="pricing-features">
+                            <li><i class="bi bi-check-circle-fill"></i> До 50,000 договоров</li>
+                            <li><i class="bi bi-check-circle-fill"></i> 40 пользователей</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Полная аналитика</li>
+                            <li><i class="bi bi-check-circle-fill"></i> 24/7 поддержка</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Выделенный менеджер</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Кастомные интеграции</li>
+                        </ul>
+                        <div class="text-muted small">
+                            Для компаний с премией 2-10 млрд ₸/год
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 fade-in">
+                    <div class="pricing-card">
+                        <div class="pricing-tier">Крупная СК</div>
+                        <div class="pricing-amount">300 млн ₸</div>
+                        <div class="pricing-period">в год</div>
+                        <ul class="pricing-features">
+                            <li><i class="bi bi-check-circle-fill"></i> Неограниченно договоров</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Неограниченно пользователей</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Полная кастомизация</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Выделенная инфраструктура</li>
+                            <li><i class="bi bi-check-circle-fill"></i> On-premise опция</li>
+                            <li><i class="bi bi-check-circle-fill"></i> SLA 99.9%</li>
+                        </ul>
+                        <div class="text-muted small">
+                            Для компаний с премией более 10 млрд ₸/год
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-5 fade-in">
+                <h4 class="mb-4">Дополнительные опции</h4>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="p-3 bg-white bg-opacity-10 rounded-3">
+                            <i class="bi bi-cloud-check display-5 mb-2"></i>
+                            <h5>Облачный сервер ФГСВ</h5>
+                            <p class="mb-0 small">Размещение на защищенных серверах ФГСВ РК<br><strong>+15 млн ₸/год</strong></p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-white bg-opacity-10 rounded-3">
+                            <i class="bi bi-building display-5 mb-2"></i>
+                            <h5>On-Premise версия</h5>
+                            <p class="mb-0 small">Установка на ваших серверах<br><strong>+50 млн ₸ (единоразово)</strong></p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-white bg-opacity-10 rounded-3">
+                            <i class="bi bi-people display-5 mb-2"></i>
+                            <h5>Обучение и консалтинг</h5>
+                            <p class="mb-0 small">Полное обучение команды<br><strong>50,000 ₸/час</strong></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technical Requirements -->
+    <section class="tech-section" id="tech">
+        <div class="container">
+            <div class="text-center mb-5 fade-in">
+                <h2 class="display-4 fw-bold mb-3">Технические требования</h2>
+                <p class="lead text-muted">Современные технологии для максимальной производительности</p>
+            </div>
+
+            <div class="row g-4 mb-5">
+                <div class="col-lg-6 fade-in">
+                    <div class="tech-card">
+                        <h3 class="tech-title">
+                            <i class="bi bi-cloud-fill"></i>
+                            Облачная версия (рекомендуется)
+                        </h3>
+                        <ul class="tech-specs">
+                            <li><i class="bi bi-check2"></i> <strong>Доступ:</strong> Любой браузер (Chrome, Firefox, Safari)</li>
+                            <li><i class="bi bi-check2"></i> <strong>Интернет:</strong> От 10 Мбит/с стабильное соединение</li>
+                            <li><i class="bi bi-check2"></i> <strong>Устройства:</strong> ПК, ноутбук, планшет (responsive design)</li>
+                            <li><i class="bi bi-check2"></i> <strong>Инфраструктура:</strong> AWS/Azure (99.9% uptime SLA)</li>
+                            <li><i class="bi bi-check2"></i> <strong>Резервное копирование:</strong> Автоматическое каждые 6 часов</li>
+                            <li><i class="bi bi-check2"></i> <strong>Обновления:</strong> Автоматические, без простоя</li>
+                            <li><i class="bi bi-check2"></i> <strong>Стоимость:</strong> Включена в подписку</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="col-lg-6 fade-in">
+                    <div class="tech-card">
+                        <h3 class="tech-title">
+                            <i class="bi bi-hdd-rack-fill"></i>
+                            On-Premise версия
+                        </h3>
+                        <ul class="tech-specs">
+                            <li><i class="bi bi-check2"></i> <strong>Сервер:</strong> 8 ядер CPU, 32 ГБ RAM, 500 ГБ SSD</li>
+                            <li><i class="bi bi-check2"></i> <strong>БД:</strong> PostgreSQL 15+ (или SQL Server 2019+)</li>
+                            <li><i class="bi bi-check2"></i> <strong>ОС:</strong> Ubuntu 22.04 LTS / Windows Server 2019+</li>
+                            <li><i class="bi bi-check2"></i> <strong>Web-сервер:</strong> Nginx 1.24+ или IIS 10+</li>
+                            <li><i class="bi bi-check2"></i> <strong>Runtime:</strong> Python 3.11+, Node.js 20 LTS</li>
+                            <li><i class="bi bi-check2"></i> <strong>Пропускная способность:</strong> 1 Гбит/с для локальной сети</li>
+                            <li><i class="bi bi-check2"></i> <strong>Доп. стоимость:</strong> +50 млн ₸ установка + 15% в год</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-4 fade-in">
+                    <div class="tech-card">
+                        <h3 class="tech-title">
+                            <i class="bi bi-shield-lock-fill"></i>
+                            Безопасность
+                        </h3>
+                        <ul class="tech-specs">
+                            <li><i class="bi bi-check2"></i> Шифрование AES-256 (данные)</li>
+                            <li><i class="bi bi-check2"></i> TLS 1.3 (передача данных)</li>
+                            <li><i class="bi bi-check2"></i> Multi-Factor Authentication (MFA)</li>
+                            <li><i class="bi bi-check2"></i> Полный аудиторский журнал</li>
+                            <li><i class="bi bi-check2"></i> Роле-основанный доступ (RBAC)</li>
+                            <li><i class="bi bi-check2"></i> Compliance: SOC 2 Type II</li>
+                            <li><i class="bi bi-check2"></i> Антивирус и firewall</li>
+                            <li><i class="bi bi-check2"></i> Регулярные security audits</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 fade-in">
+                    <div class="tech-card">
+                        <h3 class="tech-title">
+                            <i class="bi bi-arrow-repeat"></i>
+                            Интеграции
+                        </h3>
+                        <ul class="tech-specs">
+                            <li><i class="bi bi-check2"></i> REST API (документация Swagger)</li>
+                            <li><i class="bi bi-check2"></i> Webhooks для событий</li>
+                            <li><i class="bi bi-check2"></i> 1С:Предприятие (коннектор)</li>
+                            <li><i class="bi bi-check2"></i> SAP (прямая интеграция)</li>
+                            <li><i class="bi bi-check2"></i> Excel/CSV импорт/экспорт</li>
+                            <li><i class="bi bi-check2"></i> Power BI / Tableau</li>
+                            <li><i class="bi bi-check2"></i> Email уведомления (SMTP)</li>
+                            <li><i class="bi bi-check2"></i> Single Sign-On (SSO/SAML)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 fade-in">
+                    <div class="tech-card">
+                        <h3 class="tech-title">
+                            <i class="bi bi-speedometer2"></i>
+                            Производительность
+                        </h3>
+                        <ul class="tech-specs">
+                            <li><i class="bi bi-check2"></i> Обработка 100K+ договоров</li>
+                            <li><i class="bi bi-check2"></i> Расчет CSM: < 30 секунд</li>
+                            <li><i class="bi bi-check2"></i> Генерация отчета: < 5 секунд</li>
+                            <li><i class="bi bi-check2"></i> Одновременно 500+ пользователей</li>
+                            <li><i class="bi bi-check2"></i> Автоматическое масштабирование</li>
+                            <li><i class="bi bi-check2"></i> Кэширование расчетов (Redis)</li>
+                            <li><i class="bi bi-check2"></i> CDN для статики (CloudFlare)</li>
+                            <li><i class="bi bi-check2"></i> 99.9% uptime SLA</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Compliance Section -->
+    <section class="compliance-section">
+        <div class="container">
+            <div class="text-center mb-5 fade-in">
+                <h2 class="display-5 fw-bold mb-3">Соответствие требованиям регуляторов</h2>
+                <p class="lead text-muted">100% compliance с законодательством Республики Казахстан</p>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-3 col-md-6 fade-in">
+                    <div class="compliance-badge">
+                        <div class="compliance-icon"><i class="bi bi-check-circle-fill"></i></div>
+                        <h5 class="compliance-title">МСФО 17</h5>
+                        <p class="compliance-text">Полная поддержка всех моделей измерения (GMM, VFA, PAA)</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 fade-in">
+                    <div class="compliance-badge">
+                        <div class="compliance-icon"><i class="bi bi-check-circle-fill"></i></div>
+                        <h5 class="compliance-title">МСФО 9</h5>
+                        <p class="compliance-text">Расчет ECL с учетом стадий обесценения</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 fade-in">
+                    <div class="compliance-badge">
+                        <div class="compliance-icon"><i class="bi bi-check-circle-fill"></i></div>
+                        <h5 class="compliance-title">Постановление №304</h5>
+                        <p class="compliance-text">Все формулы ММП и ФМП по требованиям АРФР</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 fade-in">
+                    <div class="compliance-badge">
+                        <div class="compliance-icon"><i class="bi bi-check-circle-fill"></i></div>
+                        <h5 class="compliance-title">Закон о страховании</h5>
+                        <p class="compliance-text">Соответствие №126-II ЗРК "О страховой деятельности"</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4 mt-4">
+                <div class="col-lg-4 col-md-6 fade-in">
+                    <div class="compliance-badge">
+                        <div class="compliance-icon"><i class="bi bi-shield-check"></i></div>
+                        <h5 class="compliance-title">Требования НБК</h5>
+                        <p class="compliance-text">Интеграция с макроэкономическими показателями НБК</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 fade-in">
+                    <div class="compliance-badge">
+                        <div class="compliance-icon"><i class="bi bi-file-earmark-ruled"></i></div>
+                        <h5 class="compliance-title">Отчеты АРФР</h5>
+                        <p class="compliance-text">Автоматическая генерация всех регуляторных форм</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 fade-in">
+                    <div class="compliance-badge">
+                        <div class="compliance-icon"><i class="bi bi-journal-check"></i></div>
+                        <h5 class="compliance-title">Аудиторский след</h5>
+                        <p class="compliance-text">Полная история всех операций для МСА</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container fade-in">
+            <h2 class="cta-title">Готовы начать?</h2>
+            <p class="cta-subtitle">Присоединяйтесь к страховым компаниям, которые уже автоматизировали свою отчетность</p>
+            <a href="{{ url_for('main.select_role') }}" class="btn btn-cta">
+                <i class="bi bi-rocket-takeoff"></i> Попробовать бесплатно
+            </a>
+            <p class="mt-4" style="opacity: 0.8;">
+                Демо-версия доступна сразу • Внедрение за 3 недели • Поддержка 24/7
+            </p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-5 bg-dark text-white">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <h4 class="mb-3"><i class="bi bi-shield-check"></i> Alliot</h4>
+                    <p class="text-white-50">
+                        Комплексная Регуляторная Система для страхового рынка Казахстана.
+                        Автоматизация МСФО 17, МСФО 9 и платежеспособности.
+                    </p>
+                </div>
+                <div class="col-lg-2 mb-4">
+                    <h5 class="mb-3">Продукт</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="#features" class="text-white-50 text-decoration-none">Возможности</a></li>
+                        <li class="mb-2"><a href="#pricing" class="text-white-50 text-decoration-none">Цены</a></li>
+                        <li class="mb-2"><a href="#tech" class="text-white-50 text-decoration-none">Требования</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 mb-4">
+                    <h5 class="mb-3">Роли</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="{{ url_for('main.select_role') }}?role=insurer" class="text-white-50 text-decoration-none">Страховщики</a></li>
+                        <li class="mb-2"><a href="{{ url_for('main.select_role') }}?role=arfr" class="text-white-50 text-decoration-none">АРФР</a></li>
+                        <li class="mb-2"><a href="{{ url_for('main.select_role') }}?role=fgsv" class="text-white-50 text-decoration-none">ФГСВ</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-4 mb-4">
+                    <h5 class="mb-3">Контакты</h5>
+                    <p class="text-white-50 mb-2"><i class="bi bi-envelope"></i> info@alliot.kz</p>
+                    <p class="text-white-50 mb-2"><i class="bi bi-telephone"></i> +7 (727) 123-45-67</p>
+                    <p class="text-white-50 mb-2"><i class="bi bi-geo-alt"></i> Алматы, пр. Аль-Фараби 77/8</p>
+                    <div class="mt-3">
+                        <a href="#" class="text-white me-3"><i class="bi bi-linkedin fs-4"></i></a>
+                        <a href="#" class="text-white me-3"><i class="bi bi-facebook fs-4"></i></a>
+                        <a href="#" class="text-white"><i class="bi bi-telegram fs-4"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-4" style="opacity: 0.1;">
+            <div class="text-center text-white-50">
+                <p class="mb-0">&copy; 2025 Alliot. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Intersection Observer for fade-in animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

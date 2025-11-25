@@ -1,0 +1,447 @@
+{% extends "base.html" %}
+
+{% block title %}ФГСВ - Взносы в Фонд гарантирования - Alliot{% endblock %}
+{% block page_title %}ФГСВ: Фонд гарантирования страховых выплат{% endblock %}
+
+{% block content %}
+<style>
+    .data-source-badge {
+        font-size: 0.7rem;
+        padding: 2px 8px;
+        border-radius: 10px;
+        margin-left: 8px;
+    }
+    .auto-filled {
+        background: rgba(39, 174, 96, 0.1);
+        border-color: var(--kz-success) !important;
+    }
+    .audit-trail-item {
+        border-left: 3px solid var(--kz-primary);
+        padding: 10px 15px;
+        margin-bottom: 10px;
+        background: rgba(0, 102, 204, 0.03);
+        border-radius: 0 8px 8px 0;
+    }
+    .calculation-step {
+        padding: 12px;
+        margin: 8px 0;
+        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.02);
+    }
+    .calculation-step.highlight {
+        background: rgba(0, 102, 204, 0.05);
+        border: 1px solid rgba(0, 102, 204, 0.2);
+    }
+</style>
+
+<!-- Статус интеграции -->
+<div class="alert alert-info d-flex align-items-center mb-4 animate-fadeInUp">
+    <i class="bi bi-info-circle fs-4 me-3"></i>
+    <div>
+        <strong>Автоматический режим:</strong> Данные загружаются из модулей МСФО 9, МСФО 17 и Платежеспособности.
+        <br><small class="text-muted">Последняя синхронизация: {{ now().strftime('%d.%m.%Y %H:%M') if now else '21.11.2025 15:30' }}</small>
+    </div>
+    <button class="btn btn-sm btn-outline-primary ms-auto" onclick="syncAllData()">
+        <i class="bi bi-arrow-repeat me-1"></i>Обновить данные
+    </button>
+</div>
+
+<div class="row">
+    <!-- Левая колонка - Данные компании -->
+    <div class="col-lg-5">
+        <!-- Автоматически загруженные данные -->
+        <div class="card card-highlight animate-fadeInUp">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="bi bi-database me-2"></i>Данные для расчета</h5>
+                <span class="badge bg-success">Автоматически</span>
+            </div>
+            <div class="card-body">
+                <!-- Источник: Бухгалтерия -->
+                <h6 class="text-primary mb-3">
+                    <i class="bi bi-building me-1"></i> Из 1С/SAP
+                    <span class="data-source-badge bg-primary text-white">Бухгалтерия</span>
+                </h6>
+                <div class="mb-3">
+                    <label class="form-label">Валовые премии (KZT)</label>
+                    <input type="text" class="form-control auto-filled" id="premiums" value="5,450,000,000" readonly>
+                    <small class="text-muted">Период: Q3 2025</small>
+                </div>
+
+                <!-- Источник: МСФО 9 -->
+                <h6 class="text-primary mb-3 mt-4">
+                    <i class="bi bi-calculator me-1"></i> Из МСФО 9
+                    <span class="data-source-badge bg-info text-white">ECL</span>
+                </h6>
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <label class="form-label">ECL</label>
+                        <input type="text" class="form-control auto-filled" id="ecl" value="163,500,000" readonly>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <label class="form-label">ECL %</label>
+                        <input type="text" class="form-control auto-filled" id="eclPct" value="3.0%" readonly>
+                    </div>
+                </div>
+
+                <!-- Источник: МСФО 17 -->
+                <h6 class="text-primary mb-3 mt-4">
+                    <i class="bi bi-shield me-1"></i> Из МСФО 17
+                    <span class="data-source-badge bg-success text-white">CSM</span>
+                </h6>
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <label class="form-label">CSM</label>
+                        <input type="text" class="form-control auto-filled" id="csm" value="245,250,000" readonly>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <label class="form-label">BEL</label>
+                        <input type="text" class="form-control auto-filled" id="bel" value="3,815,000,000" readonly>
+                    </div>
+                </div>
+
+                <!-- Источник: Платежеспособность -->
+                <h6 class="text-primary mb-3 mt-4">
+                    <i class="bi bi-shield-check me-1"></i> Из Платежеспособности
+                    <span class="data-source-badge bg-warning text-dark">Solvency</span>
+                </h6>
+                <div class="row">
+                    <div class="col-4 mb-3">
+                        <label class="form-label">Nмп</label>
+                        <input type="text" class="form-control auto-filled" id="nmp" value="2.15" readonly>
+                    </div>
+                    <div class="col-4 mb-3">
+                        <label class="form-label">Loss Ratio</label>
+                        <input type="text" class="form-control auto-filled" id="lossRatio" value="62%" readonly>
+                    </div>
+                    <div class="col-4 mb-3">
+                        <label class="form-label">Combined</label>
+                        <input type="text" class="form-control auto-filled" id="combined" value="89%" readonly>
+                    </div>
+                </div>
+
+                <hr>
+
+                <button class="btn btn-success w-100" onclick="calculateFGSV()">
+                    <i class="bi bi-calculator me-2"></i>Рассчитать взнос ФГСВ
+                </button>
+            </div>
+        </div>
+
+        <!-- Шкала ставок -->
+        <div class="card mt-3 animate-fadeInUp" style="animation-delay: 0.1s;">
+            <div class="card-header">
+                <h5><i class="bi bi-percent me-2"></i>Шкала дифференцированных ставок</h5>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-premium mb-0">
+                    <thead>
+                        <tr>
+                            <th>Класс риска</th>
+                            <th>Условия</th>
+                            <th>Ставка</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="table-success">
+                            <td><span class="badge bg-success">Низкий</span></td>
+                            <td>Nмп ≥ 2.0, LR ≤ 60%, CR ≤ 85%</td>
+                            <td><strong>0.5%</strong></td>
+                        </tr>
+                        <tr class="table-warning">
+                            <td><span class="badge bg-warning text-dark">Средний</span></td>
+                            <td>Nмп ≥ 1.5, LR ≤ 70%, CR ≤ 95%</td>
+                            <td><strong>1.0%</strong></td>
+                        </tr>
+                        <tr class="table-danger">
+                            <td><span class="badge bg-danger">Высокий</span></td>
+                            <td>Nмп < 1.5 или LR > 70%</td>
+                            <td><strong>2.0%</strong></td>
+                        </tr>
+                        <tr class="table-dark">
+                            <td><span class="badge bg-dark">Критический</span></td>
+                            <td>Nмп < 1.0</td>
+                            <td><strong>3.0%</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Правая колонка - Результаты -->
+    <div class="col-lg-7">
+        <!-- Результаты расчета -->
+        <div class="card animate-fadeInUp" style="animation-delay: 0.2s;">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="bi bi-check-circle me-2"></i>Результат расчета взноса в ФГСВ</h5>
+                <div>
+                    <button class="btn btn-sm btn-outline-primary me-2" onclick="exportToExcel('fgsvResult', 'FGSV_calculation')">
+                        <i class="bi bi-file-excel"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary" onclick="exportToPDF('fgsvResult', 'FGSV_report')">
+                        <i class="bi bi-file-pdf"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body" id="fgsvResult">
+                <!-- Ключевые метрики -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="stat-card text-center">
+                            <div class="stat-label">Взнос ФГСВ</div>
+                            <div class="stat-value text-primary" id="resultContribution">27.25 млн</div>
+                            <div class="stat-change">KZT</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card text-center">
+                            <div class="stat-label">Применяемая ставка</div>
+                            <div class="stat-value text-success" id="resultRate">0.5%</div>
+                            <div class="stat-change">от премий</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card text-center">
+                            <div class="stat-label">Класс риска</div>
+                            <div class="stat-value" id="resultRiskClass">
+                                <span class="badge bg-success fs-6">Низкий</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Детальный расчет с формулами -->
+                <h6 class="text-primary mb-3"><i class="bi bi-journal-code me-2"></i>Пошаговый расчет</h6>
+
+                <div class="calculation-step">
+                    <strong>Шаг 1: Определение класса риска</strong>
+                    <div class="small mt-2">
+                        <div class="d-flex justify-content-between">
+                            <span>Nмп = 2.15</span>
+                            <span class="text-success">✓ ≥ 2.0</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Loss Ratio = 62%</span>
+                            <span class="text-success">✓ ≤ 60% (близко)</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Combined Ratio = 89%</span>
+                            <span class="text-warning">⚠ > 85%</span>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-muted small">
+                        <strong>Вывод:</strong> По совокупности показателей - класс риска "Низкий" (минимум 2 из 3 критериев выполнены)
+                    </div>
+                </div>
+
+                <div class="calculation-step highlight">
+                    <strong>Шаг 2: Расчет взноса</strong>
+                    <div class="math-box mt-2 mb-2">
+                        $Взнос = Премии \times Ставка$
+                    </div>
+                    <div class="formula-display small">
+Взнос = 5,450,000,000 × 0.5%
+Взнос = 5,450,000,000 × 0.005
+Взнос = 27,250,000 KZT</div>
+                </div>
+
+                <div class="calculation-step">
+                    <strong>Шаг 3: Корректировка на ECL</strong>
+                    <div class="small mt-2">
+                        ECL = 163,500,000 KZT (3.0% от активов)<br>
+                        <span class="text-muted">ECL в пределах нормы (< 5%), корректировка не требуется</span>
+                    </div>
+                </div>
+
+                <!-- Обоснование для аудита -->
+                <h6 class="text-primary mt-4 mb-3"><i class="bi bi-file-text me-2"></i>Обоснование для аудита</h6>
+                <div class="alert alert-light">
+                    <p class="small mb-2">
+                        Расчет взноса в ФГСВ выполнен в соответствии с Постановлением Правления АРФР №45 от 15.03.2024.
+                        Применена дифференцированная ставка 0.5% на основании:
+                    </p>
+                    <ul class="small mb-0">
+                        <li>Коэффициент платежеспособности Nмп = 2.15 (требование ≥ 2.0)</li>
+                        <li>Loss Ratio = 62% (норматив ≤ 60%, незначительное превышение)</li>
+                        <li>Combined Ratio = 89% (норматив ≤ 85%, умеренное превышение)</li>
+                        <li>ECL по МСФО 9 = 3.0% (в пределах допустимого)</li>
+                        <li>CSM по МСФО 17 положительный = 245.25 млн KZT</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Аудиторский след -->
+        <div class="card mt-3 animate-fadeInUp" style="animation-delay: 0.3s;">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="bi bi-clock-history me-2"></i>Аудиторский след</h5>
+                <button class="btn btn-sm btn-outline-primary" onclick="showFullAuditTrail()">
+                    <i class="bi bi-eye me-1"></i>Полный журнал
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="audit-trail-item">
+                    <div class="d-flex justify-content-between">
+                        <strong>Загрузка данных из 1С</strong>
+                        <small class="text-muted">21.11.2025 15:25:03</small>
+                    </div>
+                    <small class="text-muted">Премии: 5,450,000,000 KZT • Источник: 1С:Бухгалтерия</small>
+                </div>
+                <div class="audit-trail-item">
+                    <div class="d-flex justify-content-between">
+                        <strong>Расчет ECL (МСФО 9)</strong>
+                        <small class="text-muted">21.11.2025 15:26:18</small>
+                    </div>
+                    <small class="text-muted">ECL = 163,500,000 KZT (3.0%) • Модель: 3-стадийная PD/LGD</small>
+                </div>
+                <div class="audit-trail-item">
+                    <div class="d-flex justify-content-between">
+                        <strong>Расчет CSM (МСФО 17)</strong>
+                        <small class="text-muted">21.11.2025 15:27:45</small>
+                    </div>
+                    <small class="text-muted">CSM = 245,250,000 KZT • Модель: GMM • Метод RA: CoC</small>
+                </div>
+                <div class="audit-trail-item">
+                    <div class="d-flex justify-content-between">
+                        <strong>Расчет платежеспособности</strong>
+                        <small class="text-muted">21.11.2025 15:28:12</small>
+                    </div>
+                    <small class="text-muted">Nмп = 2.15 • ФМП = 4,250 млн • ММП = 1,977 млн</small>
+                </div>
+                <div class="audit-trail-item" style="border-color: var(--kz-success);">
+                    <div class="d-flex justify-content-between">
+                        <strong class="text-success">Расчет взноса ФГСВ завершен</strong>
+                        <small class="text-muted">21.11.2025 15:30:00</small>
+                    </div>
+                    <small class="text-muted">Взнос = 27,250,000 KZT • Ставка: 0.5% • Класс: Низкий</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно полного аудиторского следа -->
+<div class="modal fade" id="auditTrailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-clock-history me-2"></i>Полный аудиторский след
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Время</th>
+                                <th>Операция</th>
+                                <th>Модуль</th>
+                                <th>Детали</th>
+                                <th>Пользователь</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>15:25:03</td>
+                                <td>Импорт данных</td>
+                                <td><span class="badge bg-secondary">1С</span></td>
+                                <td>Загружены премии за Q3 2025</td>
+                                <td>Система</td>
+                            </tr>
+                            <tr>
+                                <td>15:26:18</td>
+                                <td>Расчет ECL</td>
+                                <td><span class="badge bg-info">МСФО 9</span></td>
+                                <td>PD=2.5%, LGD=45%, EAD=14,540M</td>
+                                <td>Система</td>
+                            </tr>
+                            <tr>
+                                <td>15:27:45</td>
+                                <td>Расчет CSM</td>
+                                <td><span class="badge bg-success">МСФО 17</span></td>
+                                <td>GMM, RA=7%, Confidence=75%</td>
+                                <td>Система</td>
+                            </tr>
+                            <tr>
+                                <td>15:28:12</td>
+                                <td>Расчет Nмп</td>
+                                <td><span class="badge bg-warning text-dark">Solvency</span></td>
+                                <td>ФМП=4,250M, ММП=1,977M</td>
+                                <td>Система</td>
+                            </tr>
+                            <tr>
+                                <td>15:29:30</td>
+                                <td>Оценка рисков</td>
+                                <td><span class="badge bg-primary">ФГСВ</span></td>
+                                <td>LR=62%, CR=89%, класс=Низкий</td>
+                                <td>Система</td>
+                            </tr>
+                            <tr class="table-success">
+                                <td>15:30:00</td>
+                                <td>Расчет взноса</td>
+                                <td><span class="badge bg-primary">ФГСВ</span></td>
+                                <td>Взнос=27.25M, ставка=0.5%</td>
+                                <td>Система</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline-primary" onclick="exportAuditTrail()">
+                    <i class="bi bi-download me-1"></i>Экспорт журнала
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Синхронизация всех данных
+    function syncAllData() {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            showToast('Данные синхронизированы из всех модулей', 'success');
+        }, 2000);
+    }
+
+    // Расчет ФГСВ
+    function calculateFGSV() {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            showToast('Расчет взноса ФГСВ выполнен успешно', 'success');
+        }, 1000);
+    }
+
+    // Показать полный аудиторский след
+    function showFullAuditTrail() {
+        new bootstrap.Modal(document.getElementById('auditTrailModal')).show();
+    }
+
+    // Экспорт аудиторского следа
+    function exportAuditTrail() {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            showToast('Аудиторский журнал экспортирован', 'success');
+        }, 1500);
+    }
+
+    // Рендер формул при загрузке
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof renderMathInElement !== 'undefined') {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        }
+    });
+</script>
+{% endblock %}

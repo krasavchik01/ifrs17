@@ -1,0 +1,282 @@
+{% extends "base.html" %}
+
+{% block title %}Расчет {{ run.run_code }} - Alliot{% endblock %}
+{% block page_title %}Детали расчета: {{ run.run_code }}{% endblock %}
+
+{% block content %}
+<!-- Заголовок -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <a href="{{ url_for('main.calculation_runs') }}" class="btn btn-outline-secondary mb-3">
+            <i class="bi bi-arrow-left me-2"></i>Назад к истории
+        </a>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <h4>{{ run.run_name or run.run_code }}</h4>
+                        <p class="text-muted mb-2">
+                            {% if run.description %}{{ run.description }}{% endif %}
+                        </p>
+                        <div>
+                            <span class="badge bg-secondary me-2">{{ run.calculation_type.upper() }}</span>
+                            {% if run.status.value == 'completed' %}
+                                <span class="badge bg-success"><i class="bi bi-check-circle"></i> Завершен</span>
+                            {% elif run.status.value == 'running' %}
+                                <span class="badge bg-primary"><i class="bi bi-hourglass-split"></i> Выполняется</span>
+                            {% elif run.status.value == 'failed' %}
+                                <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Ошибка</span>
+                            {% elif run.status.value == 'partial' %}
+                                <span class="badge bg-warning"><i class="bi bi-exclamation-triangle"></i> Частично</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <small class="text-muted">
+                            Создан: {{ run.created_at.strftime('%d.%m.%Y %H:%M') }}<br>
+                            {% if run.started_at %}
+                                Начат: {{ run.started_at.strftime('%d.%m.%Y %H:%M') }}<br>
+                            {% endif %}
+                            {% if run.ended_at %}
+                                Завершен: {{ run.ended_at.strftime('%d.%m.%Y %H:%M') }}<br>
+                            {% endif %}
+                            Создал: {{ run.created_by }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Статистика -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon primary">
+                <i class="bi bi-calendar"></i>
+            </div>
+            <div class="stat-label">Дата отчетности</div>
+            <div class="stat-value">{{ run.reporting_date.strftime('%d.%m.%Y') }}</div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon success">
+                <i class="bi bi-check-circle"></i>
+            </div>
+            <div class="stat-label">Обработано групп</div>
+            <div class="stat-value">{{ run.processed_items }}/{{ run.total_items }}</div>
+            <div class="stat-change">
+                {{ (run.progress_percentage|float)|round(1) }}% завершено
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon {% if run.errors_count > 0 %}danger{% else %}success{% endif %}">
+                <i class="bi bi-{% if run.errors_count > 0 %}exclamation-triangle{% else %}check-all{% endif %}"></i>
+            </div>
+            <div class="stat-label">Ошибки</div>
+            <div class="stat-value">{{ run.errors_count or 0 }}</div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon primary">
+                <i class="bi bi-clock"></i>
+            </div>
+            <div class="stat-label">Длительность</div>
+            <div class="stat-value">
+                {% if run.duration_seconds %}
+                    {{ run.duration_seconds }} сек
+                {% else %}
+                    -
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Результаты МСФО 17 -->
+{% if run.calculation_type in ['ifrs17', 'all'] and run.status.value in ['completed', 'partial'] %}
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Результаты МСФО 17</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3">
+                <h6 class="text-muted">Всего групп</h6>
+                <h3>{{ run.ifrs17_groups_calculated or 0 }}</h3>
+            </div>
+            <div class="col-md-3">
+                <h6 class="text-muted">CSM (Contractual Service Margin)</h6>
+                <h3>{{ (run.ifrs17_total_csm|float / 1000000000)|round(2) }} млрд ₸</h3>
+            </div>
+            <div class="col-md-3">
+                <h6 class="text-muted">BEL (Best Estimate Liability)</h6>
+                <h3>{{ (run.ifrs17_total_bel|float / 1000000000)|round(2) }} млрд ₸</h3>
+            </div>
+            <div class="col-md-3">
+                <h6 class="text-muted">Итого обязательства</h6>
+                <h3 class="text-primary">{{ (run.ifrs17_total_liability|float / 1000000000)|round(2) }} млрд ₸</h3>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Результаты МСФО 9 -->
+{% if run.calculation_type in ['ifrs9', 'all'] and run.status.value in ['completed', 'partial'] %}
+<div class="card mb-4">
+    <div class="card-header bg-warning">
+        <h5 class="mb-0"><i class="bi bi-calculator me-2"></i>Результаты МСФО 9</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <h6 class="text-muted">Всего ECL</h6>
+                <h3>{{ (run.ifrs9_total_ecl|float / 1000000000)|round(2) }} млрд ₸</h3>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Детальные результаты по группам -->
+{% if group_results %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h5><i class="bi bi-list-ul me-2"></i>Результаты по группам (ТОП-50)</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-sm table-hover">
+                <thead>
+                    <tr>
+                        <th>Группа</th>
+                        <th>Тип</th>
+                        <th>Когорта</th>
+                        <th>Прибыльность</th>
+                        <th class="text-end">BEL</th>
+                        <th class="text-end">RA</th>
+                        <th class="text-end">CSM</th>
+                        <th class="text-end">Loss Component</th>
+                        <th class="text-end">Итого обязательства</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in group_results %}
+                    <tr>
+                        <td>
+                            <code class="small">{{ result.contract_group.group_code }}</code>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary small">
+                                {{ result.contract_group.insurance_type.value }}
+                            </span>
+                        </td>
+                        <td>{{ result.contract_group.cohort_year }}</td>
+                        <td>
+                            {% if result.contract_group.profitability_group.value == 'onerous' %}
+                                <span class="badge bg-danger small">Убыточные</span>
+                            {% elif result.contract_group.profitability_group.value == 'profitable' %}
+                                <span class="badge bg-success small">Прибыльные</span>
+                            {% else %}
+                                <span class="badge bg-warning small">Без риска</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">{{ (result.bel_amount|float / 1000000)|round(1) }} млн</td>
+                        <td class="text-end">{{ (result.ra_amount|float / 1000000)|round(1) }} млн</td>
+                        <td class="text-end">{{ (result.csm_amount|float / 1000000)|round(1) }} млн</td>
+                        <td class="text-end">{{ (result.loss_component|float / 1000000)|round(1) }} млн</td>
+                        <td class="text-end">
+                            <strong>{{ (result.total_liability|float / 1000000)|round(1) }} млн ₸</strong>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Ошибки (если есть) -->
+{% if error_logs %}
+<div class="card mb-4">
+    <div class="card-header bg-danger text-white">
+        <h5 class="mb-0"><i class="bi bi-exclamation-octagon me-2"></i>Ошибки ({{ error_logs|length }})</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Время</th>
+                        <th>Группа</th>
+                        <th>Ошибка</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in error_logs %}
+                    <tr>
+                        <td><small>{{ log.created_at.strftime('%H:%M:%S') }}</small></td>
+                        <td><code>{{ log.entity_reference }}</code></td>
+                        <td>
+                            <span class="text-danger">{{ log.input_data.get('error', 'Unknown error') }}</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Прогресс-бар для текущих расчетов -->
+{% if run.status.value == 'running' %}
+<div class="card">
+    <div class="card-body">
+        <h6>Выполнение расчета...</h6>
+        <div class="progress" style="height: 30px;">
+            <div class="progress-bar progress-bar-striped progress-bar-animated"
+                 id="progress-bar"
+                 role="progressbar"
+                 style="width: {{ run.progress_percentage }}%">
+                <span id="progress-text">{{ run.progress_percentage|round(1) }}%</span>
+            </div>
+        </div>
+        <p class="text-muted mt-2">
+            Обработано: <span id="processed-count">{{ run.processed_items }}</span> / {{ run.total_items }}
+        </p>
+    </div>
+</div>
+
+<script>
+// AJAX polling для обновления прогресса
+let pollInterval = setInterval(function() {
+    fetch('{{ url_for("main.api_calculation_status", run_id=run.id) }}')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('progress-bar').style.width = data.progress + '%';
+            document.getElementById('progress-text').textContent = data.progress.toFixed(1) + '%';
+            document.getElementById('processed-count').textContent = data.processed_items;
+
+            // Если завершен - обновляем страницу
+            if (data.status === 'completed' || data.status === 'failed' || data.status === 'partial') {
+                clearInterval(pollInterval);
+                location.reload();
+            }
+        });
+}, 2000); // Обновляем каждые 2 секунды
+</script>
+{% endif %}
+
+{% endblock %}

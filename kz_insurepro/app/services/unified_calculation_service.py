@@ -17,7 +17,7 @@ from dataclasses import dataclass
 from typing import Dict, Optional, Any
 
 from app.services.calculation_service import calculation_service
-from app.services.solvency_calculator_service import SolvencyCalculator
+from app.modules.solvency import SolvencyCalculator
 from config import format_currency, format_percent
 
 
@@ -227,8 +227,8 @@ class UnifiedCalculationService:
                 }
                 cash_flows.append(cf)
 
-            # Используем IFRS17Calculator через calculation_service
-            from app.services.ifrs17_calculator_service import IFRS17Calculator
+            # Используем IFRS17Calculator из modules
+            from app.modules.ifrs17 import IFRS17Calculator
             calc = IFRS17Calculator()
 
             gmm_result = calc.calculate_gmm(

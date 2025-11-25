@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}Новое правило маппинга - Alliot{% endblock %}
+{% block page_title %}Создание правила бухгалтерского маппинга{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Параметры правила</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <!-- Тип события -->
+                    <div class="mb-4">
+                        <label for="event_type" class="form-label">
+                            <strong>1. Тип события</strong>
+                        </label>
+                        <select class="form-select form-select-lg" id="event_type" name="event_type" required>
+                            <option value="">Выберите тип события...</option>
+                            {% for event in all_events %}
+                            <option value="{{ event.value }}">
+                                {{ event.value|upper|replace('_', ' ') }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">
+                            Событие, которое триггерит создание проводки (например, CSM_RELEASE, PREMIUM_RECEIVED)
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Счета -->
+                    <h6 class="mb-3"><strong>2. Проводка (Дебет/Кредит)</strong></h6>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="debit_account" class="form-label text-danger">
+                                <i class="bi bi-arrow-up-right me-1"></i>Дебет (Дт)
+                            </label>
+                            <select class="form-select" id="debit_account" name="debit_account" required>
+                                <option value="">Выберите счет дебета...</option>
+                                {% for account in accounts %}
+                                <option value="{{ account.account_code }}">
+                                    {{ account.account_code }} - {{ account.account_name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="credit_account" class="form-label text-success">
+                                <i class="bi bi-arrow-down-left me-1"></i>Кредит (Кт)
+                            </label>
+                            <select class="form-select" id="credit_account" name="credit_account" required>
+                                <option value="">Выберите счет кредита...</option>
+                                {% for account in accounts %}
+                                <option value="{{ account.account_code }}">
+                                    {{ account.account_code }} - {{ account.account_name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Описание правила</label>
+                        <textarea class="form-control" id="description" name="description" rows="2"
+                                  placeholder="Например: Признание дохода от освобождения CSM по договорам жизни"></textarea>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Фильтры -->
+                    <h6 class="mb-3"><strong>3. Фильтры применения (опционально)</strong></h6>
+                    <p class="text-muted small">
+                        Если фильтры не указаны, правило применяется ко всем событиям данного типа.
+                        Если указаны - только к событиям, соответствующим фильтрам.
+                    </p>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="insurance_type" class="form-label">Тип страхования</label>
+                            <select class="form-select" id="insurance_type" name="insurance_type">
+                                <option value="">Все типы</option>
+                                <option value="life">Life (Жизнь)</option>
+                                <option value="non_life">Non-Life (Не-жизнь)</option>
+                                <option value="health">Health (Здоровье)</option>
+                                <option value="annuity">Annuity (Аннуитет)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="contract_type" class="form-label">Тип договора</label>
+                            <select class="form-select" id="contract_type" name="contract_type">
+                                <option value="">Все типы</option>
+                                <option value="direct">Прямые (Direct)</option>
+                                <option value="reinsurance_held">Входящее перестрах.</option>
+                                <option value="reinsurance_issued">Исходящее перестрах.</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="measurement_model" class="form-label">Модель оценки</label>
+                            <select class="form-select" id="measurement_model" name="measurement_model">
+                                <option value="">Все модели</option>
+                                <option value="gmm">GMM (General Model)</option>
+                                <option value="vfa">VFA (Variable Fee)</option>
+                                <option value="paa">PAA (Premium Allocation)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="priority" class="form-label">Приоритет</label>
+                        <input type="number" class="form-control" id="priority" name="priority"
+                               value="100" min="1" max="1000">
+                        <div class="form-text">
+                            Если несколько правил подходят, применяется правило с меньшим приоритетом (1 = высший приоритет)
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-check-circle me-2"></i>Создать правило
+                        </button>
+                        <a href="{{ url_for('main.accounting_mapping_rules') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>Назад к списку
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- Примеры правил -->
+        <div class="card mb-3">
+            <div class="card-header bg-success text-white">
+                <h6 class="mb-0"><i class="bi bi-lightbulb me-2"></i>Примеры правил</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <strong>CSM Release (МСФО 17)</strong>
+                    <div class="small text-muted mt-1">
+                        Дт 3310 (Insurance Liabilities)<br>
+                        Кт 6010 (Insurance Revenue)
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <strong>Premium Received</strong>
+                    <div class="small text-muted mt-1">
+                        Дт 1010 (Cash)<br>
+                        Кт 3310 (Insurance Liabilities)
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <strong>ECL Provision (МСФО 9)</strong>
+                    <div class="small text-muted mt-1">
+                        Дт 7110 (Impairment Expense)<br>
+                        Кт 1290 (Allowance for ECL)
+                    </div>
+                </div>
+                <div class="mb-0">
+                    <strong>Claims Paid</strong>
+                    <div class="small text-muted mt-1">
+                        Дт 6210 (Claims Expense)<br>
+                        Кт 1010 (Cash)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-warning">
+                <h6 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>Важно</h6>
+            </div>
+            <div class="card-body">
+                <p class="small mb-2">
+                    <strong>План счетов:</strong> Убедитесь, что счета существуют в вашем плане счетов.
+                    <a href="{{ url_for('main.chart_of_accounts') }}">Проверить план счетов</a>
+                </p>
+                <p class="small mb-2">
+                    <strong>Фильтры:</strong> Используйте фильтры когда разные типы договоров требуют разных проводок.
+                </p>
+                <p class="small mb-0">
+                    <strong>Приоритет:</strong> Если создаете специфичное правило (с фильтрами), укажите меньший приоритет чем у общего правила.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Live preview проводки
+document.getElementById('event_type').addEventListener('change', updatePreview);
+document.getElementById('debit_account').addEventListener('change', updatePreview);
+document.getElementById('credit_account').addEventListener('change', updatePreview);
+
+function updatePreview() {
+    const event = document.getElementById('event_type');
+    const debit = document.getElementById('debit_account');
+    const credit = document.getElementById('credit_account');
+
+    if (event.value && debit.value && credit.value) {
+        console.log(`Rule: ${event.options[event.selectedIndex].text} → Дт ${debit.value} / Кт ${credit.value}`);
+    }
+}
+</script>
+{% endblock %}

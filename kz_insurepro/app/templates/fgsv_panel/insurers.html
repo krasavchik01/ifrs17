@@ -1,0 +1,809 @@
+{% extends "base.html" %}
+
+{% block title %}Страховщики - ФГСВ{% endblock %}
+{% block page_title %}Мониторинг страховщиков{% endblock %}
+
+{% block content %}
+<!-- Статистика по страховщикам -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card clickable" onclick="showAllInsurers()">
+            <div class="stat-icon primary"><i class="bi bi-building"></i></div>
+            <div class="stat-label">Всего страховщиков</div>
+            <div class="stat-value">27</div>
+            <small class="text-muted">Life: 12 | Non-life: 15</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card clickable" onclick="showLowRiskInsurers()">
+            <div class="stat-icon success"><i class="bi bi-shield-check"></i></div>
+            <div class="stat-label">Низкий риск</div>
+            <div class="stat-value">19</div>
+            <small class="text-success">70.4% портфеля</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card clickable" onclick="showMediumRiskInsurers()">
+            <div class="stat-icon warning"><i class="bi bi-exclamation-triangle"></i></div>
+            <div class="stat-label">Средний риск</div>
+            <div class="stat-value">5</div>
+            <small class="text-warning">18.5% портфеля</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card clickable" onclick="showHighRiskInsurers()">
+            <div class="stat-icon danger"><i class="bi bi-exclamation-diamond"></i></div>
+            <div class="stat-label">Высокий риск</div>
+            <div class="stat-value">3</div>
+            <small class="text-danger">11.1% портфеля</small>
+        </div>
+    </div>
+</div>
+
+<!-- Графики -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-pie-chart me-2"></i>Распределение по риску</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="riskDistributionChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Средние показатели</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="averageMetricsChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-bar-chart me-2"></i>Nmп по категориям</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="nmpCategoryChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Таблица страховщиков -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-table me-2"></i>Риск-профиль страховщиков</h5>
+        <div class="btn-group">
+            <button class="btn btn-sm btn-outline-primary" onclick="exportInsurersExcel()">
+                <i class="bi bi-file-earmark-excel me-1"></i>Excel
+            </button>
+            <button class="btn btn-sm btn-outline-secondary" onclick="generateRiskReport()">
+                <i class="bi bi-file-pdf me-1"></i>Отчет
+            </button>
+            <button class="btn btn-sm btn-outline-info" onclick="refreshData()">
+                <i class="bi bi-arrow-clockwise me-1"></i>Обновить
+            </button>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <!-- Фильтры -->
+        <div class="p-3 bg-light border-bottom">
+            <div class="row g-2">
+                <div class="col-md-3">
+                    <select class="form-select form-select-sm" id="filterType" onchange="filterInsurers()">
+                        <option value="">Все типы</option>
+                        <option value="life">Life</option>
+                        <option value="nonlife">Non-life</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select form-select-sm" id="filterRisk" onchange="filterInsurers()">
+                        <option value="">Все классы риска</option>
+                        <option value="low">Низкий</option>
+                        <option value="medium">Средний</option>
+                        <option value="high">Высокий</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select form-select-sm" id="sortBy" onchange="sortInsurers()">
+                        <option value="risk">По риску</option>
+                        <option value="nmp">По Nmп</option>
+                        <option value="pd">По PD</option>
+                        <option value="name">По названию</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <input type="text" class="form-control form-control-sm" placeholder="Поиск..." id="searchInsurer" onkeyup="filterInsurers()">
+                </div>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" id="insurersTable">
+                <thead class="table-light">
+                    <tr>
+                        <th>Компания</th>
+                        <th>Тип</th>
+                        <th>Nmп</th>
+                        <th>ФМП</th>
+                        <th>Loss Ratio</th>
+                        <th>Combined</th>
+                        <th>PD</th>
+                        <th>EL</th>
+                        <th>Класс риска</th>
+                        <th>Тренд</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="insurer-row" onclick="showInsurerDetails('victoria')">
+                        <td>
+                            <strong>СК Виктория</strong>
+                            <br><small class="text-muted">БИН: 555666777888</small>
+                        </td>
+                        <td><span class="badge bg-info">Non-life</span></td>
+                        <td><span class="text-danger fw-bold">0.89</span></td>
+                        <td>8.9 млрд</td>
+                        <td><span class="text-danger">82%</span></td>
+                        <td><span class="text-danger">108%</span></td>
+                        <td><span class="text-danger fw-bold">4.8%</span></td>
+                        <td>420 млн</td>
+                        <td><span class="status-badge danger">Высокий</span></td>
+                        <td><i class="bi bi-arrow-down-circle text-danger"></i></td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary" onclick="event.stopPropagation(); showInsurerDetails('victoria')">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button class="btn btn-outline-warning" onclick="event.stopPropagation(); scheduleInspection('victoria')">
+                                    <i class="bi bi-clipboard-check"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="insurer-row" onclick="showInsurerDetails('nurpolis')">
+                        <td>
+                            <strong>СК НурПолис</strong>
+                            <br><small class="text-muted">БИН: 666777888999</small>
+                        </td>
+                        <td><span class="badge bg-primary">Life</span></td>
+                        <td><span class="text-danger fw-bold">0.95</span></td>
+                        <td>9.5 млрд</td>
+                        <td><span class="text-warning">75%</span></td>
+                        <td><span class="text-warning">98%</span></td>
+                        <td><span class="text-danger fw-bold">3.2%</span></td>
+                        <td>280 млн</td>
+                        <td><span class="status-badge danger">Высокий</span></td>
+                        <td><i class="bi bi-dash-circle text-warning"></i></td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary" onclick="event.stopPropagation(); showInsurerDetails('nurpolis')">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button class="btn btn-outline-warning" onclick="event.stopPropagation(); scheduleInspection('nurpolis')">
+                                    <i class="bi bi-clipboard-check"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="insurer-row" onclick="showInsurerDetails('stepins')">
+                        <td>
+                            <strong>СК СтепьИнс</strong>
+                            <br><small class="text-muted">БИН: 777888999000</small>
+                        </td>
+                        <td><span class="badge bg-info">Non-life</span></td>
+                        <td><span class="text-warning fw-bold">1.15</span></td>
+                        <td>11.5 млрд</td>
+                        <td><span class="text-warning">72%</span></td>
+                        <td><span class="text-warning">95%</span></td>
+                        <td><span class="text-warning fw-bold">2.1%</span></td>
+                        <td>185 млн</td>
+                        <td><span class="status-badge danger">Высокий</span></td>
+                        <td><i class="bi bi-arrow-up-circle text-success"></i></td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary" onclick="event.stopPropagation(); showInsurerDetails('stepins')">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button class="btn btn-outline-info" onclick="event.stopPropagation(); viewTrend('stepins')">
+                                    <i class="bi bi-graph-up"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="insurer-row" onclick="showInsurerDetails('nomad')">
+                        <td>
+                            <strong>СК Nomad Life</strong>
+                            <br><small class="text-muted">БИН: 333444555666</small>
+                        </td>
+                        <td><span class="badge bg-primary">Life</span></td>
+                        <td><span class="text-warning fw-bold">1.42</span></td>
+                        <td>14.2 млрд</td>
+                        <td>65%</td>
+                        <td><span class="text-warning">92%</span></td>
+                        <td><span class="text-warning fw-bold">1.5%</span></td>
+                        <td>120 млн</td>
+                        <td><span class="status-badge warning">Средний</span></td>
+                        <td><i class="bi bi-dash-circle text-warning"></i></td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary" onclick="event.stopPropagation(); showInsurerDetails('nomad')">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button class="btn btn-outline-info" onclick="event.stopPropagation(); viewTrend('nomad')">
+                                    <i class="bi bi-graph-up"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="insurer-row" onclick="showInsurerDetails('basel')">
+                        <td>
+                            <strong>СК Basel</strong>
+                            <br><small class="text-muted">БИН: 444555666777</small>
+                        </td>
+                        <td><span class="badge bg-info">Non-life</span></td>
+                        <td><span class="text-warning fw-bold">1.48</span></td>
+                        <td>14.8 млрд</td>
+                        <td>68%</td>
+                        <td>89%</td>
+                        <td><span class="text-warning fw-bold">1.2%</span></td>
+                        <td>95 млн</td>
+                        <td><span class="status-badge warning">Средний</span></td>
+                        <td><i class="bi bi-arrow-up-circle text-success"></i></td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary" onclick="event.stopPropagation(); showInsurerDetails('basel')">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button class="btn btn-outline-info" onclick="event.stopPropagation(); viewTrend('basel')">
+                                    <i class="bi bi-graph-up"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="insurer-row" onclick="showInsurerDetails('interteach')">
+                        <td>
+                            <strong>СК Интертич</strong>
+                            <br><small class="text-muted">БИН: 000111222333</small>
+                        </td>
+                        <td><span class="badge bg-info">Non-life</span></td>
+                        <td><span class="text-primary fw-bold">1.65</span></td>
+                        <td>16.5 млрд</td>
+                        <td>62%</td>
+                        <td>85%</td>
+                        <td>0.9%</td>
+                        <td>72 млн</td>
+                        <td><span class="status-badge warning">Средний</span></td>
+                        <td><i class="bi bi-dash-circle text-warning"></i></td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary" onclick="event.stopPropagation(); showInsurerDetails('interteach')">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="insurer-row" onclick="showInsurerDetails('halyk')">
+                        <td>
+                            <strong>СК Халық-Life</strong>
+                            <br><small class="text-muted">БИН: 111222333444</small>
+                        </td>
+                        <td><span class="badge bg-primary">Life</span></td>
+                        <td><span class="text-success fw-bold">2.85</span></td>
+                        <td>28.5 млрд</td>
+                        <td>52%</td>
+                        <td>78%</td>
+                        <td>0.3%</td>
+                        <td>35 млн</td>
+                        <td><span class="status-badge success">Низкий</span></td>
+                        <td><i class="bi bi-arrow-up-circle text-success"></i></td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary" onclick="event.stopPropagation(); showInsurerDetails('halyk')">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="insurer-row" onclick="showInsurerDetails('eurasia')">
+                        <td>
+                            <strong>СК Евразия</strong>
+                            <br><small class="text-muted">БИН: 222333444555</small>
+                        </td>
+                        <td><span class="badge bg-info">Non-life</span></td>
+                        <td><span class="text-success fw-bold">2.45</span></td>
+                        <td>24.5 млрд</td>
+                        <td>58%</td>
+                        <td>82%</td>
+                        <td>0.4%</td>
+                        <td>42 млн</td>
+                        <td><span class="status-badge success">Низкий</span></td>
+                        <td><i class="bi bi-arrow-up-circle text-success"></i></td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary" onclick="event.stopPropagation(); showInsurerDetails('eurasia')">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="insurer-row" onclick="showInsurerDetails('amanat')">
+                        <td>
+                            <strong>СК Amanat</strong>
+                            <br><small class="text-muted">БИН: 888999000111</small>
+                        </td>
+                        <td><span class="badge bg-primary">Life</span></td>
+                        <td><span class="text-success fw-bold">2.12</span></td>
+                        <td>21.2 млрд</td>
+                        <td>55%</td>
+                        <td>80%</td>
+                        <td>0.5%</td>
+                        <td>48 млн</td>
+                        <td><span class="status-badge success">Низкий</span></td>
+                        <td><i class="bi bi-arrow-up-circle text-success"></i></td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary" onclick="event.stopPropagation(); showInsurerDetails('amanat')">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="insurer-row" onclick="showInsurerDetails('freedom')">
+                        <td>
+                            <strong>СК Freedom Finance Life</strong>
+                            <br><small class="text-muted">БИН: 999000111222</small>
+                        </td>
+                        <td><span class="badge bg-primary">Life</span></td>
+                        <td><span class="text-success fw-bold">1.98</span></td>
+                        <td>19.8 млрд</td>
+                        <td>48%</td>
+                        <td>75%</td>
+                        <td>0.6%</td>
+                        <td>52 млн</td>
+                        <td><span class="status-badge success">Низкий</span></td>
+                        <td><i class="bi bi-arrow-up-circle text-success"></i></td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary" onclick="event.stopPropagation(); showInsurerDetails('freedom')">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно деталей страховщика -->
+<div class="modal fade" id="insurerDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="bi bi-building me-2"></i>Детали страховщика</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="insurerDetailsContent">
+                <!-- Динамический контент -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-primary" onclick="downloadInsurerReport()">
+                    <i class="bi bi-download me-1"></i>Скачать отчет
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно компаний по риску -->
+<div class="modal fade" id="riskCategoryModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" id="riskCategoryHeader">
+                <h5 class="modal-title" id="riskCategoryTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="riskCategoryContent">
+                <!-- Динамический контент -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.stat-card.clickable {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.stat-card.clickable:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+.insurer-row {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.insurer-row:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+}
+.metric-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+}
+.metric-value {
+    font-size: 1.8rem;
+    font-weight: bold;
+}
+.metric-label {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Данные страховщиков
+const insurersData = {
+    'victoria': {
+        name: 'СК Виктория',
+        bin: '555666777888',
+        type: 'Non-life',
+        nmp: 0.89,
+        fmp: '8.9 млрд',
+        mmp: '10.0 млрд',
+        lossRatio: 82,
+        combined: 108,
+        pd: 4.8,
+        lgd: 45,
+        ead: '8.75 млрд',
+        el: '420 млн',
+        premiums: '18.5 млрд',
+        assets: '22.4 млрд',
+        reserves: '14.2 млрд',
+        riskClass: 'high',
+        trend: 'down',
+        history: [
+            { date: '01.10.2025', nmp: 0.89, event: 'Nmп упал ниже 1.0' },
+            { date: '15.09.2025', nmp: 0.95, event: 'Предупреждение ФГСВ' },
+            { date: '01.09.2025', nmp: 1.02, event: 'Нарушение Combined Ratio' }
+        ],
+        recommendations: [
+            'Срочная докапитализация на 2.5 млрд ₸',
+            'Пересмотр андеррайтинговой политики',
+            'Оптимизация резервов убытков'
+        ]
+    },
+    'nurpolis': {
+        name: 'СК НурПолис',
+        bin: '666777888999',
+        type: 'Life',
+        nmp: 0.95,
+        fmp: '9.5 млрд',
+        mmp: '10.0 млрд',
+        lossRatio: 75,
+        combined: 98,
+        pd: 3.2,
+        lgd: 40,
+        ead: '8.75 млрд',
+        el: '280 млн',
+        premiums: '15.8 млрд',
+        assets: '28.5 млрд',
+        reserves: '18.2 млрд',
+        riskClass: 'high',
+        trend: 'stable',
+        history: [
+            { date: '01.10.2025', nmp: 0.95, event: 'Nmп упал ниже 1.0' },
+            { date: '15.09.2025', nmp: 1.05, event: 'На грани нарушения' }
+        ],
+        recommendations: [
+            'Докапитализация на 1.5 млрд ₸',
+            'Диверсификация инвестиционного портфеля',
+            'Улучшение Loss Ratio'
+        ]
+    },
+    'halyk': {
+        name: 'СК Халық-Life',
+        bin: '111222333444',
+        type: 'Life',
+        nmp: 2.85,
+        fmp: '28.5 млрд',
+        mmp: '10.0 млрд',
+        lossRatio: 52,
+        combined: 78,
+        pd: 0.3,
+        lgd: 25,
+        ead: '11.67 млрд',
+        el: '35 млн',
+        premiums: '45.2 млрд',
+        assets: '85.6 млрд',
+        reserves: '52.4 млрд',
+        riskClass: 'low',
+        trend: 'up',
+        history: [
+            { date: '01.10.2025', nmp: 2.85, event: 'Nmп вырос на 0.05' },
+            { date: '01.09.2025', nmp: 2.80, event: 'Стабильный рост' }
+        ],
+        recommendations: [
+            'Поддерживать текущие показатели',
+            'Рассмотреть расширение продуктовой линейки'
+        ]
+    },
+    'eurasia': {
+        name: 'СК Евразия',
+        bin: '222333444555',
+        type: 'Non-life',
+        nmp: 2.45,
+        fmp: '24.5 млрд',
+        mmp: '10.0 млрд',
+        lossRatio: 58,
+        combined: 82,
+        pd: 0.4,
+        lgd: 28,
+        ead: '10.5 млрд',
+        el: '42 млн',
+        premiums: '38.6 млрд',
+        assets: '68.2 млрд',
+        reserves: '42.8 млрд',
+        riskClass: 'low',
+        trend: 'up',
+        history: [
+            { date: '01.10.2025', nmp: 2.45, event: 'Стабильные показатели' }
+        ],
+        recommendations: [
+            'Поддерживать текущий уровень капитализации'
+        ]
+    }
+};
+
+// Инициализация графиков
+document.addEventListener('DOMContentLoaded', function() {
+    initializeCharts();
+});
+
+function initializeCharts() {
+    // Распределение по риску
+    new Chart(document.getElementById('riskDistributionChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Низкий', 'Средний', 'Высокий'],
+            datasets: [{
+                data: [19, 5, 3],
+                backgroundColor: ['#27ae60', '#f39c12', '#e74c3c']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'bottom' } }
+        }
+    });
+
+    // Средние показатели
+    new Chart(document.getElementById('averageMetricsChart'), {
+        type: 'radar',
+        data: {
+            labels: ['Nmп', 'Loss Ratio', 'Combined', 'PD', 'ROE'],
+            datasets: [{
+                label: 'Среднее по рынку',
+                data: [1.85, 62, 85, 1.2, 12],
+                backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                borderColor: '#3498db'
+            }, {
+                label: 'Норматив',
+                data: [1.5, 70, 95, 2.0, 10],
+                backgroundColor: 'rgba(46, 204, 113, 0.2)',
+                borderColor: '#27ae60'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'bottom' } },
+            scales: {
+                r: { beginAtZero: true }
+            }
+        }
+    });
+
+    // Nmп по категориям
+    new Chart(document.getElementById('nmpCategoryChart'), {
+        type: 'bar',
+        data: {
+            labels: ['<1.0', '1.0-1.5', '1.5-2.0', '>2.0'],
+            datasets: [{
+                label: 'Количество компаний',
+                data: [2, 3, 7, 15],
+                backgroundColor: ['#e74c3c', '#f39c12', '#3498db', '#27ae60']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } }
+        }
+    });
+}
+
+// Функции для карточек статистики
+function showAllInsurers() {
+    alert('Показать все 27 страховщиков');
+}
+
+function showLowRiskInsurers() {
+    showRiskCategory('low', 'Низкий риск', 'success', [
+        { name: 'СК Халық-Life', nmp: 2.85, pd: '0.3%' },
+        { name: 'СК Евразия', nmp: 2.45, pd: '0.4%' },
+        { name: 'СК Amanat', nmp: 2.12, pd: '0.5%' },
+        { name: 'СК Freedom Finance Life', nmp: 1.98, pd: '0.6%' }
+    ]);
+}
+
+function showMediumRiskInsurers() {
+    showRiskCategory('medium', 'Средний риск', 'warning', [
+        { name: 'СК Интертич', nmp: 1.65, pd: '0.9%' },
+        { name: 'СК Basel', nmp: 1.48, pd: '1.2%' },
+        { name: 'СК Nomad Life', nmp: 1.42, pd: '1.5%' }
+    ]);
+}
+
+function showHighRiskInsurers() {
+    showRiskCategory('high', 'Высокий риск', 'danger', [
+        { name: 'СК Виктория', nmp: 0.89, pd: '4.8%' },
+        { name: 'СК НурПолис', nmp: 0.95, pd: '3.2%' },
+        { name: 'СК СтепьИнс', nmp: 1.15, pd: '2.1%' }
+    ]);
+}
+
+function showRiskCategory(risk, title, colorClass, companies) {
+    document.getElementById('riskCategoryHeader').className = `modal-header bg-${colorClass} ${colorClass === 'warning' ? '' : 'text-white'}`;
+    document.getElementById('riskCategoryTitle').innerHTML = `<i class="bi bi-building me-2"></i>${title}`;
+
+    const rows = companies.map(c => `
+        <tr>
+            <td><strong>${c.name}</strong></td>
+            <td class="${c.nmp < 1.0 ? 'text-danger' : c.nmp < 1.5 ? 'text-warning' : 'text-success'}">${c.nmp}</td>
+            <td>${c.pd}</td>
+        </tr>
+    `).join('');
+
+    document.getElementById('riskCategoryContent').innerHTML = `
+        <table class="table">
+            <thead><tr><th>Компания</th><th>Nmп</th><th>PD</th></tr></thead>
+            <tbody>${rows}</tbody>
+        </table>
+    `;
+
+    new bootstrap.Modal(document.getElementById('riskCategoryModal')).show();
+}
+
+// Показать детали страховщика
+function showInsurerDetails(insurerId) {
+    const insurer = insurersData[insurerId];
+    if (!insurer) {
+        alert('Данные загружаются...');
+        return;
+    }
+
+    const trendIcon = insurer.trend === 'up'
+        ? '<i class="bi bi-arrow-up-circle text-success"></i> Рост'
+        : insurer.trend === 'down'
+        ? '<i class="bi bi-arrow-down-circle text-danger"></i> Падение'
+        : '<i class="bi bi-dash-circle text-warning"></i> Стабильно';
+
+    const historyRows = insurer.history.map(h => `
+        <tr>
+            <td>${h.date}</td>
+            <td>${h.nmp}</td>
+            <td>${h.event}</td>
+        </tr>
+    `).join('');
+
+    const recommendations = insurer.recommendations.map(r => `<li>${r}</li>`).join('');
+
+    document.getElementById('insurerDetailsContent').innerHTML = `
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <h4>${insurer.name}</h4>
+                <p class="text-muted">БИН: ${insurer.bin} | Тип: ${insurer.type}</p>
+                <div class="row g-3 mt-3">
+                    <div class="col-6">
+                        <div class="metric-card">
+                            <div class="metric-value ${insurer.nmp < 1.0 ? 'text-danger' : insurer.nmp < 1.5 ? 'text-warning' : 'text-success'}">${insurer.nmp}</div>
+                            <div class="metric-label">Nmп</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="metric-card">
+                            <div class="metric-value ${insurer.pd > 2 ? 'text-danger' : insurer.pd > 1 ? 'text-warning' : 'text-success'}">${insurer.pd}%</div>
+                            <div class="metric-label">PD</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="metric-card">
+                            <div class="metric-value ${insurer.lossRatio > 75 ? 'text-danger' : insurer.lossRatio > 65 ? 'text-warning' : 'text-success'}">${insurer.lossRatio}%</div>
+                            <div class="metric-label">Loss Ratio</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="metric-card">
+                            <div class="metric-value ${insurer.combined > 100 ? 'text-danger' : insurer.combined > 90 ? 'text-warning' : 'text-success'}">${insurer.combined}%</div>
+                            <div class="metric-label">Combined</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <h6>Финансовые показатели</h6>
+                <table class="table table-sm">
+                    <tr><td>ФМП:</td><td><strong>${insurer.fmp}</strong></td></tr>
+                    <tr><td>ММП:</td><td><strong>${insurer.mmp}</strong></td></tr>
+                    <tr><td>Премии:</td><td><strong>${insurer.premiums}</strong></td></tr>
+                    <tr><td>Активы:</td><td><strong>${insurer.assets}</strong></td></tr>
+                    <tr><td>Резервы:</td><td><strong>${insurer.reserves}</strong></td></tr>
+                    <tr><td>EL (ожид. убыток):</td><td><strong>${insurer.el}</strong></td></tr>
+                    <tr><td>Тренд:</td><td>${trendIcon}</td></tr>
+                </table>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <h6>История изменений</h6>
+                <table class="table table-sm">
+                    <thead><tr><th>Дата</th><th>Nmп</th><th>Событие</th></tr></thead>
+                    <tbody>${historyRows}</tbody>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <h6>Рекомендации</h6>
+                <ul class="list-unstyled">
+                    ${recommendations}
+                </ul>
+            </div>
+        </div>
+    `;
+
+    new bootstrap.Modal(document.getElementById('insurerDetailsModal')).show();
+}
+
+// Вспомогательные функции
+function filterInsurers() {
+    alert('Фильтр применен');
+}
+
+function sortInsurers() {
+    alert('Сортировка применена');
+}
+
+function exportInsurersExcel() {
+    alert('Экспорт в Excel: insurers_risk_profile.xlsx');
+}
+
+function generateRiskReport() {
+    alert('Генерация отчета по рискам...');
+}
+
+function refreshData() {
+    alert('Данные обновлены');
+}
+
+function scheduleInspection(insurerId) {
+    if (confirm(`Запланировать проверку для ${insurerId}?`)) {
+        alert(`Проверка запланирована на ближайшую дату`);
+    }
+}
+
+function viewTrend(insurerId) {
+    alert(`Показать тренд для ${insurerId}`);
+}
+
+function downloadInsurerReport() {
+    alert('Скачивание отчета...');
+}
+</script>
+{% endblock %}

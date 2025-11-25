@@ -1,0 +1,535 @@
+{% extends "base.html" %}
+
+{% block title %}Отчетность - Alliot{% endblock %}
+{% block page_title %}Система отчетности{% endblock %}
+
+{% block content %}
+<!-- Алерты по срокам -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="alert alert-danger d-flex align-items-center">
+            <i class="bi bi-exclamation-triangle-fill me-3" style="font-size: 1.5rem;"></i>
+            <div>
+                <strong>Срочно:</strong> До сдачи квартального отчета в АРФР осталось <strong>5 дней</strong> (25.11.2025).
+                Не завершены: Расчет Nmп, Проверка главбухом, Подпись CFO.
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Статусы отчетов -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon success"><i class="bi bi-check-circle"></i></div>
+            <div class="stat-label">Готово</div>
+            <div class="stat-value">8</div>
+            <div class="stat-change positive">документов</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon warning"><i class="bi bi-clock"></i></div>
+            <div class="stat-label">В работе</div>
+            <div class="stat-value">4</div>
+            <div class="stat-change">документов</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon danger"><i class="bi bi-hourglass"></i></div>
+            <div class="stat-label">Ожидают</div>
+            <div class="stat-value">3</div>
+            <div class="stat-change negative">согласования</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon primary"><i class="bi bi-send"></i></div>
+            <div class="stat-label">Отправлено</div>
+            <div class="stat-value">2</div>
+            <div class="stat-change">в АРФР</div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Процесс сбора документов -->
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="bi bi-diagram-3 me-2"></i>Процесс подготовки отчетности Q3 2025</h5>
+                <span class="badge bg-primary">Прогресс: 65%</span>
+            </div>
+            <div class="card-body">
+                <!-- Timeline -->
+                <div class="timeline">
+                    <!-- Этап 1: Сбор данных -->
+                    <div class="timeline-item completed">
+                        <div class="timeline-marker bg-success"><i class="bi bi-check"></i></div>
+                        <div class="timeline-content">
+                            <h6>Этап 1: Сбор первичных данных</h6>
+                            <p class="text-muted small mb-2">Завершен 15.11.2025</p>
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-check-circle text-success me-2"></i>
+                                        <span class="small">Импорт из 1С:Страхование</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-check-circle text-success me-2"></i>
+                                        <span class="small">Загрузка данных НБК</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-check-circle text-success me-2"></i>
+                                        <span class="small">Сверка с бухгалтерией</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-check-circle text-success me-2"></i>
+                                        <span class="small">Данные по перестрахованию</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Этап 2: Расчеты -->
+                    <div class="timeline-item completed">
+                        <div class="timeline-marker bg-success"><i class="bi bi-check"></i></div>
+                        <div class="timeline-content">
+                            <h6>Этап 2: Актуарные расчеты</h6>
+                            <p class="text-muted small mb-2">Завершен 18.11.2025</p>
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-check-circle text-success me-2"></i>
+                                        <span class="small">ECL по МСФО 9</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-check-circle text-success me-2"></i>
+                                        <span class="small">BEL/RA/CSM по МСФО 17</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-check-circle text-success me-2"></i>
+                                        <span class="small">Стресс-тестирование</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-check-circle text-success me-2"></i>
+                                        <span class="small">Monte Carlo симуляции</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Этап 3: Формирование отчетов -->
+                    <div class="timeline-item in-progress">
+                        <div class="timeline-marker bg-warning"><i class="bi bi-hourglass-split"></i></div>
+                        <div class="timeline-content">
+                            <h6>Этап 3: Формирование отчетов</h6>
+                            <p class="text-muted small mb-2">Срок: 22.11.2025</p>
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-check-circle text-success me-2"></i>
+                                        <span class="small">Форма 1-СК (Баланс)</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-check-circle text-success me-2"></i>
+                                        <span class="small">Форма 2-СК (Доходы/Расходы)</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-hourglass-split text-warning me-2"></i>
+                                        <span class="small">Расчет Nmп</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-hourglass-split text-warning me-2"></i>
+                                        <span class="small">Пояснительная записка</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Этап 4: Согласования -->
+                    <div class="timeline-item pending">
+                        <div class="timeline-marker bg-secondary"><i class="bi bi-clock"></i></div>
+                        <div class="timeline-content">
+                            <h6>Этап 4: Внутренние согласования</h6>
+                            <p class="text-muted small mb-2">Срок: 24.11.2025</p>
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-clock text-secondary me-2"></i>
+                                        <span class="small">Внутренний аудит</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-clock text-secondary me-2"></i>
+                                        <span class="small">Проверка главбухом</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-clock text-secondary me-2"></i>
+                                        <span class="small">Подпись CFO</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-clock text-secondary me-2"></i>
+                                        <span class="small">Утверждение CEO</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Этап 5: Отправка -->
+                    <div class="timeline-item pending">
+                        <div class="timeline-marker bg-secondary"><i class="bi bi-send"></i></div>
+                        <div class="timeline-content">
+                            <h6>Этап 5: Отправка в регуляторы</h6>
+                            <p class="text-muted small mb-2">Срок: 25.11.2025</p>
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-clock text-secondary me-2"></i>
+                                        <span class="small">Отправка в АРФР</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-clock text-secondary me-2"></i>
+                                        <span class="small">Отправка в НБК</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-clock text-secondary me-2"></i>
+                                        <span class="small">Архивация документов</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Детальный список документов -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="bi bi-files me-2"></i>Пакет документов</h5>
+                <div>
+                    <button class="btn btn-sm btn-outline-primary me-2">
+                        <i class="bi bi-file-earmark-pdf"></i> PDF
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary me-2">
+                        <i class="bi bi-file-earmark-code"></i> XBRL
+                    </button>
+                    <button class="btn btn-sm btn-primary">
+                        <i class="bi bi-send"></i> Отправить
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Документ</th>
+                            <th>Тип</th>
+                            <th>Ответственный</th>
+                            <th>Срок</th>
+                            <th>Статус</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <strong>Форма 1-СК</strong>
+                                <div class="text-muted small">Бухгалтерский баланс</div>
+                            </td>
+                            <td>АРФР</td>
+                            <td>
+                                <img src="https://ui-avatars.com/api/?name=АИ&size=24&background=0066CC&color=fff" class="rounded-circle me-1">
+                                Актуарий
+                            </td>
+                            <td>20.11.2025</td>
+                            <td><span class="status-badge success"><i class="bi bi-check"></i> Готов</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                <button class="btn btn-sm btn-outline-primary"><i class="bi bi-download"></i></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>Форма 2-СК</strong>
+                                <div class="text-muted small">Отчет о доходах и расходах</div>
+                            </td>
+                            <td>АРФР</td>
+                            <td>
+                                <img src="https://ui-avatars.com/api/?name=БУ&size=24&background=00A651&color=fff" class="rounded-circle me-1">
+                                Бухгалтер
+                            </td>
+                            <td>20.11.2025</td>
+                            <td><span class="status-badge success"><i class="bi bi-check"></i> Готов</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                <button class="btn btn-sm btn-outline-primary"><i class="bi bi-download"></i></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>Расчет ECL</strong>
+                                <div class="text-muted small">МСФО 9 - Обесценение</div>
+                            </td>
+                            <td>НБК</td>
+                            <td>
+                                <img src="https://ui-avatars.com/api/?name=АИ&size=24&background=0066CC&color=fff" class="rounded-circle me-1">
+                                Актуарий
+                            </td>
+                            <td>18.11.2025</td>
+                            <td><span class="status-badge success"><i class="bi bi-check"></i> Готов</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                <button class="btn btn-sm btn-outline-primary"><i class="bi bi-download"></i></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>Расчет BEL/RA/CSM</strong>
+                                <div class="text-muted small">МСФО 17 - Страховые контракты</div>
+                            </td>
+                            <td>НБК</td>
+                            <td>
+                                <img src="https://ui-avatars.com/api/?name=АИ&size=24&background=0066CC&color=fff" class="rounded-circle me-1">
+                                Актуарий
+                            </td>
+                            <td>18.11.2025</td>
+                            <td><span class="status-badge success"><i class="bi bi-check"></i> Готов</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
+                                <button class="btn btn-sm btn-outline-primary"><i class="bi bi-download"></i></button>
+                            </td>
+                        </tr>
+                        <tr class="table-warning">
+                            <td>
+                                <strong>Расчет Nmп</strong>
+                                <div class="text-muted small">Коэффициент платежеспособности</div>
+                            </td>
+                            <td>АРФР</td>
+                            <td>
+                                <img src="https://ui-avatars.com/api/?name=РМ&size=24&background=F39C12&color=fff" class="rounded-circle me-1">
+                                Риск-менеджер
+                            </td>
+                            <td>22.11.2025</td>
+                            <td><span class="status-badge warning"><i class="bi bi-hourglass"></i> В работе</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-warning"><i class="bi bi-pencil"></i></button>
+                            </td>
+                        </tr>
+                        <tr class="table-warning">
+                            <td>
+                                <strong>Аудиторский след</strong>
+                                <div class="text-muted small">Обоснование расчетов</div>
+                            </td>
+                            <td>Внутренний</td>
+                            <td>
+                                <img src="https://ui-avatars.com/api/?name=ВА&size=24&background=6C757D&color=fff" class="rounded-circle me-1">
+                                Внутр. аудит
+                            </td>
+                            <td>23.11.2025</td>
+                            <td><span class="status-badge warning"><i class="bi bi-hourglass"></i> В работе</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-warning"><i class="bi bi-pencil"></i></button>
+                            </td>
+                        </tr>
+                        <tr class="table-danger">
+                            <td>
+                                <strong>Подпись CFO</strong>
+                                <div class="text-muted small">Утверждение финансового директора</div>
+                            </td>
+                            <td>Внутренний</td>
+                            <td>
+                                <img src="https://ui-avatars.com/api/?name=CFO&size=24&background=E74C3C&color=fff" class="rounded-circle me-1">
+                                CFO
+                            </td>
+                            <td>24.11.2025</td>
+                            <td><span class="status-badge danger"><i class="bi bi-clock"></i> Ожидает</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-secondary" disabled><i class="bi bi-clock"></i></button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Боковая панель -->
+    <div class="col-md-4">
+        <!-- Календарь отчетности -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5><i class="bi bi-calendar-event me-2"></i>Календарь отчетности</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Ежемесячный отчет</strong>
+                            <div class="text-muted small">Октябрь 2025</div>
+                        </div>
+                        <span class="badge bg-success">Сдан</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center bg-light">
+                        <div>
+                            <strong>Квартальный отчет</strong>
+                            <div class="text-muted small">Q3 2025</div>
+                        </div>
+                        <span class="badge bg-danger">5 дней</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Ежемесячный отчет</strong>
+                            <div class="text-muted small">Ноябрь 2025</div>
+                        </div>
+                        <span class="badge bg-warning">10.12.2025</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Годовой отчет</strong>
+                            <div class="text-muted small">2025</div>
+                        </div>
+                        <span class="badge bg-secondary">01.03.2026</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Быстрые действия -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5><i class="bi bi-lightning me-2"></i>Быстрые действия</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('main.main_calculation') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-calculator me-2"></i>Расчет ECL
+                    </a>
+                    <a href="{{ url_for('main.ifrs17') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-graph-up me-2"></i>Расчет МСФО 17
+                    </a>
+                    <a href="{{ url_for('main.main_calculation') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-shield-check me-2"></i>Расчет Nmп
+                    </a>
+                    <button class="btn btn-primary">
+                        <i class="bi bi-file-earmark-arrow-up me-2"></i>Загрузить документ
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- История отправок -->
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-clock-history me-2"></i>История отправок</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <strong>Октябрь 2025</strong>
+                            <span class="text-success small">05.11.2025 16:42</span>
+                        </div>
+                        <div class="text-muted small">АРФР - Ежемесячный</div>
+                    </div>
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <strong>Q2 2025</strong>
+                            <span class="text-success small">24.08.2025 15:18</span>
+                        </div>
+                        <div class="text-muted small">АРФР - Квартальный</div>
+                    </div>
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <strong>Сентябрь 2025</strong>
+                            <span class="text-success small">08.10.2025 14:05</span>
+                        </div>
+                        <div class="text-muted small">АРФР - Ежемесячный</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--kz-border);
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: 24px;
+}
+
+.timeline-item:last-child {
+    padding-bottom: 0;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -30px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    color: #fff;
+}
+
+.timeline-content {
+    padding-left: 10px;
+}
+
+.timeline-content h6 {
+    margin-bottom: 4px;
+    font-weight: 600;
+}
+</style>
+{% endblock %}

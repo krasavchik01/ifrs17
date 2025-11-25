@@ -1,0 +1,235 @@
+{
+  "meta": {
+    "description": "Демонстрационные данные для KZ-InsurePro",
+    "version": "1.0.0-demo",
+    "created": "2025-11-20",
+    "language": "ru"
+  },
+  "insurers": [
+    {
+      "id": 1,
+      "name": "СК КазСтрах",
+      "bin": "123456789012",
+      "insurer_type": "composite",
+      "license_number": "АГ-001",
+      "years_in_market": 15
+    },
+    {
+      "id": 2,
+      "name": "СК НурПолис",
+      "bin": "987654321098",
+      "insurer_type": "non_life",
+      "license_number": "АГ-002",
+      "years_in_market": 8
+    }
+  ],
+  "portfolios": [
+    {
+      "insurer_id": 1,
+      "name": "Корпоративные облигации",
+      "portfolio_type": "bonds",
+      "exposures": [
+        {
+          "instrument_id": "BOND-001",
+          "instrument_name": "КазМунайГаз 2028",
+          "classification": "AC",
+          "gross_carrying_amount": 500000000,
+          "fair_value": 485000000,
+          "eir": 0.19,
+          "remaining_term": 36,
+          "days_past_due": 0,
+          "pd_at_origination": 0.032,
+          "pd_current": 0.048,
+          "lgd": 0.45,
+          "collateral_type": "sovereign",
+          "collateral_value": 0
+        },
+        {
+          "instrument_id": "BOND-002",
+          "instrument_name": "Казатомпром 2027",
+          "classification": "AC",
+          "gross_carrying_amount": 300000000,
+          "fair_value": 295000000,
+          "eir": 0.17,
+          "remaining_term": 24,
+          "days_past_due": 0,
+          "pd_at_origination": 0.025,
+          "pd_current": 0.035,
+          "lgd": 0.45,
+          "collateral_type": "sovereign",
+          "collateral_value": 0
+        },
+        {
+          "instrument_id": "BOND-003",
+          "instrument_name": "БТА Банк 2026",
+          "classification": "AC",
+          "gross_carrying_amount": 200000000,
+          "fair_value": 180000000,
+          "eir": 0.22,
+          "remaining_term": 12,
+          "days_past_due": 45,
+          "pd_at_origination": 0.05,
+          "pd_current": 0.12,
+          "lgd": 0.69,
+          "collateral_type": "unsecured",
+          "collateral_value": 0
+        }
+      ]
+    },
+    {
+      "insurer_id": 2,
+      "name": "Депозиты",
+      "portfolio_type": "deposits",
+      "exposures": [
+        {
+          "instrument_id": "DEP-001",
+          "instrument_name": "Депозит Халык Банк",
+          "classification": "AC",
+          "gross_carrying_amount": 1000000000,
+          "fair_value": 1000000000,
+          "eir": 0.15,
+          "remaining_term": 12,
+          "days_past_due": 0,
+          "pd_at_origination": 0.01,
+          "pd_current": 0.01,
+          "lgd": 0.15,
+          "collateral_type": "secured_deposits",
+          "collateral_value": 0
+        }
+      ]
+    }
+  ],
+  "insurance_contracts": [
+    {
+      "insurer_id": 1,
+      "product_type": "life_annuity",
+      "measurement_model": "GMM",
+      "portfolio_name": "Аннуитеты",
+      "cohort_year": 2024,
+      "coverage_period": 120,
+      "premium_amount": 500000000,
+      "sum_insured": 800000000,
+      "cash_flows": [
+        {"period": 1, "premiums": 500000000, "claims": 80000000, "expenses": 5000000},
+        {"period": 2, "premiums": 0, "claims": 82000000, "expenses": 5100000},
+        {"period": 3, "premiums": 0, "claims": 84000000, "expenses": 5200000},
+        {"period": 4, "premiums": 0, "claims": 86000000, "expenses": 5300000},
+        {"period": 5, "premiums": 0, "claims": 88000000, "expenses": 5400000},
+        {"period": 6, "premiums": 0, "claims": 90000000, "expenses": 5500000},
+        {"period": 7, "premiums": 0, "claims": 92000000, "expenses": 5600000},
+        {"period": 8, "premiums": 0, "claims": 94000000, "expenses": 5700000},
+        {"period": 9, "premiums": 0, "claims": 96000000, "expenses": 5800000},
+        {"period": 10, "premiums": 0, "claims": 98000000, "expenses": 5900000}
+      ]
+    },
+    {
+      "insurer_id": 2,
+      "product_type": "osago",
+      "measurement_model": "PAA",
+      "portfolio_name": "ОСАГО",
+      "cohort_year": 2025,
+      "coverage_period": 12,
+      "premium_amount": 2000000000,
+      "sum_insured": 5000000000
+    },
+    {
+      "insurer_id": 2,
+      "product_type": "kazko",
+      "measurement_model": "PAA",
+      "portfolio_name": "КАСКО",
+      "cohort_year": 2025,
+      "coverage_period": 12,
+      "premium_amount": 1500000000,
+      "sum_insured": 3000000000
+    }
+  ],
+  "financial_data": [
+    {
+      "insurer_id": 1,
+      "report_date": "2025-11-01",
+      "total_assets": 50000000000,
+      "equity_capital": 20000000000,
+      "technical_reserves": 25000000000,
+      "subordinated_debt": 3000000000,
+      "illiquid_assets": 500000000,
+      "intangible_assets": 200000000,
+      "gross_premiums": 35000000000,
+      "incurred_claims": 18000000000,
+      "annuity_reserves": 10000000000,
+      "math_reserves": 8000000000,
+      "loss_ratio": 0.55,
+      "combined_ratio": 0.85,
+      "repo_amount": 8000000000
+    },
+    {
+      "insurer_id": 2,
+      "report_date": "2025-11-01",
+      "total_assets": 25000000000,
+      "equity_capital": 8000000000,
+      "technical_reserves": 15000000000,
+      "subordinated_debt": 1000000000,
+      "illiquid_assets": 300000000,
+      "intangible_assets": 100000000,
+      "gross_premiums": 12000000000,
+      "incurred_claims": 8500000000,
+      "annuity_reserves": 0,
+      "math_reserves": 0,
+      "loss_ratio": 0.71,
+      "combined_ratio": 0.98,
+      "repo_amount": 4000000000
+    }
+  ],
+  "solvency_inputs": {
+    "insurer_1": {
+      "gross_premiums": 35000000000,
+      "incurred_claims": 18000000000,
+      "equity": 20000000000,
+      "ecl_adjustment": 2100000000,
+      "csm_adjustment": 11800000000,
+      "subordinated": 3000000000,
+      "illiquid": 500000000,
+      "has_osago": true,
+      "k_coefficient": 0.70
+    },
+    "insurer_2": {
+      "gross_premiums": 12000000000,
+      "incurred_claims": 8500000000,
+      "equity": 8000000000,
+      "ecl_adjustment": 800000000,
+      "csm_adjustment": 0,
+      "subordinated": 1000000000,
+      "illiquid": 300000000,
+      "has_osago": true,
+      "k_coefficient": 0.70
+    }
+  },
+  "fgsv_data": {
+    "fund_balance": 50000000000,
+    "insurers_for_simulation": [
+      {
+        "name": "СК КазСтрах",
+        "premiums": 35000000000,
+        "reserves": 25000000000,
+        "solvency_ratio": 2.57,
+        "loss_ratio": 0.55,
+        "combined_ratio": 0.85,
+        "pd": 0.02,
+        "recovery": 0.40,
+        "years_in_market": 15,
+        "type": "compulsory"
+      },
+      {
+        "name": "СК НурПолис",
+        "premiums": 12000000000,
+        "reserves": 15000000000,
+        "solvency_ratio": 1.35,
+        "loss_ratio": 0.71,
+        "combined_ratio": 0.98,
+        "pd": 0.08,
+        "recovery": 0.30,
+        "years_in_market": 8,
+        "type": "voluntary"
+      }
+    ]
+  }
+}

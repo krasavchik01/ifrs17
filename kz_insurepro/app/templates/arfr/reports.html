@@ -1,0 +1,638 @@
+{% extends "base.html" %}
+
+{% block title %}Проверка отчетности - АРФР{% endblock %}
+{% block page_title %}Проверка отчетности страховых компаний{% endblock %}
+
+{% block content %}
+<style>
+    .document-item {
+        padding: 10px 15px;
+        border: 1px solid var(--kz-border);
+        border-radius: 8px;
+        margin-bottom: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .document-item:hover {
+        background: rgba(0, 102, 204, 0.05);
+        border-color: var(--kz-primary);
+        transform: translateX(5px);
+    }
+    .document-item.checked {
+        background: rgba(39, 174, 96, 0.1);
+        border-color: var(--kz-success);
+    }
+    .audit-path {
+        border-left: 3px solid var(--kz-primary);
+        padding-left: 15px;
+        margin-left: 10px;
+    }
+    .audit-node {
+        position: relative;
+        padding: 8px 0;
+    }
+    .audit-node::before {
+        content: '';
+        position: absolute;
+        left: -19px;
+        top: 12px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--kz-primary);
+    }
+    .audit-node.success::before { background: var(--kz-success); }
+    .audit-node.warning::before { background: var(--kz-warning); }
+    .audit-node.error::before { background: var(--kz-danger); }
+</style>
+
+<!-- Фильтры -->
+<div class="card mb-4 animate-fadeInUp">
+    <div class="card-body">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">Компания</label>
+                <select class="form-select">
+                    <option>Все компании</option>
+                    <option>Халык-Life</option>
+                    <option>Евразия</option>
+                    <option>Nomad Life</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Период</label>
+                <select class="form-select">
+                    <option>Q3 2025</option>
+                    <option>Q2 2025</option>
+                    <option>Q1 2025</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Тип отчета</label>
+                <select class="form-select">
+                    <option>Все типы</option>
+                    <option>МСФО</option>
+                    <option>Пруденциальный</option>
+                    <option>Статистический</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Статус</label>
+                <select class="form-select">
+                    <option>Все статусы</option>
+                    <option>На проверке</option>
+                    <option>Замечания</option>
+                    <option>Принят</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-primary w-100">
+                    <i class="bi bi-search me-2"></i>Найти
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Таблица отчетов -->
+<div class="card animate-fadeInUp" style="animation-delay: 0.1s;">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5><i class="bi bi-file-earmark-check me-2"></i>Отчеты на проверке</h5>
+        <span class="badge bg-warning">12 ожидают проверки</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Компания</th>
+                        <th>Тип отчета</th>
+                        <th>Период</th>
+                        <th>Дата подачи</th>
+                        <th>Пакет документов</th>
+                        <th>Замечания</th>
+                        <th>Статус</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>#2025-Q3-001</td>
+                        <td><strong>Халык-Life</strong></td>
+                        <td>МСФО комплексный</td>
+                        <td>Q3 2025</td>
+                        <td>15.10.2025</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" onclick="showDocumentPackage('halyk', 'Q3-2025')">
+                                <i class="bi bi-folder2-open me-1"></i>8 документов
+                            </button>
+                        </td>
+                        <td><span class="badge bg-success">0</span></td>
+                        <td><span class="status-badge success">Принят</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" onclick="showAuditTrail('halyk', '2025-Q3-001')">
+                                <i class="bi bi-clock-history"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>#2025-Q3-002</td>
+                        <td><strong>Евразия</strong></td>
+                        <td>МСФО комплексный</td>
+                        <td>Q3 2025</td>
+                        <td>18.10.2025</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-warning" onclick="showDocumentPackage('eurasia', 'Q3-2025')">
+                                <i class="bi bi-folder2-open me-1"></i>7 из 8
+                            </button>
+                        </td>
+                        <td><span class="badge bg-danger">2</span></td>
+                        <td><span class="status-badge danger">Замечания</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" onclick="showAuditTrail('eurasia', '2025-Q3-002')">
+                                <i class="bi bi-clock-history"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>#2025-Q3-003</td>
+                        <td><strong>Nomad Life</strong></td>
+                        <td>Пруденциальный</td>
+                        <td>Q3 2025</td>
+                        <td>20.10.2025</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" onclick="showDocumentPackage('nomad', 'Q3-2025')">
+                                <i class="bi bi-folder2-open me-1"></i>6 документов
+                            </button>
+                        </td>
+                        <td><span class="badge bg-success">0</span></td>
+                        <td><span class="status-badge warning">На проверке</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" onclick="startReview('nomad', '2025-Q3-003')">
+                                Проверить
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>#2025-Q3-004</td>
+                        <td><strong>Freedom Life</strong></td>
+                        <td>МСФО комплексный</td>
+                        <td>Q3 2025</td>
+                        <td>21.10.2025</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" onclick="showDocumentPackage('freedom', 'Q3-2025')">
+                                <i class="bi bi-folder2-open me-1"></i>8 документов
+                            </button>
+                        </td>
+                        <td><span class="badge bg-warning">1</span></td>
+                        <td><span class="status-badge warning">На проверке</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" onclick="startReview('freedom', '2025-Q3-004')">
+                                Проверить
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>#2025-Q3-005</td>
+                        <td><strong>Казахинстрах</strong></td>
+                        <td>Статистический</td>
+                        <td>Q3 2025</td>
+                        <td>19.10.2025</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-danger" onclick="showDocumentPackage('kazakh', 'Q3-2025')">
+                                <i class="bi bi-folder2-open me-1"></i>4 из 6
+                            </button>
+                        </td>
+                        <td><span class="badge bg-danger">3</span></td>
+                        <td><span class="status-badge danger">Замечания</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" onclick="showAuditTrail('kazakh', '2025-Q3-005')">
+                                <i class="bi bi-clock-history"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно пакета документов -->
+<div class="modal fade" id="documentPackageModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-folder2-open me-2"></i>Пакет документов: <span id="packageCompany">-</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <!-- Список документов -->
+                    <div class="col-md-6">
+                        <h6 class="text-primary mb-3">Обязательные документы</h6>
+
+                        <div class="document-item checked" onclick="viewDocument('balance')">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi bi-file-earmark-spreadsheet text-success me-2"></i>
+                                    <strong>Баланс (Форма 1)</strong>
+                                </div>
+                                <i class="bi bi-check-circle text-success"></i>
+                            </div>
+                            <small class="text-muted">Загружен: 15.10.2025 • 245 KB</small>
+                        </div>
+
+                        <div class="document-item checked" onclick="viewDocument('pnl')">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi bi-file-earmark-spreadsheet text-success me-2"></i>
+                                    <strong>Отчет о прибылях и убытках</strong>
+                                </div>
+                                <i class="bi bi-check-circle text-success"></i>
+                            </div>
+                            <small class="text-muted">Загружен: 15.10.2025 • 189 KB</small>
+                        </div>
+
+                        <div class="document-item checked" onclick="viewDocument('ifrs9')">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi bi-file-earmark-spreadsheet text-success me-2"></i>
+                                    <strong>Расчет ECL (МСФО 9)</strong>
+                                </div>
+                                <i class="bi bi-check-circle text-success"></i>
+                            </div>
+                            <small class="text-muted">Загружен: 15.10.2025 • 567 KB</small>
+                        </div>
+
+                        <div class="document-item checked" onclick="viewDocument('ifrs17')">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi bi-file-earmark-spreadsheet text-success me-2"></i>
+                                    <strong>Расчет CSM/BEL (МСФО 17)</strong>
+                                </div>
+                                <i class="bi bi-check-circle text-success"></i>
+                            </div>
+                            <small class="text-muted">Загружен: 15.10.2025 • 823 KB</small>
+                        </div>
+
+                        <div class="document-item checked" onclick="viewDocument('solvency')">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi bi-file-earmark-spreadsheet text-success me-2"></i>
+                                    <strong>Расчет платежеспособности</strong>
+                                </div>
+                                <i class="bi bi-check-circle text-success"></i>
+                            </div>
+                            <small class="text-muted">Загружен: 15.10.2025 • 312 KB</small>
+                        </div>
+
+                        <div class="document-item checked" onclick="viewDocument('fgsv')">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi bi-file-earmark-spreadsheet text-success me-2"></i>
+                                    <strong>Расчет взноса ФГСВ</strong>
+                                </div>
+                                <i class="bi bi-check-circle text-success"></i>
+                            </div>
+                            <small class="text-muted">Загружен: 15.10.2025 • 156 KB</small>
+                        </div>
+
+                        <div class="document-item checked" onclick="viewDocument('audit')">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi bi-file-earmark-pdf text-danger me-2"></i>
+                                    <strong>Аудиторское заключение</strong>
+                                </div>
+                                <i class="bi bi-check-circle text-success"></i>
+                            </div>
+                            <small class="text-muted">Загружен: 15.10.2025 • 2.1 MB</small>
+                        </div>
+
+                        <div class="document-item checked" onclick="viewDocument('notes')">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi bi-file-earmark-text text-primary me-2"></i>
+                                    <strong>Пояснительная записка</strong>
+                                </div>
+                                <i class="bi bi-check-circle text-success"></i>
+                            </div>
+                            <small class="text-muted">Загружен: 15.10.2025 • 1.8 MB</small>
+                        </div>
+                    </div>
+
+                    <!-- Превью документа -->
+                    <div class="col-md-6">
+                        <h6 class="text-primary mb-3">Просмотр документа</h6>
+                        <div id="documentPreview" class="border rounded p-3" style="min-height: 400px; background: #f8f9fa;">
+                            <div class="text-center text-muted py-5">
+                                <i class="bi bi-file-earmark-text" style="font-size: 3rem;"></i>
+                                <p class="mt-3">Выберите документ для просмотра</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline-primary" onclick="downloadAllDocuments()">
+                    <i class="bi bi-download me-1"></i>Скачать все
+                </button>
+                <button class="btn btn-success" onclick="approvePackage()">
+                    <i class="bi bi-check-circle me-1"></i>Утвердить пакет
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно аудиторского следа расчетов -->
+<div class="modal fade" id="auditTrailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-clock-history me-2"></i>Аудиторский след: <span id="auditCompany">-</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6 class="text-primary mb-3">Путь расчета данных</h6>
+
+                <div class="audit-path">
+                    <div class="audit-node success">
+                        <strong>1. Загрузка исходных данных</strong>
+                        <div class="small text-muted">Источник: 1С:Бухгалтерия • 15.10.2025 09:15</div>
+                        <div class="small">
+                            <span class="badge bg-light text-dark">Премии: 5,450 млн</span>
+                            <span class="badge bg-light text-dark">Активы: 14,540 млн</span>
+                        </div>
+                    </div>
+
+                    <div class="audit-node success">
+                        <strong>2. Расчет ECL (МСФО 9)</strong>
+                        <div class="small text-muted">Модель: 3-стадийная • 15.10.2025 10:23</div>
+                        <div class="small">
+                            <span class="badge bg-light text-dark">PD: 2.5%</span>
+                            <span class="badge bg-light text-dark">LGD: 45%</span>
+                            <span class="badge bg-light text-dark">ECL: 163.5 млн</span>
+                        </div>
+                        <button class="btn btn-sm btn-link p-0 mt-1" onclick="showCalculationDetails('ecl')">
+                            Показать детали расчета →
+                        </button>
+                    </div>
+
+                    <div class="audit-node success">
+                        <strong>3. Расчет МСФО 17</strong>
+                        <div class="small text-muted">Модель: GMM • 15.10.2025 11:45</div>
+                        <div class="small">
+                            <span class="badge bg-light text-dark">BEL: 3,815 млн</span>
+                            <span class="badge bg-light text-dark">RA: 267 млн</span>
+                            <span class="badge bg-light text-dark">CSM: 245 млн</span>
+                        </div>
+                        <button class="btn btn-sm btn-link p-0 mt-1" onclick="showCalculationDetails('ifrs17')">
+                            Показать детали расчета →
+                        </button>
+                    </div>
+
+                    <div class="audit-node success">
+                        <strong>4. Расчет платежеспособности</strong>
+                        <div class="small text-muted">15.10.2025 12:30</div>
+                        <div class="small">
+                            <span class="badge bg-light text-dark">ФМП: 4,250 млн</span>
+                            <span class="badge bg-light text-dark">ММП: 1,977 млн</span>
+                            <span class="badge bg-light text-dark">Nмп: 2.15</span>
+                        </div>
+                        <button class="btn btn-sm btn-link p-0 mt-1" onclick="showCalculationDetails('solvency')">
+                            Показать детали расчета →
+                        </button>
+                    </div>
+
+                    <div class="audit-node success">
+                        <strong>5. Расчет взноса ФГСВ</strong>
+                        <div class="small text-muted">15.10.2025 13:15</div>
+                        <div class="small">
+                            <span class="badge bg-light text-dark">Ставка: 0.5%</span>
+                            <span class="badge bg-light text-dark">Взнос: 27.25 млн</span>
+                        </div>
+                        <button class="btn btn-sm btn-link p-0 mt-1" onclick="showCalculationDetails('fgsv')">
+                            Показать детали расчета →
+                        </button>
+                    </div>
+
+                    <div class="audit-node success">
+                        <strong>6. Формирование отчета</strong>
+                        <div class="small text-muted">15.10.2025 14:00</div>
+                        <div class="small">
+                            <span class="badge bg-success">Все проверки пройдены</span>
+                            <span class="badge bg-success">Отчет отправлен</span>
+                        </div>
+                    </div>
+                </div>
+
+                <hr>
+
+                <h6 class="text-primary mb-3">Контрольные проверки</h6>
+                <table class="table table-sm">
+                    <tbody>
+                        <tr class="table-success">
+                            <td><i class="bi bi-check-circle text-success me-2"></i>Сходимость баланса</td>
+                            <td class="text-end">Пройдено</td>
+                        </tr>
+                        <tr class="table-success">
+                            <td><i class="bi bi-check-circle text-success me-2"></i>ECL ≤ 5% от активов</td>
+                            <td class="text-end">3.0% - Пройдено</td>
+                        </tr>
+                        <tr class="table-success">
+                            <td><i class="bi bi-check-circle text-success me-2"></i>Nмп ≥ 1.0</td>
+                            <td class="text-end">2.15 - Пройдено</td>
+                        </tr>
+                        <tr class="table-success">
+                            <td><i class="bi bi-check-circle text-success me-2"></i>CSM положительный</td>
+                            <td class="text-end">245 млн - Пройдено</td>
+                        </tr>
+                        <tr class="table-success">
+                            <td><i class="bi bi-check-circle text-success me-2"></i>Полнота документов</td>
+                            <td class="text-end">8/8 - Пройдено</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline-primary" onclick="exportAuditReport()">
+                    <i class="bi bi-file-pdf me-1"></i>Экспорт отчета
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно деталей расчета -->
+<div class="modal fade" id="calculationDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-calculator me-2"></i>Детали расчета: <span id="calcType">-</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="calculationDetailsBody">
+                <!-- Заполняется динамически -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Показать пакет документов
+    function showDocumentPackage(company, period) {
+        const companyNames = {
+            'halyk': 'Халык-Life',
+            'eurasia': 'Евразия',
+            'nomad': 'Nomad Life',
+            'freedom': 'Freedom Life',
+            'kazakh': 'Казахинстрах'
+        };
+        document.getElementById('packageCompany').textContent = `${companyNames[company]} (${period})`;
+        new bootstrap.Modal(document.getElementById('documentPackageModal')).show();
+    }
+
+    // Просмотр документа
+    function viewDocument(docType) {
+        const preview = document.getElementById('documentPreview');
+        const docs = {
+            'balance': '<h6>Баланс (Форма 1)</h6><p>Активы: 14,540,000,000 KZT</p><p>Обязательства: 10,290,000,000 KZT</p><p>Капитал: 4,250,000,000 KZT</p>',
+            'pnl': '<h6>Отчет о прибылях и убытках</h6><p>Премии: 5,450,000,000 KZT</p><p>Убытки: 3,379,000,000 KZT</p><p>Расходы: 1,505,500,000 KZT</p>',
+            'ifrs9': '<h6>Расчет ECL (МСФО 9)</h6><p>GCA: 5,450,000,000 KZT</p><p>PD: 2.5%</p><p>LGD: 45%</p><p>ECL: 163,500,000 KZT</p>',
+            'ifrs17': '<h6>Расчет МСФО 17</h6><p>BEL: 3,815,000,000 KZT</p><p>RA: 267,050,000 KZT</p><p>CSM: 245,250,000 KZT</p>',
+            'solvency': '<h6>Платежеспособность</h6><p>ФМП: 4,250,000,000 KZT</p><p>ММП: 1,976,744,186 KZT</p><p>Nмп: 2.15</p>',
+            'fgsv': '<h6>Взнос ФГСВ</h6><p>Премии: 5,450,000,000 KZT</p><p>Ставка: 0.5%</p><p>Взнос: 27,250,000 KZT</p>',
+            'audit': '<h6>Аудиторское заключение</h6><p>Аудитор: EY Kazakhstan</p><p>Мнение: Безоговорочно положительное</p><p>Дата: 10.10.2025</p>',
+            'notes': '<h6>Пояснительная записка</h6><p>Учетная политика, риски, события после отчетной даты...</p>'
+        };
+        preview.innerHTML = `<div class="p-3">${docs[docType]}</div>`;
+    }
+
+    // Показать аудиторский след
+    function showAuditTrail(company, reportId) {
+        const companyNames = {
+            'halyk': 'Халык-Life',
+            'eurasia': 'Евразия',
+            'nomad': 'Nomad Life',
+            'freedom': 'Freedom Life',
+            'kazakh': 'Казахинстрах'
+        };
+        document.getElementById('auditCompany').textContent = `${companyNames[company]} (${reportId})`;
+        new bootstrap.Modal(document.getElementById('auditTrailModal')).show();
+    }
+
+    // Показать детали расчета
+    function showCalculationDetails(calcType) {
+        const details = {
+            'ecl': `
+                <h6>Расчет ECL по МСФО 9</h6>
+                <div class="math-box">$ECL = GCA \\times PD \\times LGD \\times DF$</div>
+                <table class="table table-sm mt-3">
+                    <tr><td>GCA (валовая балансовая стоимость)</td><td class="text-end">5,450,000,000</td></tr>
+                    <tr><td>PD (вероятность дефолта)</td><td class="text-end">2.5%</td></tr>
+                    <tr><td>LGD (потери при дефолте)</td><td class="text-end">45%</td></tr>
+                    <tr><td>DF (дисконт-фактор)</td><td class="text-end">1.2</td></tr>
+                    <tr class="table-primary"><td><strong>ECL</strong></td><td class="text-end"><strong>163,500,000</strong></td></tr>
+                </table>
+            `,
+            'ifrs17': `
+                <h6>Расчет обязательств по МСФО 17</h6>
+                <div class="math-box">$Liability = BEL + RA + CSM$</div>
+                <table class="table table-sm mt-3">
+                    <tr><td>BEL (наилучшая оценка)</td><td class="text-end">3,815,000,000</td></tr>
+                    <tr><td>RA (корректировка на риск)</td><td class="text-end">267,050,000</td></tr>
+                    <tr><td>CSM (контрактная маржа)</td><td class="text-end">245,250,000</td></tr>
+                    <tr class="table-primary"><td><strong>Итого обязательство</strong></td><td class="text-end"><strong>4,327,300,000</strong></td></tr>
+                </table>
+            `,
+            'solvency': `
+                <h6>Расчет платежеспособности</h6>
+                <div class="math-box">$N_{мп} = \\frac{ФМП}{ММП}$</div>
+                <table class="table table-sm mt-3">
+                    <tr><td>ФМП (фактическая маржа)</td><td class="text-end">4,250,000,000</td></tr>
+                    <tr><td>ММП (минимальная маржа)</td><td class="text-end">1,976,744,186</td></tr>
+                    <tr class="table-primary"><td><strong>Nмп</strong></td><td class="text-end"><strong>2.15</strong></td></tr>
+                </table>
+            `,
+            'fgsv': `
+                <h6>Расчет взноса ФГСВ</h6>
+                <div class="math-box">$Взнос = Премии \\times Ставка$</div>
+                <table class="table table-sm mt-3">
+                    <tr><td>Валовые премии</td><td class="text-end">5,450,000,000</td></tr>
+                    <tr><td>Класс риска</td><td class="text-end">Низкий</td></tr>
+                    <tr><td>Ставка</td><td class="text-end">0.5%</td></tr>
+                    <tr class="table-primary"><td><strong>Взнос</strong></td><td class="text-end"><strong>27,250,000</strong></td></tr>
+                </table>
+            `
+        };
+
+        const names = {
+            'ecl': 'ECL (МСФО 9)',
+            'ifrs17': 'МСФО 17',
+            'solvency': 'Платежеспособность',
+            'fgsv': 'Взнос ФГСВ'
+        };
+
+        document.getElementById('calcType').textContent = names[calcType];
+        document.getElementById('calculationDetailsBody').innerHTML = details[calcType];
+
+        // Закрыть предыдущее модальное окно и открыть новое
+        bootstrap.Modal.getInstance(document.getElementById('auditTrailModal')).hide();
+        setTimeout(() => {
+            new bootstrap.Modal(document.getElementById('calculationDetailsModal')).show();
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.getElementById('calculationDetailsBody'));
+            }
+        }, 300);
+    }
+
+    // Скачать все документы
+    function downloadAllDocuments() {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            showToast('Архив документов загружен (8 файлов)', 'success');
+        }, 2000);
+    }
+
+    // Утвердить пакет
+    function approvePackage() {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            bootstrap.Modal.getInstance(document.getElementById('documentPackageModal')).hide();
+            showToast('Пакет документов утвержден', 'success');
+        }, 1000);
+    }
+
+    // Начать проверку
+    function startReview(company, reportId) {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            showToast('Проверка отчета начата', 'info');
+        }, 500);
+    }
+
+    // Экспорт аудиторского отчета
+    function exportAuditReport() {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            showToast('Аудиторский отчет экспортирован в PDF', 'success');
+        }, 1500);
+    }
+</script>
+{% endblock %}
