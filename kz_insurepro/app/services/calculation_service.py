@@ -19,7 +19,7 @@ from typing import Dict, List, Any, Optional, Tuple
 from dataclasses import dataclass, asdict
 
 from app.modules.ifrs9 import IFRS9Calculator
-from app.modules.ifrs17 import IFRS17Calculator
+from app.modules.ifrs17 import IFRS17Calculator, IFRS17Result
 from app.modules.solvency import SolvencyCalculator
 from app.modules.fgsv import FGSVCalculator
 
