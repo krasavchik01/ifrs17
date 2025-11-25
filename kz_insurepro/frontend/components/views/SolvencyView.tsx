@@ -88,7 +88,7 @@ export const SolvencyView: React.FC<SolvencyViewProps> = ({ result }) => {
             {solvency.is_compliant ? 'COMPLIANT' : 'NON-COMPLIANT'}
           </p>
           <p className="text-xs text-slate-500 mt-1">
-            Ratio >= 100% required
+            Ratio &gt;= 100% required
           </p>
         </div>
       </div>
@@ -169,7 +169,7 @@ export const SolvencyView: React.FC<SolvencyViewProps> = ({ result }) => {
                 </span>
               </div>
               <div>
-                <p className="text-sm font-medium text-slate-900">Ratio >= 100%</p>
+                <p className="text-sm font-medium text-slate-900">Ratio &gt;= 100%</p>
                 <p className="text-xs text-slate-500">
                   Own funds must cover SCR
                 </p>
@@ -181,7 +181,7 @@ export const SolvencyView: React.FC<SolvencyViewProps> = ({ result }) => {
                 <span className="text-sm font-bold">→</span>
               </div>
               <div>
-                <p className="text-sm font-medium text-slate-600">Minimum: 100%</p>
+                <p className="text-sm font-medium text-slate-600">Minimum: &gt;=100%</p>
                 <p className="text-xs text-slate-500">
                   Current: {solvency.ratio_pct.toFixed(1)}%
                 </p>
@@ -200,7 +200,7 @@ export const SolvencyView: React.FC<SolvencyViewProps> = ({ result }) => {
             <XAxis dataKey="name" />
             <YAxis label={{ value: 'KZT (Billions)', angle: -90, position: 'insideLeft' }} />
             <Tooltip
-              formatter={(value) => [`${value.toFixed(2)}B KZT`, 'SCR']}
+              formatter={(value: any) => [`${value.toFixed(2)}B KZT`, 'SCR']}
             />
             <Bar dataKey="value" fill="#3b82f6">
               {scrWaterfallData.map((entry, index) => (

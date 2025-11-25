@@ -115,7 +115,7 @@ export const IFRS9View: React.FC<IFRS9ViewProps> = ({ result }) => {
                 ))}
               </Pie>
               <Tooltip
-                formatter={(value) => `${value.toFixed(1)}%`}
+                formatter={(value: any) => `${value.toFixed(1)}%`}
               />
             </PieChart>
           </ResponsiveContainer>
@@ -130,7 +130,7 @@ export const IFRS9View: React.FC<IFRS9ViewProps> = ({ result }) => {
               <XAxis dataKey="name" />
               <YAxis />
               <Tooltip
-                formatter={(value) => [`${(value / 1e6).toFixed(1)}M KZT`, 'ECL']}
+                formatter={(value: any) => [`${(value / 1e6).toFixed(1)}M KZT`, 'ECL']}
               />
               <Bar dataKey="ecl" fill="#3b82f6" />
             </BarChart>

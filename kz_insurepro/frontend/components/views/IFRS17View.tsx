@@ -81,7 +81,7 @@ export const IFRS17View: React.FC<IFRS17ViewProps> = ({ result }) => {
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" />
             <YAxis label={{ value: 'KZT (Millions)', angle: -90, position: 'insideLeft' }} />
-            <Tooltip formatter={(value) => `${value.toFixed(1)}M KZT`} />
+            <Tooltip formatter={(value: any) => `${value.toFixed(1)}M KZT`} />
             <Bar dataKey="value" fill="#3b82f6" />
           </BarChart>
         </ResponsiveContainer>
@@ -92,7 +92,7 @@ export const IFRS17View: React.FC<IFRS17ViewProps> = ({ result }) => {
         <div className="bg-red-50 rounded-lg border border-red-200 p-4">
           <h4 className="text-sm font-semibold text-red-900">Onerous Contracts Detected</h4>
           <p className="text-sm text-red-800 mt-2">
-            The following cohorts have CSM < 0 (loss-making):
+            The following cohorts have CSM &lt; 0 (loss-making):
           </p>
           <ul className="list-disc list-inside text-sm text-red-800 mt-2">
             {ifrs17.onerous_cohorts.map((cohort) => (
