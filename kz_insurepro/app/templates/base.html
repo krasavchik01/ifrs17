@@ -1313,6 +1313,26 @@
             </div>
 
             <div class="nav-section">
+                <div class="nav-section-title">Аналитика МСФО 17</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.yield_curves_list' %}active{% endif %}" href="{{ url_for('main.yield_curves_list') }}">
+                            <i class="bi bi-graph-up"></i>
+                            <span>Кривые доходности</span>
+                            <span class="badge bg-warning">Discount</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.reinsurance_analysis' %}active{% endif %}" href="{{ url_for('main.reinsurance_analysis') }}">
+                            <i class="bi bi-shield-check"></i>
+                            <span>Перестрахование</span>
+                            <span class="badge bg-info">Net/Gross</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
                 <div class="nav-section-title">Реестры и портфели</div>
                 <ul class="nav flex-column">
                     <li class="nav-item">
@@ -1351,26 +1371,6 @@
                         <a class="nav-link {% if request.endpoint == 'main.audit' %}active{% endif %}" href="{{ url_for('main.audit') }}">
                             <i class="bi bi-journal-text"></i>
                             <span>Аудиторский след</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-
-            <div class="nav-section">
-                <div class="nav-section-title">Аналитика Phase 2</div>
-                <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'main.yield_curves_list' %}active{% endif %}" href="{{ url_for('main.yield_curves_list') }}">
-                            <i class="bi bi-graph-up"></i>
-                            <span>Кривые доходности</span>
-                            <span class="badge bg-info">Новое</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'main.reinsurance_analysis' %}active{% endif %}" href="{{ url_for('main.reinsurance_analysis') }}">
-                            <i class="bi bi-shield-check"></i>
-                            <span>Анализ перестрахования</span>
-                            <span class="badge bg-success">Net/Gross</span>
                         </a>
                     </li>
                 </ul>

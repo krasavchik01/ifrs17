@@ -1,0 +1,379 @@
+<!-- Workflow Guide Component - инструкция для каждой роли -->
+{% if session.get('role') == 'insurer' or not session.get('role') %}
+<div class="workflow-guide">
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+                <i class="bi bi-compass me-2"></i>Навигация по системе Alliot
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="timeline">
+                <!-- МСФО 9 Workflow -->
+                <div class="timeline-item">
+                    <div class="timeline-marker" style="background-color: #3498DB;">1</div>
+                    <div class="timeline-content">
+                        <h6 class="mb-1">МСФО 9: Финансовые инструменты (ECL)</h6>
+                        <p class="small text-muted mb-2">Модель ожидаемых кредитных убытков на 3 стадии</p>
+                        <a href="{{ url_for('main.instruments_registry') }}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-list me-1"></i>Реестр инструментов
+                        </a>
+                        <a href="{{ url_for('main.ifrs9_advanced') }}" class="btn btn-sm btn-outline-info">
+                            <i class="bi bi-calculator me-1"></i>Калькулятор ECL
+                        </a>
+                        <p class="small mt-2"><strong>Формула:</strong> ECL = PD × LGD × EAD</p>
+                        <p class="small text-muted">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Вводите финансовые инструменты → система рассчитывает ECL по 3-стадийной модели
+                            → результаты используются для отчетности в АРФР
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Разделитель -->
+                <div class="timeline-divider"></div>
+
+                <!-- МСФО 17 Workflow -->
+                <div class="timeline-item">
+                    <div class="timeline-marker" style="background-color: #27AE60;">2</div>
+                    <div class="timeline-content">
+                        <h6 class="mb-1">МСФО 17: Договоры страхования</h6>
+                        <p class="small text-muted mb-2">Учет портфелей страховых договоров с группировкой по когортам</p>
+                        <a href="{{ url_for('main.contracts_registry') }}" class="btn btn-sm btn-outline-success">
+                            <i class="bi bi-file-earmark me-1"></i>Реестр договоров
+                        </a>
+                        <a href="{{ url_for('main.ifrs17_advanced') }}" class="btn btn-sm btn-outline-success">
+                            <i class="bi bi-graph-up me-1"></i>Расчеты МСФО 17
+                        </a>
+                        <p class="small mt-2"><strong>Формула:</strong> BEL = PV(Claims + Expenses); CSM = Premium - (BEL + RA)</p>
+                    </div>
+                </div>
+
+                <!-- Разделитель -->
+                <div class="timeline-divider"></div>
+
+                <!-- Batch Processing -->
+                <div class="timeline-item">
+                    <div class="timeline-marker" style="background-color: #E67E22;">3</div>
+                    <div class="timeline-content">
+                        <h6 class="mb-1">Пакетные расчеты (Enterprise)</h6>
+                        <p class="small text-muted mb-2">Автоматическая обработка 100K+ договоров за один запуск</p>
+                        <a href="{{ url_for('main.calculation_runs') }}" class="btn btn-sm btn-outline-warning">
+                            <i class="bi bi-lightning-charge me-1"></i>Calculation Runs
+                        </a>
+                        <p class="small mt-2"><strong>Когда использовать:</strong></p>
+                        <ul class="small text-muted">
+                            <li>Загрузили договоры в реестр</li>
+                            <li>Готовы к расчетам больших портфелей</li>
+                            <li>Нужна история расчетов (audit trail)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Разделитель -->
+                <div class="timeline-divider"></div>
+
+                <!-- Yield Curves -->
+                <div class="timeline-item">
+                    <div class="timeline-marker" style="background-color: #9B59B6;">4</div>
+                    <div class="timeline-content">
+                        <h6 class="mb-1">Кривые доходности (МСФО 17)</h6>
+                        <p class="small text-muted mb-2">Управление risk-free ставками для дисконтирования денежных потоков</p>
+                        <a href="{{ url_for('main.yield_curves_list') }}" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-graph-up me-1"></i>Кривые доходности
+                        </a>
+                        <p class="small mt-2"><strong>Зачем нужна:</strong></p>
+                        <ul class="small text-muted">
+                            <li>Кривая создается один раз (например, для 2025Q4)</li>
+                            <li>Используется во всех расчетах пакета</li>
+                            <li>Поддерживает интерполяцию для произвольных сроков</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Разделитель -->
+                <div class="timeline-divider"></div>
+
+                <!-- Reinsurance Analysis -->
+                <div class="timeline-item">
+                    <div class="timeline-marker" style="background-color: #E74C3C;">5</div>
+                    <div class="timeline-content">
+                        <h6 class="mb-1">Анализ перестрахования (Net/Gross)</h6>
+                        <p class="small text-muted mb-2">Разделение портфеля: прямые договоры vs перестрахование</p>
+                        <a href="{{ url_for('main.reinsurance_analysis') }}" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-shield-check me-1"></i>Net/Gross анализ
+                        </a>
+                        <p class="small mt-2"><strong>Метрики:</strong></p>
+                        <ul class="small text-muted">
+                            <li><strong>Relief Ratio:</strong> (Gross - Net) / Gross</li>
+                            <li><strong>Cession Ratio:</strong> Переданное / Валовое</li>
+                            <li><strong>Direct Ratio:</strong> Доля прямых договоров</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Разделитель -->
+                <div class="timeline-divider"></div>
+
+                <!-- Accounting Engine -->
+                <div class="timeline-item">
+                    <div class="timeline-marker" style="background-color: #16A085;">6</div>
+                    <div class="timeline-content">
+                        <h6 class="mb-1">Accounting Engine</h6>
+                        <p class="small text-muted mb-2">Автоматическое создание бухгалтерских проводок из результатов расчетов</p>
+                        <a href="{{ url_for('main.accounting_mapping_rules') }}" class="btn btn-sm btn-outline-info">
+                            <i class="bi bi-diagram-3 me-1"></i>Правила маппинга
+                        </a>
+                        <a href="{{ url_for('main.chart_of_accounts') }}" class="btn btn-sm btn-outline-info">
+                            <i class="bi bi-list-ul me-1"></i>План счетов
+                        </a>
+                        <a href="{{ url_for('main.journal_entries') }}" class="btn btn-sm btn-outline-info">
+                            <i class="bi bi-journal-text me-1"></i>Журнал проводок
+                        </a>
+                        <p class="small mt-2"><strong>Последовательность:</strong></p>
+                        <ol class="small text-muted">
+                            <li>Установите правила маппинга (МСФО 17 события → Бухсчета)</li>
+                            <li>Проверьте план счетов</li>
+                            <li>После расчета пакета система автоматически создает проводки</li>
+                            <li>Просмотрите журнал с полной прослеживаемостью</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <!-- Разделитель -->
+                <div class="timeline-divider"></div>
+
+                <!-- Reporting -->
+                <div class="timeline-item">
+                    <div class="timeline-marker" style="background-color: #2C3E50;">7</div>
+                    <div class="timeline-content">
+                        <h6 class="mb-1">Отчетность</h6>
+                        <p class="small text-muted mb-2">Формирование регуляторных отчетов для АРФР и ФГСВ</p>
+                        <a href="{{ url_for('main.reports') }}" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-file-earmark-text me-1"></i>Отчеты АРФР
+                        </a>
+                        <a href="{{ url_for('main.fgsv') }}" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-bank me-1"></i>Взносы ФГСВ
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light">
+            <h6 class="mb-0">
+                <i class="bi bi-question-circle me-2"></i>Сравнение методов расчета ECL
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Параметр</th>
+                            <th>МСФО 9 (ECL)</th>
+                            <th>Платежеспособность</th>
+                            <th>МСФО 17</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Что считает</strong></td>
+                            <td>Ожидаемые потери (финансовые инструменты)</td>
+                            <td>Капитальные требования страховщика</td>
+                            <td>Обязательства по договорам страхования</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Портфель</strong></td>
+                            <td>Кредиты, облигации, займы</td>
+                            <td>Все активы и обязательства</td>
+                            <td>Договоры страхования (группы)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Дисконтирование</strong></td>
+                            <td>Credit spread кривая</td>
+                            <td>Нет дисконтирования (балансовая стоимость)</td>
+                            <td>Risk-free ставка (кривая доходности)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Скидка/надбавка</strong></td>
+                            <td>LGD (Loss Given Default)</td>
+                            <td>Специфические коэффициенты</td>
+                            <td>RA (10% от BEL)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Результат</strong></td>
+                            <td>ECL резерв (P&L)</td>
+                            <td>RBC требование</td>
+                            <td>CSM, BEL, RA (балансовая стоимость)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.timeline {
+    position: relative;
+    padding: 0;
+}
+
+.timeline-item {
+    padding-left: 60px;
+    position: relative;
+    margin-bottom: 30px;
+}
+
+.timeline-marker {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 18px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.timeline-divider {
+    width: 2px;
+    height: 20px;
+    background: linear-gradient(to bottom, #ddd, transparent);
+    margin-left: 24px;
+}
+
+.timeline-content h6 {
+    color: #2C3E50;
+    margin-bottom: 8px;
+}
+
+.timeline-content .btn-group-vertical {
+    width: 100%;
+}
+
+.timeline-content .btn-sm {
+    margin-right: 5px;
+    margin-bottom: 5px;
+}
+</style>
+
+{% elif session.get('role') == 'arfr' %}
+
+<div class="workflow-guide">
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0">
+                <i class="bi bi-building me-2"></i>Навигация АРФР - Надзор за страховщиками
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-marker" style="background-color: #E74C3C;">1</div>
+                    <div class="timeline-content">
+                        <h6>Мониторинг страховщиков</h6>
+                        <a href="{{ url_for('main.arfr_insurers') }}" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-building me-1"></i>Список страховщиков
+                        </a>
+                    </div>
+                </div>
+                <div class="timeline-divider"></div>
+                <div class="timeline-item">
+                    <div class="timeline-marker" style="background-color: #C0392B;">2</div>
+                    <div class="timeline-content">
+                        <h6>Проверка отчетности</h6>
+                        <a href="{{ url_for('main.arfr_reports') }}" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-file-check me-1"></i>Валидация отчетов
+                        </a>
+                    </div>
+                </div>
+                <div class="timeline-divider"></div>
+                <div class="timeline-item">
+                    <div class="timeline-marker" style="background-color: #A93226;">3</div>
+                    <div class="timeline-content">
+                        <h6>Выявление нарушений</h6>
+                        <a href="{{ url_for('main.arfr_violations') }}" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-exclamation-triangle me-1"></i>Нарушения и замечания
+                        </a>
+                    </div>
+                </div>
+                <div class="timeline-divider"></div>
+                <div class="timeline-item">
+                    <div class="timeline-marker" style="background-color: #922B21;">4</div>
+                    <div class="timeline-content">
+                        <h6>Аналитика рынка</h6>
+                        <a href="{{ url_for('main.arfr_market') }}" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-pie-chart me-1"></i>Статистика рынка
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% elif session.get('role') == 'fgsv' %}
+
+<div class="workflow-guide">
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">
+                <i class="bi bi-bank2 me-2"></i>Навигация ФГСВ - Управление фондом
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-marker" style="background-color: #27AE60;">1</div>
+                    <div class="timeline-content">
+                        <h6>Панель фонда</h6>
+                        <a href="{{ url_for('main.fgsv_dashboard') }}" class="btn btn-sm btn-outline-success">
+                            <i class="bi bi-speedometer2 me-1"></i>KPI и метрики
+                        </a>
+                    </div>
+                </div>
+                <div class="timeline-divider"></div>
+                <div class="timeline-item">
+                    <div class="timeline-marker" style="background-color: #229954;">2</div>
+                    <div class="timeline-content">
+                        <h6>Управление взносами</h6>
+                        <a href="{{ url_for('main.fgsv_contributions') }}" class="btn btn-sm btn-outline-success">
+                            <i class="bi bi-cash-stack me-1"></i>Взносы страховщиков
+                        </a>
+                    </div>
+                </div>
+                <div class="timeline-divider"></div>
+                <div class="timeline-item">
+                    <div class="timeline-marker" style="background-color: #1E8449;">3</div>
+                    <div class="timeline-content">
+                        <h6>Риск-анализ</h6>
+                        <a href="{{ url_for('main.fgsv_bankruptcy') }}" class="btn btn-sm btn-outline-success">
+                            <i class="bi bi-exclamation-diamond me-1"></i>Анализ банкротств
+                        </a>
+                    </div>
+                </div>
+                <div class="timeline-divider"></div>
+                <div class="timeline-item">
+                    <div class="timeline-marker" style="background-color: #186A3B;">4</div>
+                    <div class="timeline-content">
+                        <h6>Управление выплатами</h6>
+                        <a href="{{ url_for('main.fgsv_payouts') }}" class="btn btn-sm btn-outline-success">
+                            <i class="bi bi-wallet2 me-1"></i>Выплаты пострадавшим
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endif %}
