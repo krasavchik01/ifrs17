@@ -19,6 +19,7 @@ from datetime import date, datetime
 from typing import Dict, Any
 import logging
 import json
+import numpy as np
 
 from app.services.core_engine import (
     CoreEngine,
@@ -29,6 +30,26 @@ from app.services.core_engine import (
 )
 from app.services.database_service import database_service
 from config import format_currency, format_percent
+
+
+def convert_numpy_types(obj):
+    """
+    Recursively convert numpy types to Python native types for JSON serialization.
+    """
+    if isinstance(obj, dict):
+        return {k: convert_numpy_types(v) for k, v in obj.items()}
+    elif isinstance(obj, (list, tuple)):
+        return [convert_numpy_types(item) for item in obj]
+    elif isinstance(obj, np.bool_):
+        return bool(obj)
+    elif isinstance(obj, (np.integer, np.int_, np.int32, np.int64)):
+        return int(obj)
+    elif isinstance(obj, (np.floating, np.float_, np.float32, np.float64)):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    else:
+        return obj
 
 calc_bp = Blueprint("calculate", __name__, url_prefix="/api/calculate")
 logger = logging.getLogger(__name__)
@@ -168,7 +189,7 @@ def calculate_suite():
             "status": result.compliance.status(),
             "job_id": result.job_id,
             "calculation_date": result.calculation_date.isoformat(),
-            "results": result.to_dict(),
+            "results": convert_numpy_types(result.to_dict()),
             "processing_time_ms": result.processing_time_ms,
         }
 
