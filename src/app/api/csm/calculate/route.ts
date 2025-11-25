@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
         action: 'CALCULATE',
         entityType: 'csm',
         entityId: csmCalculation.id,
-        changes: rollForward,
+        changes: JSON.parse(JSON.stringify(rollForward)),
       },
     });
 
