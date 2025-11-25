@@ -1,0 +1,610 @@
+{% extends "base.html" %}
+
+{% block title %}Анализ перестрахования - Alliot{% endblock %}
+{% block page_title %}Анализ перестрахования (Net/Gross Separation){% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>
+            <strong>Анализ перестрахования:</strong> Разделение портфеля на прямые договоры (DIRECT),
+            полученное перестрахование (REINSURANCE_HELD) и выданное перестрахование (REINSURANCE_ISSUED).
+            Помогает анализировать Net/Gross эффект для целей регуляторного отчётства.
+        </div>
+    </div>
+</div>
+
+<!-- Селектор расчётного прогона -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <label class="form-label">Выберите расчётный прогон (Calculation Run)</label>
+                <select class="form-select" id="calculationRunSelect">
+                    <option value="">Загрузка доступных прогонов...</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Основные метрики -->
+<div class="row g-3 mb-4" id="metricsSection" style="display: none;">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon success">
+                <i class="bi bi-layers"></i>
+            </div>
+            <div class="stat-label">Брутто портфель</div>
+            <div class="stat-value" id="grossPortfolio">-</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon info">
+                <i class="bi bi-shield-check"></i>
+            </div>
+            <div class="stat-label">Нетто портфель</div>
+            <div class="stat-value" id="netPortfolio">-</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon warning">
+                <i class="bi bi-arrow-left-right"></i>
+            </div>
+            <div class="stat-label">Перестраховочный рельеф</div>
+            <div class="stat-value" id="reinsuranceRelief">-</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon primary">
+                <i class="bi bi-percent"></i>
+            </div>
+            <div class="stat-label">Net/Gross коэффициент</div>
+            <div class="stat-value" id="netGrossRatio">-</div>
+        </div>
+    </div>
+</div>
+
+<!-- Таблица by Contract Type -->
+<div class="card mb-4" id="contractTypeSection" style="display: none;">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-diagram-3 me-2"></i>Портфель по типам договоров</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Тип договора</th>
+                        <th>BEL (тыс ₸)</th>
+                        <th>RA (тыс ₸)</th>
+                        <th>CSM (тыс ₸)</th>
+                        <th>Итого (тыс ₸)</th>
+                        <th>Доля портфеля</th>
+                    </tr>
+                </thead>
+                <tbody id="contractTypeTable">
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">Загрузка данных...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Ключевые коэффициенты -->
+<div class="row g-3 mb-4" id="ratiosSection" style="display: none;">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-speedometer me-2"></i>Коэффициенты перестрахования</h6>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-6">Cession Ratio:</dt>
+                    <dd class="col-6"><code id="cessionRatio">-</code></dd>
+                    <dt class="col-6">Direct Ratio:</dt>
+                    <dd class="col-6"><code id="directRatio">-</code></dd>
+                    <dt class="col-6">Relief Ratio:</dt>
+                    <dd class="col-6"><code id="reliefRatio">-</code></dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-shield-exclamation me-2"></i>Риск-анализ</h6>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-6">Количество групп (прямые):</dt>
+                    <dd class="col-6"><code id="directGroups">-</code></dd>
+                    <dt class="col-6">Количество групп (перест.):</dt>
+                    <dd class="col-6"><code id="reinsGroups">-</code></dd>
+                    <dt class="col-6">Средняя позиция:</dt>
+                    <dd class="col-6"><code id="avgPosition">-</code></dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Таблица отдельных групп -->
+<div class="card mb-4" id="groupsTableSection" style="display: none;">
+    <div class="card-header">
+        <div class="row align-items-center">
+            <div class="col">
+                <h5 class="mb-0"><i class="bi bi-list me-2"></i>Net/Gross анализ по группам договоров</h5>
+            </div>
+            <div class="col-auto">
+                <input type="text" class="form-control form-control-sm" id="groupFilter" placeholder="Поиск по группе...">
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-sm table-hover mb-0" id="groupsTable">
+                <thead>
+                    <tr>
+                        <th>Группа договоров</th>
+                        <th>Портфель</th>
+                        <th>Тип</th>
+                        <th>BEL (млн ₸)</th>
+                        <th>RA (млн ₸)</th>
+                        <th>CSM (млн ₸)</th>
+                        <th>Брутто (млн ₸)</th>
+                        <th>Нетто (млн ₸)</th>
+                        <th>Рельеф (млн ₸)</th>
+                    </tr>
+                </thead>
+                <tbody id="groupsTableBody">
+                    <tr>
+                        <td colspan="9" class="text-center text-muted">Загрузка данных...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Графики -->
+<div class="row g-3 mb-4" id="chartsSection" style="display: none;">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-pie-chart me-2"></i>Распределение портфеля по типам договоров</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="contractTypeChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-bar-chart me-2"></i>Брутто vs Нетто</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="netGrossChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Экспорт -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <button class="btn btn-primary" id="exportBtn" style="display: none;">
+            <i class="bi bi-download me-2"></i>Экспортировать анализ (Excel)
+        </button>
+    </div>
+</div>
+
+<script>
+const API_BASE = '/api';
+let currentRunId = null;
+let contractTypeChart = null;
+let netGrossChart = null;
+
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    loadCalculationRuns();
+    setupEventListeners();
+});
+
+// Загрузка списка расчётных прогонов
+async function loadCalculationRuns() {
+    try {
+        const response = await fetch('/calculations/runs');
+        const html = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+
+        // Извлекаем доступные run_id из страницы
+        const runIds = Array.from(doc.querySelectorAll('[data-run-id]'))
+            .map(el => el.getAttribute('data-run-id'))
+            .filter((id, idx, arr) => arr.indexOf(id) === idx);
+
+        if (runIds.length === 0) {
+            document.getElementById('calculationRunSelect').innerHTML = `
+                <option disabled>Нет доступных расчётных прогонов. Запустите расчет сначала.</option>
+            `;
+            return;
+        }
+
+        const select = document.getElementById('calculationRunSelect');
+        select.innerHTML = `
+            <option value="">Выберите расчётный прогон...</option>
+            ${runIds.map(id => `<option value="${id}">Прогон #${id}</option>`).join('')}
+        `;
+    } catch (error) {
+        console.error('Error loading calculation runs:', error);
+    }
+}
+
+// Установка обработчиков событий
+function setupEventListeners() {
+    document.getElementById('calculationRunSelect').addEventListener('change', function() {
+        if (this.value) {
+            currentRunId = this.value;
+            loadReinsuranceAnalysis();
+        }
+    });
+
+    document.getElementById('groupFilter').addEventListener('keyup', function() {
+        const filter = this.value.toLowerCase();
+        document.querySelectorAll('#groupsTableBody tr').forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(filter) ? '' : 'none';
+        });
+    });
+
+    document.getElementById('exportBtn').addEventListener('click', exportAnalysis);
+}
+
+// Загрузка анализа перестрахования
+async function loadReinsuranceAnalysis() {
+    try {
+        // Загружаем портфельные метрики
+        const portfolioResponse = await fetch(
+            `${API_BASE}/calculations/run/${currentRunId}/reinsurance/portfolio`
+        );
+        const portfolioData = await portfolioResponse.json();
+
+        if (!portfolioData.success) throw new Error(portfolioData.message);
+
+        const portfolio = portfolioData.data;
+
+        // Загружаем дополнительные метрики
+        const metricsResponse = await fetch(
+            `${API_BASE}/calculations/run/${currentRunId}/reinsurance/metrics`
+        );
+        const metricsData = await metricsResponse.json();
+
+        // Отрисовка данных
+        renderPortfolioMetrics(portfolio);
+        renderContractTypeTable(portfolio);
+
+        if (metricsData.success) {
+            renderMetricsPanel(metricsData.data);
+        }
+
+        renderCharts(portfolio);
+
+        // Показываем секции
+        document.getElementById('metricsSection').style.display = '';
+        document.getElementById('contractTypeSection').style.display = '';
+        document.getElementById('ratiosSection').style.display = '';
+        document.getElementById('groupsTableSection').style.display = '';
+        document.getElementById('chartsSection').style.display = '';
+        document.getElementById('exportBtn').style.display = '';
+
+        // Загружаем данные групп
+        loadGroupsData();
+    } catch (error) {
+        console.error('Error loading reinsurance analysis:', error);
+        showAlert('Ошибка при загрузке анализа перестрахования', 'danger');
+    }
+}
+
+// Отрисовка портфельных метрик
+function renderPortfolioMetrics(portfolio) {
+    const gross = portfolio.portfolio_gross || 0;
+    const net = portfolio.portfolio_net || 0;
+    const relief = portfolio.reinsurance_relief || 0;
+    const ratio = gross > 0 ? (net / gross * 100) : 0;
+
+    document.getElementById('grossPortfolio').textContent = formatCurrency(gross);
+    document.getElementById('netPortfolio').textContent = formatCurrency(net);
+    document.getElementById('reinsuranceRelief').textContent = formatCurrency(relief);
+    document.getElementById('netGrossRatio').textContent = ratio.toFixed(1) + '%';
+}
+
+// Отрисовка таблицы по типам договоров
+function renderContractTypeTable(portfolio) {
+    const tbody = document.getElementById('contractTypeTable');
+    const byType = portfolio.by_contract_type || {};
+    const total = Object.values(byType).reduce((sum, item) => sum + (item.total || 0), 0);
+
+    const rows = Object.entries(byType).map(([type, data]) => {
+        const bel = data.bel || 0;
+        const ra = data.ra || 0;
+        const csm = data.csm || 0;
+        const itemTotal = data.total || 0;
+        const share = total > 0 ? (itemTotal / total * 100).toFixed(1) : 0;
+
+        let typeLabel = 'Unknown';
+        if (type === 'DIRECT') typeLabel = 'Прямые договоры';
+        else if (type === 'REINSURANCE_HELD') typeLabel = 'Полученное перестрахование';
+        else if (type === 'REINSURANCE_ISSUED') typeLabel = 'Выданное перестрахование';
+
+        return `
+            <tr>
+                <td><strong>${typeLabel}</strong></td>
+                <td>${(bel / 1000).toFixed(1)}</td>
+                <td>${(ra / 1000).toFixed(1)}</td>
+                <td>${(csm / 1000).toFixed(1)}</td>
+                <td><strong>${(itemTotal / 1000).toFixed(1)}</strong></td>
+                <td><span class="badge bg-primary">${share}%</span></td>
+            </tr>
+        `;
+    });
+
+    tbody.innerHTML = rows.length > 0 ? rows.join('') : `
+        <tr>
+            <td colspan="6" class="text-center text-muted">Нет данных для отображения</td>
+        </tr>
+    `;
+}
+
+// Отрисовка панели метрик
+function renderMetricsPanel(metrics) {
+    document.getElementById('cessionRatio').textContent =
+        ((metrics.cession_ratio || 0) * 100).toFixed(2) + '%';
+    document.getElementById('directRatio').textContent =
+        ((metrics.direct_ratio || 0) * 100).toFixed(2) + '%';
+    document.getElementById('reliefRatio').textContent =
+        ((metrics.relief_ratio || 0) * 100).toFixed(2) + '%';
+    document.getElementById('directGroups').textContent =
+        metrics.direct_groups_count || '-';
+    document.getElementById('reinsGroups').textContent =
+        metrics.reinsurance_groups_count || '-';
+}
+
+// Загрузка данных групп
+async function loadGroupsData() {
+    // Получаем список групп из расчётного прогона
+    try {
+        const response = await fetch(`/api/calculations/run/${currentRunId}/results`);
+        const data = await response.json();
+
+        if (!data.success) return;
+
+        const results = data.data || [];
+        const tbody = document.getElementById('groupsTableBody');
+
+        const rows = await Promise.all(results.map(async (result) => {
+            try {
+                const groupResponse = await fetch(
+                    `${API_BASE}/group-result/${result.id}/net-gross`
+                );
+                const groupData = await groupResponse.json();
+
+                if (!groupData.success) return null;
+
+                const group = groupData.data;
+                const portfolio = result.group?.portfolio || 'N/A';
+                const type = result.contract_type || 'Unknown';
+
+                return `
+                    <tr>
+                        <td><strong>${group.group_name || result.group?.group_name || 'Unknown'}</strong></td>
+                        <td><small>${portfolio}</small></td>
+                        <td><small class="badge bg-secondary">${type}</small></td>
+                        <td>${(group.bel / 1000000).toFixed(2)}</td>
+                        <td>${(group.ra / 1000000).toFixed(2)}</td>
+                        <td>${(group.csm / 1000000).toFixed(2)}</td>
+                        <td><strong>${(group.gross_amount / 1000000).toFixed(2)}</strong></td>
+                        <td><strong>${(group.net_amount / 1000000).toFixed(2)}</strong></td>
+                        <td>${(group.relief_amount / 1000000).toFixed(2)}</td>
+                    </tr>
+                `;
+            } catch (error) {
+                return null;
+            }
+        }));
+
+        const validRows = rows.filter(r => r !== null);
+        tbody.innerHTML = validRows.length > 0 ? validRows.join('') : `
+            <tr>
+                <td colspan="9" class="text-center text-muted">Нет данных групп</td>
+            </tr>
+        `;
+    } catch (error) {
+        console.error('Error loading groups:', error);
+    }
+}
+
+// Отрисовка графиков
+function renderCharts(portfolio) {
+    renderContractTypeChart(portfolio);
+    renderNetGrossChart(portfolio);
+}
+
+// График распределения по типам договоров
+function renderContractTypeChart(portfolio) {
+    const ctx = document.getElementById('contractTypeChart').getContext('2d');
+    const byType = portfolio.by_contract_type || {};
+
+    const labels = [];
+    const data = [];
+
+    if (byType.DIRECT) {
+        labels.push('Прямые');
+        data.push(byType.DIRECT.total || 0);
+    }
+    if (byType.REINSURANCE_HELD) {
+        labels.push('Полученное перестраховано');
+        data.push(byType.REINSURANCE_HELD.total || 0);
+    }
+    if (byType.REINSURANCE_ISSUED) {
+        labels.push('Выданное перестраховано');
+        data.push(byType.REINSURANCE_ISSUED.total || 0);
+    }
+
+    if (contractTypeChart) contractTypeChart.destroy();
+
+    contractTypeChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: data,
+                backgroundColor: ['#0066CC', '#43e97b', '#ff6b6b'],
+                borderColor: '#fff',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+}
+
+// График Брутто vs Нетто
+function renderNetGrossChart(portfolio) {
+    const ctx = document.getElementById('netGrossChart').getContext('2d');
+    const byType = portfolio.by_contract_type || {};
+
+    const labels = [];
+    const grossData = [];
+    const netData = [];
+
+    Object.entries(byType).forEach(([type, data]) => {
+        let label = type.replace('_', ' ');
+        labels.push(label);
+        grossData.push((data.total || 0) / 1000000);
+        netData.push((data.net || 0) / 1000000);
+    });
+
+    if (netGrossChart) netGrossChart.destroy();
+
+    netGrossChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Брутто (млн ₸)',
+                    data: grossData,
+                    backgroundColor: '#0066CC',
+                    borderRadius: 4
+                },
+                {
+                    label: 'Нетто (млн ₸)',
+                    data: netData,
+                    backgroundColor: '#43e97b',
+                    borderRadius: 4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'top' }
+            },
+            scales: {
+                y: { title: { display: true, text: 'млн ₸' } }
+            }
+        }
+    });
+}
+
+// Экспорт анализа
+function exportAnalysis() {
+    showAlert('Экспорт в Excel находится в разработке', 'info');
+}
+
+// Вспомогательные функции
+function formatCurrency(value) {
+    if (value >= 1000000000) {
+        return (value / 1000000000).toFixed(1) + ' млрд ₸';
+    } else if (value >= 1000000) {
+        return (value / 1000000).toFixed(1) + ' млн ₸';
+    } else if (value >= 1000) {
+        return (value / 1000).toFixed(1) + ' тыс ₸';
+    }
+    return value.toFixed(0) + ' ₸';
+}
+
+function showAlert(message, type = 'info') {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.insertBefore(alertDiv, document.body.firstChild);
+    setTimeout(() => alertDiv.remove(), 5000);
+}
+</script>
+
+<style>
+.stat-card {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin-right: 20px;
+    color: white;
+}
+
+.stat-icon.success { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+.stat-icon.info { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+.stat-icon.warning { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+.stat-icon.primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+
+.stat-label {
+    font-size: 12px;
+    color: #6C7A89;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1A1D23;
+    margin-top: 8px;
+}
+</style>
+
+{% endblock %}

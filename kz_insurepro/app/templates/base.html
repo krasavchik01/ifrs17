@@ -1,0 +1,1741 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Alliot{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- KaTeX for beautiful math formulas -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <!-- Chart.js for beautiful charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --kz-primary: #0066CC;
+            --kz-primary-dark: #004C99;
+            --kz-primary-light: #3399FF;
+            --kz-secondary: #00A651;
+            --kz-gold: #FDB913;
+            --kz-dark: #1A1D23;
+            --kz-sidebar: #0F1419;
+            --kz-card-bg: #FFFFFF;
+            --kz-body-bg: #F5F7FA;
+            --kz-text: #2C3E50;
+            --kz-text-muted: #6C7A89;
+            --kz-border: #E1E8EE;
+            --kz-success: #27AE60;
+            --kz-warning: #F39C12;
+            --kz-danger: #E74C3C;
+            --kz-info: #3498DB;
+            --kz-purple: #9B59B6;
+            --kz-gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --kz-gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --kz-gradient-3: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --kz-gradient-4: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            --kz-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+            --kz-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+            --kz-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16);
+            --kz-shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Premium Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -1000px 0;
+            }
+            100% {
+                background-position: 1000px 0;
+            }
+        }
+
+        @keyframes glow {
+            0%, 100% {
+                box-shadow: 0 0 5px rgba(0, 102, 204, 0.3);
+            }
+            50% {
+                box-shadow: 0 0 20px rgba(0, 102, 204, 0.6);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes countUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fadeInUp {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+
+        .animate-fadeInLeft {
+            animation: fadeInLeft 0.6s ease-out forwards;
+        }
+
+        .animate-pulse:hover {
+            animation: pulse 0.3s ease-in-out;
+        }
+
+        .animate-glow {
+            animation: glow 2s infinite;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: var(--kz-body-bg);
+            color: var(--kz-text);
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 280px;
+            height: 100vh;
+            background: linear-gradient(180deg, var(--kz-dark) 0%, var(--kz-sidebar) 100%);
+            padding: 0;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .sidebar-brand {
+            padding: 24px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar-brand h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #fff;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-brand .brand-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--kz-primary);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar-brand small {
+            display: block;
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.5);
+            margin-top: 4px;
+        }
+
+        /* User Panel */
+        .user-panel {
+            padding: 16px 20px;
+            background: rgba(255,255,255,0.05);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .user-panel .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-panel .user-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .user-panel .user-avatar.role-arfr {
+            background: var(--kz-primary);
+            color: #fff;
+        }
+
+        .user-panel .user-avatar.role-fgsv {
+            background: var(--kz-secondary);
+            color: #fff;
+        }
+
+        .user-panel .user-avatar.role-insurer {
+            background: var(--kz-gold);
+            color: var(--kz-dark);
+        }
+
+        .user-panel .user-details {
+            flex: 1;
+        }
+
+        .user-panel .user-name {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .user-panel .user-role {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.6);
+        }
+
+        .user-panel .btn-switch-role {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.8);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .user-panel .btn-switch-role:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        /* Navigation */
+        .sidebar-nav {
+            padding: 16px 12px;
+        }
+
+        .nav-section {
+            margin-bottom: 24px;
+        }
+
+        .nav-section-title {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: rgba(255,255,255,0.4);
+            padding: 0 12px 8px;
+        }
+
+        .nav-item {
+            margin-bottom: 2px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+        }
+
+        .nav-link.active {
+            background: var(--kz-primary);
+            color: #fff;
+        }
+
+        .nav-link i {
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .nav-link .badge {
+            margin-left: auto;
+            font-size: 0.65rem;
+            padding: 3px 6px;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
+            min-height: 100vh;
+        }
+
+        /* Top Header */
+        .top-header {
+            background: var(--kz-card-bg);
+            padding: 16px 32px;
+            border-bottom: 1px solid var(--kz-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--kz-text);
+            margin: 0;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header-date {
+            font-size: 0.875rem;
+            color: var(--kz-text-muted);
+        }
+
+        .header-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: rgba(39, 174, 96, 0.1);
+            border-radius: 6px;
+            font-size: 0.8rem;
+            color: var(--kz-success);
+        }
+
+        /* Content Area */
+        .content-area {
+            padding: 32px;
+        }
+
+        /* Cards - Premium Style */
+        .card {
+            background: var(--kz-card-bg);
+            border: none;
+            border-radius: 16px;
+            box-shadow: var(--kz-shadow-sm);
+            margin-bottom: 24px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: fadeInUp 0.5s ease-out;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            box-shadow: var(--kz-shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--kz-border);
+            background: linear-gradient(135deg, rgba(0, 102, 204, 0.03) 0%, rgba(0, 166, 81, 0.03) 100%);
+        }
+
+        .card-header h5 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 0;
+            color: var(--kz-text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-body {
+            padding: 24px;
+        }
+
+        /* Premium Card Variants */
+        .card-gradient {
+            background: var(--kz-gradient-1);
+            color: white;
+        }
+
+        .card-gradient .card-header {
+            background: rgba(255, 255, 255, 0.1);
+            border-bottom-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .card-gradient h5,
+        .card-gradient .text-muted {
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+
+        .card-highlight {
+            border-left: 4px solid var(--kz-primary);
+        }
+
+        .card-success {
+            border-left: 4px solid var(--kz-success);
+        }
+
+        .card-warning {
+            border-left: 4px solid var(--kz-warning);
+        }
+
+        .card-danger {
+            border-left: 4px solid var(--kz-danger);
+        }
+
+        /* Stats Cards - Premium */
+        .stat-card {
+            background: var(--kz-card-bg);
+            border: none;
+            border-radius: 16px;
+            padding: 24px;
+            height: 100%;
+            box-shadow: var(--kz-shadow-sm);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--kz-gradient-3);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .stat-card:hover {
+            box-shadow: var(--kz-shadow-lg);
+            transform: translateY(-4px);
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+
+        .stat-card .stat-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 16px;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover .stat-icon {
+            transform: scale(1.1);
+        }
+
+        .stat-card .stat-icon.primary {
+            background: linear-gradient(135deg, rgba(0, 102, 204, 0.15) 0%, rgba(51, 153, 255, 0.15) 100%);
+            color: var(--kz-primary);
+        }
+
+        .stat-card .stat-icon.success {
+            background: linear-gradient(135deg, rgba(39, 174, 96, 0.15) 0%, rgba(46, 204, 113, 0.15) 100%);
+            color: var(--kz-success);
+        }
+
+        .stat-card .stat-icon.warning {
+            background: linear-gradient(135deg, rgba(243, 156, 18, 0.15) 0%, rgba(241, 196, 15, 0.15) 100%);
+            color: var(--kz-warning);
+        }
+
+        .stat-card .stat-icon.danger {
+            background: linear-gradient(135deg, rgba(231, 76, 60, 0.15) 0%, rgba(192, 57, 43, 0.15) 100%);
+            color: var(--kz-danger);
+        }
+
+        .stat-card .stat-label {
+            font-size: 0.8rem;
+            color: var(--kz-text-muted);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 500;
+        }
+
+        .stat-card .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--kz-text);
+            line-height: 1.2;
+            animation: countUp 0.8s ease-out;
+        }
+
+        .stat-card .stat-change {
+            font-size: 0.75rem;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .stat-card .stat-change.positive {
+            color: var(--kz-success);
+        }
+
+        .stat-card .stat-change.negative {
+            color: var(--kz-danger);
+        }
+
+        /* Gradient Stat Cards */
+        .stat-card-gradient-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .stat-card-gradient-primary .stat-label,
+        .stat-card-gradient-primary .stat-value,
+        .stat-card-gradient-primary .stat-change {
+            color: white !important;
+        }
+
+        .stat-card-gradient-primary .stat-icon {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .stat-card-gradient-success {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: #1a1d23;
+        }
+
+        .stat-card-gradient-success .stat-icon {
+            background: rgba(255, 255, 255, 0.3);
+            color: #1a1d23;
+        }
+
+        /* Buttons - Premium */
+        .btn {
+            font-weight: 500;
+            padding: 10px 20px;
+            border-radius: 10px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--kz-primary) 0%, var(--kz-primary-dark) 100%);
+            border: none;
+            box-shadow: 0 4px 15px rgba(0, 102, 204, 0.35);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--kz-primary-light) 0%, var(--kz-primary) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 102, 204, 0.45);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--kz-success) 0%, #1e8449 100%);
+            border: none;
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.35);
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(135deg, #2ecc71 0%, var(--kz-success) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(39, 174, 96, 0.45);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--kz-warning) 0%, #d68910 100%);
+            border: none;
+            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.35);
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(243, 156, 18, 0.45);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--kz-danger) 0%, #c0392b 100%);
+            border: none;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.35);
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.45);
+        }
+
+        .btn-outline-primary {
+            color: var(--kz-primary);
+            border: 2px solid var(--kz-primary);
+            background: transparent;
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--kz-primary);
+            border-color: var(--kz-primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 102, 204, 0.35);
+        }
+
+        .btn-outline-success {
+            color: var(--kz-success);
+            border: 2px solid var(--kz-success);
+        }
+
+        .btn-outline-success:hover {
+            background: var(--kz-success);
+            transform: translateY(-2px);
+        }
+
+        /* Gradient Button */
+        .btn-gradient {
+            background: var(--kz-gradient-1);
+            border: none;
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-gradient:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+            color: white;
+        }
+
+        /* Icon Button */
+        .btn-icon {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+        }
+
+        /* Floating Action Button */
+        .btn-fab {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            box-shadow: var(--kz-shadow-lg);
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            z-index: 1000;
+        }
+
+        /* Forms */
+        .form-control, .form-select {
+            border: 1px solid var(--kz-border);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 0.875rem;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--kz-primary);
+            box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+        }
+
+        .form-label {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--kz-text);
+            margin-bottom: 6px;
+        }
+
+        /* Tables */
+        .table {
+            font-size: 0.875rem;
+        }
+
+        .table thead th {
+            background: var(--kz-body-bg);
+            border-bottom: 2px solid var(--kz-border);
+            font-weight: 600;
+            color: var(--kz-text-muted);
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.05em;
+            padding: 12px 16px;
+        }
+
+        .table td {
+            padding: 12px 16px;
+            vertical-align: middle;
+            border-bottom: 1px solid var(--kz-border);
+        }
+
+        /* Result Display */
+        .result-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--kz-primary);
+        }
+
+        .result-label {
+            font-size: 0.8rem;
+            color: var(--kz-text-muted);
+        }
+
+        /* Formula Display - Premium */
+        .formula-display {
+            font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+            font-size: 0.85rem;
+            background: linear-gradient(135deg, #1a1d23 0%, #2c3e50 100%);
+            color: #E8E8E8;
+            border-radius: 12px;
+            padding: 20px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .formula-display .keyword {
+            color: #6EB4FF;
+            font-weight: 600;
+        }
+
+        .formula-display .number {
+            color: #A8DB8F;
+        }
+
+        .formula-display .operator {
+            color: #FFB86C;
+        }
+
+        /* Math Formula Box */
+        .math-box {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 16px 0;
+            text-align: center;
+        }
+
+        .math-box .katex {
+            font-size: 1.2em;
+        }
+
+        .math-formula {
+            font-size: 1.3em;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 8px;
+            margin: 8px 0;
+        }
+
+        /* Progress Bar Premium */
+        .progress {
+            height: 8px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            border-radius: 10px;
+            background: var(--kz-gradient-3);
+            transition: width 1s ease-in-out;
+        }
+
+        .progress-bar-success {
+            background: var(--kz-gradient-4);
+        }
+
+        .progress-bar-warning {
+            background: linear-gradient(135deg, #f39c12 0%, #f1c40f 100%);
+        }
+
+        .progress-bar-danger {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+
+        /* Tooltip Custom */
+        .tooltip-custom {
+            position: relative;
+            cursor: help;
+        }
+
+        .tooltip-custom::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 8px 12px;
+            background: var(--kz-dark);
+            color: white;
+            font-size: 0.75rem;
+            border-radius: 6px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        .tooltip-custom:hover::after {
+            opacity: 1;
+            bottom: calc(100% + 8px);
+        }
+
+        /* Charts Container */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+
+        .chart-container-lg {
+            height: 400px;
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--kz-gradient-1);
+            border-radius: 3px;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: 24px;
+            animation: fadeInLeft 0.5s ease-out;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -30px;
+            top: 4px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--kz-primary);
+            border: 3px solid var(--kz-card-bg);
+            box-shadow: 0 0 0 3px var(--kz-primary);
+        }
+
+        .timeline-item.completed::before {
+            background: var(--kz-success);
+            box-shadow: 0 0 0 3px var(--kz-success);
+        }
+
+        .timeline-item.warning::before {
+            background: var(--kz-warning);
+            box-shadow: 0 0 0 3px var(--kz-warning);
+        }
+
+        /* Tabs Premium */
+        .nav-tabs-premium {
+            border: none;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 12px;
+            padding: 4px;
+        }
+
+        .nav-tabs-premium .nav-link {
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            color: var(--kz-text-muted);
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav-tabs-premium .nav-link.active {
+            background: var(--kz-card-bg);
+            color: var(--kz-primary);
+            box-shadow: var(--kz-shadow-sm);
+        }
+
+        .nav-tabs-premium .nav-link:hover:not(.active) {
+            color: var(--kz-text);
+        }
+
+        /* Accordion Premium */
+        .accordion-item {
+            border: none;
+            margin-bottom: 8px;
+            border-radius: 12px !important;
+            overflow: hidden;
+            box-shadow: var(--kz-shadow-sm);
+        }
+
+        .accordion-button {
+            font-weight: 500;
+            padding: 16px 20px;
+            background: var(--kz-card-bg);
+        }
+
+        .accordion-button:not(.collapsed) {
+            background: linear-gradient(135deg, rgba(0, 102, 204, 0.05) 0%, rgba(0, 166, 81, 0.05) 100%);
+            color: var(--kz-primary);
+        }
+
+        .accordion-button:focus {
+            box-shadow: none;
+            border-color: var(--kz-primary);
+        }
+
+        /* Loading Skeleton */
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 1000px 100%;
+            animation: shimmer 2s infinite;
+            border-radius: 8px;
+        }
+
+        .skeleton-text {
+            height: 16px;
+            margin-bottom: 8px;
+        }
+
+        .skeleton-title {
+            height: 24px;
+            width: 60%;
+            margin-bottom: 16px;
+        }
+
+        /* Notification Dot */
+        .notification-dot {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            width: 10px;
+            height: 10px;
+            background: var(--kz-danger);
+            border-radius: 50%;
+            border: 2px solid var(--kz-card-bg);
+            animation: pulse 2s infinite;
+        }
+
+        /* Glassmorphism */
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* Data Table Premium */
+        .table-premium {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .table-premium thead th {
+            background: linear-gradient(135deg, rgba(0, 102, 204, 0.05) 0%, rgba(0, 166, 81, 0.05) 100%);
+            border-bottom: 2px solid var(--kz-primary);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--kz-text-muted);
+            padding: 14px 16px;
+        }
+
+        .table-premium tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        .table-premium tbody tr:hover {
+            background: rgba(0, 102, 204, 0.03);
+        }
+
+        .table-premium td {
+            padding: 14px 16px;
+            vertical-align: middle;
+            border-bottom: 1px solid var(--kz-border);
+        }
+
+        /* Input Range Slider */
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, var(--kz-primary) 0%, var(--kz-border) 0%);
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--kz-primary);
+            cursor: pointer;
+            box-shadow: var(--kz-shadow-sm);
+            transition: all 0.2s ease;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: var(--kz-shadow-md);
+        }
+
+        /* Ripple Effect */
+        .ripple {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ripple::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            background-image: radial-gradient(circle, rgba(255, 255, 255, 0.3) 10%, transparent 10%);
+            background-repeat: no-repeat;
+            background-position: 50%;
+            transform: scale(10);
+            opacity: 0;
+            transition: transform 0.5s, opacity 1s;
+        }
+
+        .ripple:active::after {
+            transform: scale(0);
+            opacity: 0.3;
+            transition: 0s;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .status-badge.success {
+            background: rgba(39, 174, 96, 0.1);
+            color: var(--kz-success);
+        }
+
+        .status-badge.warning {
+            background: rgba(243, 156, 18, 0.1);
+            color: var(--kz-warning);
+        }
+
+        .status-badge.danger {
+            background: rgba(231, 76, 60, 0.1);
+            color: var(--kz-danger);
+        }
+
+        /* Compliance Indicators */
+        .compliance-ok {
+            color: var(--kz-success);
+        }
+
+        .compliance-warning {
+            color: var(--kz-warning);
+        }
+
+        .compliance-fail {
+            color: var(--kz-danger);
+        }
+
+        /* Alerts */
+        .alert {
+            border-radius: 8px;
+            border: none;
+            font-size: 0.875rem;
+        }
+
+        /* Macro Indicators Bar */
+        .macro-bar {
+            display: flex;
+            gap: 24px;
+            padding: 12px 0;
+            font-size: 0.75rem;
+            color: var(--kz-text-muted);
+        }
+
+        .macro-bar .macro-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .macro-bar .macro-value {
+            font-weight: 600;
+            color: var(--kz-text);
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .sidebar {
+                width: 80px;
+            }
+            .sidebar-brand small,
+            .nav-section-title,
+            .nav-link span,
+            .user-panel .user-details,
+            .user-panel .btn-switch-role {
+                display: none;
+            }
+            .sidebar-brand h1 span {
+                display: none;
+            }
+            .nav-link {
+                justify-content: center;
+                padding: 12px;
+            }
+            .nav-link i {
+                margin: 0;
+            }
+            .user-panel {
+                justify-content: center;
+            }
+            .main-content {
+                margin-left: 80px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="sidebar-brand">
+            <h1>
+                <span class="brand-icon"><i class="bi bi-shield-check"></i></span>
+                <span>Alliot</span>
+            </h1>
+            <small>Версия {{ APP_CONFIG.VERSION }}</small>
+        </div>
+
+        <!-- User Panel -->
+        <div class="user-panel">
+            <div class="user-info">
+                {% if session.get('role') == 'arfr' %}
+                <div class="user-avatar role-arfr">А</div>
+                <div class="user-details">
+                    <div class="user-name">АРФР</div>
+                    <div class="user-role">Регулятор</div>
+                </div>
+                {% elif session.get('role') == 'fgsv' %}
+                <div class="user-avatar role-fgsv">Ф</div>
+                <div class="user-details">
+                    <div class="user-name">ФГСВ</div>
+                    <div class="user-role">Фонд гарантирования</div>
+                </div>
+                {% else %}
+                <div class="user-avatar role-insurer">С</div>
+                <div class="user-details">
+                    <div class="user-name">СК КазСтрах</div>
+                    <div class="user-role">Страховая компания</div>
+                </div>
+                {% endif %}
+                <a href="{{ url_for('main.select_role') }}" class="btn-switch-role">
+                    <i class="bi bi-arrow-repeat"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="sidebar-nav">
+            {% if session.get('role') == 'insurer' or not session.get('role') %}
+            <!-- Меню для страховой компании -->
+            <div class="nav-section">
+                <div class="nav-section-title">Расчеты</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.index' %}active{% endif %}" href="{{ url_for('main.index') }}">
+                            <i class="bi bi-speedometer2"></i>
+                            <span>Панель управления</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint in ['main.ifrs9', 'main.ifrs9_advanced'] %}active{% endif %}" href="{{ url_for('main.ifrs9_advanced') }}">
+                            <i class="bi bi-calculator"></i>
+                            <span>МСФО 9 (ECL)</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint in ['main.ifrs17', 'main.ifrs17_advanced'] %}active{% endif %}" href="{{ url_for('main.ifrs17_advanced') }}">
+                            <i class="bi bi-graph-up"></i>
+                            <span>МСФО 17</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.solvency' %}active{% endif %}" href="{{ url_for('main.solvency') }}">
+                            <i class="bi bi-shield-fill-check"></i>
+                            <span>Платежеспособность</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Пакетные расчеты</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint in ['main.calculation_runs', 'main.new_calculation_run', 'main.calculation_run_detail'] %}active{% endif %}" href="{{ url_for('main.calculation_runs') }}">
+                            <i class="bi bi-lightning-charge"></i>
+                            <span>Calculation Runs</span>
+                            <span class="badge bg-success">Enterprise</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Accounting Engine</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint in ['main.accounting_mapping_rules', 'main.new_accounting_rule'] %}active{% endif %}" href="{{ url_for('main.accounting_mapping_rules') }}">
+                            <i class="bi bi-diagram-3"></i>
+                            <span>Правила маппинга</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.chart_of_accounts' %}active{% endif %}" href="{{ url_for('main.chart_of_accounts') }}">
+                            <i class="bi bi-list-ul"></i>
+                            <span>План счетов</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.journal_entries' %}active{% endif %}" href="{{ url_for('main.journal_entries') }}">
+                            <i class="bi bi-journal-text"></i>
+                            <span>Журнал проводок</span>
+                            <span class="badge bg-primary">Sub-ledger</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Реестры и портфели</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.contracts_registry' %}active{% endif %}" href="{{ url_for('main.contracts_registry') }}">
+                            <i class="bi bi-file-earmark-text"></i>
+                            <span>Договоры страхования</span>
+                            <span class="badge bg-primary">МСФО 17</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.instruments_registry' %}active{% endif %}" href="{{ url_for('main.instruments_registry') }}">
+                            <i class="bi bi-bank"></i>
+                            <span>Фин. инструменты</span>
+                            <span class="badge bg-info">МСФО 9</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Отчетность</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.reports' %}active{% endif %}" href="{{ url_for('main.reports') }}">
+                            <i class="bi bi-file-earmark-text"></i>
+                            <span>Отчеты АРФР</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.fgsv' %}active{% endif %}" href="{{ url_for('main.fgsv') }}">
+                            <i class="bi bi-bank"></i>
+                            <span>Взносы ФГСВ</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.audit' %}active{% endif %}" href="{{ url_for('main.audit') }}">
+                            <i class="bi bi-journal-text"></i>
+                            <span>Аудиторский след</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Аналитика Phase 2</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.yield_curves_list' %}active{% endif %}" href="{{ url_for('main.yield_curves_list') }}">
+                            <i class="bi bi-graph-up"></i>
+                            <span>Кривые доходности</span>
+                            <span class="badge bg-info">Новое</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.reinsurance_analysis' %}active{% endif %}" href="{{ url_for('main.reinsurance_analysis') }}">
+                            <i class="bi bi-shield-check"></i>
+                            <span>Анализ перестрахования</span>
+                            <span class="badge bg-success">Net/Gross</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            {% elif session.get('role') == 'arfr' %}
+            <!-- Меню для АРФР -->
+            <div class="nav-section">
+                <div class="nav-section-title">Надзор</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.arfr_dashboard' %}active{% endif %}" href="{{ url_for('main.arfr_dashboard') }}">
+                            <i class="bi bi-speedometer2"></i>
+                            <span>Панель надзора</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.arfr_insurers' %}active{% endif %}" href="{{ url_for('main.arfr_insurers') }}">
+                            <i class="bi bi-building"></i>
+                            <span>Страховые компании</span>
+                            <span class="badge bg-primary">27</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.arfr_reports' %}active{% endif %}" href="{{ url_for('main.arfr_reports') }}">
+                            <i class="bi bi-file-check"></i>
+                            <span>Проверка отчетности</span>
+                            <span class="badge bg-warning">3</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.arfr_violations' %}active{% endif %}" href="{{ url_for('main.arfr_violations') }}">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <span>Нарушения</span>
+                            <span class="badge bg-danger">2</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Аналитика</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.arfr_market' %}active{% endif %}" href="{{ url_for('main.arfr_market') }}">
+                            <i class="bi bi-pie-chart"></i>
+                            <span>Рынок страхования</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.arfr_solvency' %}active{% endif %}" href="{{ url_for('main.arfr_solvency') }}">
+                            <i class="bi bi-shield-check"></i>
+                            <span>Платежеспособность</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.arfr_stress' %}active{% endif %}" href="{{ url_for('main.arfr_stress') }}">
+                            <i class="bi bi-activity"></i>
+                            <span>Стресс-тесты</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            {% elif session.get('role') == 'fgsv' %}
+            <!-- Меню для ФГСВ -->
+            <div class="nav-section">
+                <div class="nav-section-title">Фонд</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.fgsv_dashboard' %}active{% endif %}" href="{{ url_for('main.fgsv_dashboard') }}">
+                            <i class="bi bi-speedometer2"></i>
+                            <span>Панель фонда</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.fgsv_contributions' %}active{% endif %}" href="{{ url_for('main.fgsv_contributions') }}">
+                            <i class="bi bi-cash-stack"></i>
+                            <span>Взносы</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.fgsv_insurers' %}active{% endif %}" href="{{ url_for('main.fgsv_insurers') }}">
+                            <i class="bi bi-building"></i>
+                            <span>Страховщики</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Риски</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.fgsv_bankruptcy' %}active{% endif %}" href="{{ url_for('main.fgsv_bankruptcy') }}">
+                            <i class="bi bi-exclamation-diamond"></i>
+                            <span>Риск банкротства</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.fgsv_payouts' %}active{% endif %}" href="{{ url_for('main.fgsv_payouts') }}">
+                            <i class="bi bi-wallet2"></i>
+                            <span>Выплаты</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.fgsv_simulation' %}active{% endif %}" href="{{ url_for('main.fgsv_simulation') }}">
+                            <i class="bi bi-graph-up-arrow"></i>
+                            <span>Моделирование</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Header -->
+        <header class="top-header">
+            <h1 class="page-title">{% block page_title %}Панель управления{% endblock %}</h1>
+            <div class="header-actions">
+                <div class="header-date">
+                    <i class="bi bi-calendar3"></i>
+                    {{ APP_CONFIG.RELEASE_DATE }}
+                </div>
+                <div class="header-indicator">
+                    <i class="bi bi-check-circle-fill"></i>
+                    Система активна
+                </div>
+            </div>
+        </header>
+
+        <!-- Macro Indicators -->
+        <div class="content-area" style="padding-bottom: 0; padding-top: 16px;">
+            <div class="macro-bar">
+                <div class="macro-item">
+                    <span>Базовая ставка НБК:</span>
+                    <span class="macro-value">{{ macro.base_rate }}%</span>
+                </div>
+                <div class="macro-item">
+                    <span>Инфляция:</span>
+                    <span class="macro-value">{{ macro.inflation }}%</span>
+                </div>
+                <div class="macro-item">
+                    <span>USD/KZT:</span>
+                    <span class="macro-value">{{ macro.usd_kzt }}</span>
+                </div>
+                <div class="macro-item">
+                    <span>МРП:</span>
+                    <span class="macro-value">{{ macro.mrp }} ₸</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div class="content-area">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Mobile sidebar toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.querySelector('.sidebar');
+            const toggleBtn = document.querySelector('.sidebar-toggle');
+
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', function() {
+                    sidebar.classList.toggle('show');
+                });
+            }
+
+            // Initialize KaTeX for math rendering
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false},
+                        {left: '\\[', right: '\\]', display: true},
+                        {left: '\\(', right: '\\)', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+
+            // Add animation classes to elements on scroll
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animate-fadeInUp');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.card, .stat-card').forEach(el => {
+                observer.observe(el);
+            });
+
+            // Smooth number counter animation
+            document.querySelectorAll('.stat-value').forEach(el => {
+                const text = el.innerText;
+                const match = text.match(/[\d,.]+/);
+                if (match) {
+                    el.style.opacity = '0';
+                    setTimeout(() => {
+                        el.style.opacity = '1';
+                        el.style.animation = 'countUp 0.8s ease-out';
+                    }, 200);
+                }
+            });
+
+            // Add ripple effect to buttons
+            document.querySelectorAll('.btn').forEach(button => {
+                button.classList.add('ripple');
+            });
+
+            // Toast notification system
+            window.showToast = function(message, type = 'info') {
+                const toastContainer = document.getElementById('toast-container') || createToastContainer();
+                const toast = document.createElement('div');
+                toast.className = `toast-notification toast-${type}`;
+                toast.innerHTML = `
+                    <i class="bi bi-${type === 'success' ? 'check-circle' : type === 'error' ? 'x-circle' : 'info-circle'}"></i>
+                    <span>${message}</span>
+                `;
+                toastContainer.appendChild(toast);
+
+                setTimeout(() => {
+                    toast.classList.add('show');
+                }, 10);
+
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            };
+
+            function createToastContainer() {
+                const container = document.createElement('div');
+                container.id = 'toast-container';
+                container.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999;';
+                document.body.appendChild(container);
+                return container;
+            }
+        });
+
+        // Format number with spaces for thousands
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+        }
+
+        // Animate progress bars
+        function animateProgressBars() {
+            document.querySelectorAll('.progress-bar').forEach(bar => {
+                const width = bar.getAttribute('aria-valuenow');
+                bar.style.width = '0%';
+                setTimeout(() => {
+                    bar.style.width = width + '%';
+                }, 100);
+            });
+        }
+
+        // Export to Excel simulation
+        function exportToExcel(tableId, filename = 'export') {
+            showToast('Экспорт в Excel начат...', 'info');
+            setTimeout(() => {
+                showToast('Файл ' + filename + '.xlsx успешно сохранен!', 'success');
+            }, 1500);
+        }
+
+        // Export to PDF simulation
+        function exportToPDF(elementId, filename = 'report') {
+            showToast('Генерация PDF отчета...', 'info');
+            setTimeout(() => {
+                showToast('Файл ' + filename + '.pdf успешно создан!', 'success');
+            }, 2000);
+        }
+
+        // Print function
+        function printReport() {
+            window.print();
+        }
+
+        // Copy to clipboard
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Скопировано в буфер обмена', 'success');
+            });
+        }
+
+        // Confirm action
+        function confirmAction(message, callback) {
+            if (confirm(message)) {
+                callback();
+            }
+        }
+
+        // Loading overlay
+        function showLoading() {
+            const overlay = document.createElement('div');
+            overlay.id = 'loading-overlay';
+            overlay.innerHTML = `
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Загрузка...</span>
+                </div>
+            `;
+            overlay.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.8); display: flex; align-items: center; justify-content: center; z-index: 9999;';
+            document.body.appendChild(overlay);
+        }
+
+        function hideLoading() {
+            const overlay = document.getElementById('loading-overlay');
+            if (overlay) overlay.remove();
+        }
+    </script>
+    <style>
+        /* Toast Notifications */
+        .toast-notification {
+            background: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            box-shadow: var(--kz-shadow-lg);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateX(100%);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .toast-notification.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .toast-success {
+            border-left: 4px solid var(--kz-success);
+        }
+
+        .toast-error {
+            border-left: 4px solid var(--kz-danger);
+        }
+
+        .toast-info {
+            border-left: 4px solid var(--kz-primary);
+        }
+
+        .toast-notification i {
+            font-size: 1.2rem;
+        }
+
+        .toast-success i { color: var(--kz-success); }
+        .toast-error i { color: var(--kz-danger); }
+        .toast-info i { color: var(--kz-primary); }
+    </style>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

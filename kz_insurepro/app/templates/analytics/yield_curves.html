@@ -1,0 +1,715 @@
+{% extends "base.html" %}
+
+{% block title %}Кривые доходности - Alliot{% endblock %}
+{% block page_title %}Управление кривыми доходности (Yield Curves){% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>
+            <strong>Кривые доходности:</strong> Инструмент управления кривыми дисконтирования для расчётов PV по IFRS 17.
+            Используются для вычисления PV ожидаемых денежных потоков в BEL, RA и CSM расчётах.
+        </div>
+    </div>
+</div>
+
+<!-- Статистика -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon primary">
+                <i class="bi bi-graph-up"></i>
+            </div>
+            <div class="stat-label">Всего кривых</div>
+            <div class="stat-value" id="total-curves">0</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon success">
+                <i class="bi bi-check-circle"></i>
+            </div>
+            <div class="stat-label">Активных кривых</div>
+            <div class="stat-value" id="active-curves">0</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon info">
+                <i class="bi bi-calendar"></i>
+            </div>
+            <div class="stat-label">Типов кривых</div>
+            <div class="stat-value">3</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon warning">
+                <i class="bi bi-percent"></i>
+            </div>
+            <div class="stat-label">Среднее значение</div>
+            <div class="stat-value" id="avg-rate">-</div>
+        </div>
+    </div>
+</div>
+
+<!-- Кнопка создания новой кривой -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <button class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#createCurveModal">
+            <i class="bi bi-plus-circle me-2"></i>Создать новую кривую
+        </button>
+    </div>
+</div>
+
+<!-- Таблица кривых -->
+<div class="card">
+    <div class="card-header">
+        <div class="row align-items-center">
+            <div class="col">
+                <h5 class="mb-0"><i class="bi bi-list me-2"></i>Доступные кривые доходности</h5>
+            </div>
+            <div class="col-auto">
+                <input type="text" class="form-control form-control-sm" id="curveFilter" placeholder="Поиск по названию...">
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover" id="curvesTable">
+                <thead>
+                    <tr>
+                        <th>Название</th>
+                        <th>Тип</th>
+                        <th>Дата ссылки</th>
+                        <th>Точек</th>
+                        <th>Min/Max ставка</th>
+                        <th>Статус</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody id="curvesTableBody">
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            <i class="bi bi-hourglass-split me-2"></i>Загрузка кривых...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Создание новой кривой -->
+<div class="modal fade" id="createCurveModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Создать новую кривую доходности</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createCurveForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Название кривой <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="curveName" required
+                                   placeholder="например: CHF Risk-Free 2025">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Тип кривой <span class="text-danger">*</span></label>
+                            <select class="form-select" id="curveType" required>
+                                <option value="">Выберите тип...</option>
+                                <option value="RISK_FREE">Risk-Free (без риска)</option>
+                                <option value="CREDIT_SPREAD">Credit Spread (кредитный спред)</option>
+                                <option value="CUSTOMIZED">Customized (пользовательская)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Дата ссылки (Reference Date) <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="referenceDate" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Валюта</label>
+                            <input type="text" class="form-control" id="currency" value="KZT"
+                                   placeholder="KZT, USD, EUR, etc.">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Точки кривой (Сроки и ставки) <span class="text-danger">*</span></label>
+                        <div id="curvePoints">
+                            <div class="row curve-point-row mb-2">
+                                <div class="col-md-6">
+                                    <input type="number" class="form-control point-term" placeholder="Срок (лет)" step="0.5" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="input-group">
+                                        <input type="number" class="form-control point-rate" placeholder="Ставка (%)" step="0.01" required>
+                                        <button type="button" class="btn btn-outline-danger btn-remove-point">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="addPointBtn">
+                            <i class="bi bi-plus-lg me-1"></i>Добавить точку
+                        </button>
+                    </div>
+
+                    <div class="alert alert-secondary small">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>Подсказка:</strong> Добавьте минимум 3 точки кривой для интерполяции.
+                        Сроки должны быть в возрастающем порядке (например: 0.5, 1, 2, 5, 10 лет).
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-primary" id="createCurveBtn">
+                    <i class="bi bi-check-circle me-2"></i>Создать кривую
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Просмотр и редактирование кривой -->
+<div class="modal fade" id="viewCurveModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewCurveTitle">
+                    <i class="bi bi-graph-up me-2"></i>Кривая доходности
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title">Информация о кривой</h6>
+                                <dl class="row mb-0 small">
+                                    <dt class="col-6">Название:</dt>
+                                    <dd class="col-6" id="viewCurveName">-</dd>
+                                    <dt class="col-6">Тип:</dt>
+                                    <dd class="col-6" id="viewCurveType">-</dd>
+                                    <dt class="col-6">Дата ссылки:</dt>
+                                    <dd class="col-6" id="viewCurveDate">-</dd>
+                                    <dt class="col-6">Статус:</dt>
+                                    <dd class="col-6"><span id="viewCurveStatus" class="badge"></span></dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title">Статистика</h6>
+                                <dl class="row mb-0 small">
+                                    <dt class="col-6">Минимальная ставка:</dt>
+                                    <dd class="col-6" id="viewCurveMinRate">-</dd>
+                                    <dt class="col-6">Максимальная ставка:</dt>
+                                    <dd class="col-6" id="viewCurveMaxRate">-</dd>
+                                    <dt class="col-6">Средняя ставка:</dt>
+                                    <dd class="col-6" id="viewCurveAvgRate">-</dd>
+                                    <dt class="col-6">Точек кривой:</dt>
+                                    <dd class="col-6" id="viewCurvePointsCount">-</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- График кривой -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="bi bi-graph-up me-2"></i>График кривой доходности</h6>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="curveChart" height="80"></canvas>
+                    </div>
+                </div>
+
+                <!-- Таблица точек кривой -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="bi bi-table me-2"></i>Точки кривой</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Срок (лет)</th>
+                                        <th>Ставка (%)</th>
+                                        <th>Discount Factor</th>
+                                        <th>Действия</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="curvePointsTable">
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted">Загрузка точек...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <button class="btn btn-sm btn-outline-primary mt-3" id="addNewPointBtn">
+                            <i class="bi bi-plus-lg me-1"></i>Добавить точку
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Интерполяция -->
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="bi bi-calculator me-2"></i>Интерполяция</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Введите срок для интерполяции (лет)</label>
+                                <input type="number" class="form-control" id="interpolationTerm"
+                                       placeholder="например: 3.5" step="0.1">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Результат интерполяции</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="interpolationResult"
+                                           readonly placeholder="Ставка будет вычислена здесь">
+                                    <span class="input-group-text">%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-primary" id="interpolateBtn">
+                            <i class="bi bi-calculator me-1"></i>Интерполировать
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="deactivateCurveBtn" style="display: none;">
+                    <i class="bi bi-x-circle me-1"></i>Деактивировать
+                </button>
+                <button type="button" class="btn btn-success" id="activateCurveBtn" style="display: none;">
+                    <i class="bi bi-check-circle me-1"></i>Активировать
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript -->
+<script>
+const API_BASE = '/api';
+let currentCurveId = null;
+let curveChart = null;
+
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    loadCurves();
+    setupEventListeners();
+    // Устанавливаем сегодняшнюю дату по умолчанию
+    document.getElementById('referenceDate').valueAsDate = new Date();
+});
+
+// Загрузка списка кривых
+async function loadCurves() {
+    try {
+        const response = await fetch(`${API_BASE}/yield-curves`);
+        const data = await response.json();
+
+        if (!data.success) throw new Error(data.message);
+
+        const curves = data.data || [];
+        renderCurvesList(curves);
+        updateStats(curves);
+    } catch (error) {
+        console.error('Error loading curves:', error);
+        showAlert('Ошибка при загрузке кривых', 'danger');
+    }
+}
+
+// Отрисовка таблицы кривых
+function renderCurvesList(curves) {
+    const tbody = document.getElementById('curvesTableBody');
+
+    if (curves.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center text-muted py-4">
+                    <i class="bi bi-inbox me-2"></i>Кривые не созданы.
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#createCurveModal">Создайте первую кривую</a>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = curves.map(curve => {
+        const rates = curve.curve_points || [];
+        const minRate = rates.length > 0 ? Math.min(...rates.map(p => p.rate)).toFixed(3) : '-';
+        const maxRate = rates.length > 0 ? Math.max(...rates.map(p => p.rate)).toFixed(3) : '-';
+        const statusBadge = curve.is_active ?
+            '<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Активна</span>' :
+            '<span class="badge bg-secondary">Неактивна</span>';
+
+        return `
+            <tr>
+                <td><strong>${escapeHtml(curve.curve_name)}</strong></td>
+                <td><small class="badge bg-info">${curve.curve_type}</small></td>
+                <td><small>${new Date(curve.reference_date).toLocaleDateString('ru-RU')}</small></td>
+                <td><span class="badge bg-light text-dark">${rates.length}</span></td>
+                <td><small>${minRate} / ${maxRate}</small></td>
+                <td>${statusBadge}</td>
+                <td>
+                    <button class="btn btn-sm btn-primary" onclick="viewCurve(${curve.id})">
+                        <i class="bi bi-eye me-1"></i>Просмотр
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+// Просмотр кривой
+async function viewCurve(curveId) {
+    currentCurveId = curveId;
+    try {
+        const response = await fetch(`${API_BASE}/yield-curves/${curveId}`);
+        const data = await response.json();
+
+        if (!data.success) throw new Error(data.message);
+
+        const curve = data.data;
+        const rates = curve.curve_points || [];
+
+        // Заполняем информацию о кривой
+        document.getElementById('viewCurveName').textContent = curve.curve_name;
+        document.getElementById('viewCurveType').textContent = curve.curve_type;
+        document.getElementById('viewCurveDate').textContent = new Date(curve.reference_date).toLocaleDateString('ru-RU');
+
+        const statusEl = document.getElementById('viewCurveStatus');
+        statusEl.textContent = curve.is_active ? 'Активна' : 'Неактивна';
+        statusEl.className = `badge ${curve.is_active ? 'bg-success' : 'bg-secondary'}`;
+
+        // Статистика
+        if (rates.length > 0) {
+            const allRates = rates.map(p => p.rate);
+            document.getElementById('viewCurveMinRate').textContent = Math.min(...allRates).toFixed(4) + '%';
+            document.getElementById('viewCurveMaxRate').textContent = Math.max(...allRates).toFixed(4) + '%';
+            document.getElementById('viewCurveAvgRate').textContent = (allRates.reduce((a,b) => a+b) / allRates.length).toFixed(4) + '%';
+        }
+        document.getElementById('viewCurvePointsCount').textContent = rates.length;
+
+        // Таблица точек
+        renderCurvePoints(rates);
+
+        // График
+        renderCurveChart(rates);
+
+        // Кнопки активации/деактивации
+        document.getElementById('activateCurveBtn').style.display = curve.is_active ? 'none' : 'block';
+        document.getElementById('deactivateCurveBtn').style.display = curve.is_active ? 'block' : 'none';
+
+        // Показываем modal
+        new bootstrap.Modal(document.getElementById('viewCurveModal')).show();
+    } catch (error) {
+        console.error('Error viewing curve:', error);
+        showAlert('Ошибка при загрузке кривой', 'danger');
+    }
+}
+
+// Отрисовка точек кривой в таблице
+function renderCurvePoints(points) {
+    const tbody = document.getElementById('curvePointsTable');
+    tbody.innerHTML = points.map(point => {
+        const df = Math.exp(-point.rate / 100 * point.term);
+        return `
+            <tr>
+                <td>${point.term}</td>
+                <td>${point.rate.toFixed(4)}%</td>
+                <td>${df.toFixed(6)}</td>
+                <td>
+                    <button class="btn btn-xs btn-outline-danger" title="Удалить">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+// Отрисовка графика кривой
+function renderCurveChart(points) {
+    const ctx = document.getElementById('curveChart').getContext('2d');
+
+    if (curveChart) {
+        curveChart.destroy();
+    }
+
+    curveChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: points.map(p => p.term + ' лет'),
+            datasets: [{
+                label: 'Ставка доходности (%)',
+                data: points.map(p => p.rate),
+                borderColor: '#0066CC',
+                backgroundColor: 'rgba(0, 102, 204, 0.1)',
+                tension: 0.4,
+                fill: true,
+                pointRadius: 6,
+                pointBackgroundColor: '#0066CC',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: true, position: 'top' }
+            },
+            scales: {
+                y: {
+                    title: { display: true, text: 'Ставка (%)' },
+                    min: 0
+                },
+                x: {
+                    title: { display: true, text: 'Срок (лет)' }
+                }
+            }
+        }
+    });
+}
+
+// Установка обработчиков событий
+function setupEventListeners() {
+    // Добавление точек при создании кривой
+    document.getElementById('addPointBtn').addEventListener('click', function() {
+        const container = document.getElementById('curvePoints');
+        const newRow = document.createElement('div');
+        newRow.className = 'row curve-point-row mb-2';
+        newRow.innerHTML = `
+            <div class="col-md-6">
+                <input type="number" class="form-control point-term" placeholder="Срок (лет)" step="0.5" required>
+            </div>
+            <div class="col-md-6">
+                <div class="input-group">
+                    <input type="number" class="form-control point-rate" placeholder="Ставка (%)" step="0.01" required>
+                    <button type="button" class="btn btn-outline-danger btn-remove-point">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+        newRow.querySelector('.btn-remove-point').addEventListener('click', function() {
+            newRow.remove();
+        });
+        container.appendChild(newRow);
+    });
+
+    // Удаление точек
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.btn-remove-point')) {
+            e.target.closest('.curve-point-row').remove();
+        }
+    });
+
+    // Создание кривой
+    document.getElementById('createCurveBtn').addEventListener('click', createCurve);
+
+    // Интерполяция
+    document.getElementById('interpolateBtn').addEventListener('click', interpolateCurve);
+
+    // Активация/деактивация
+    document.getElementById('activateCurveBtn').addEventListener('click', () => toggleCurveActive(true));
+    document.getElementById('deactivateCurveBtn').addEventListener('click', () => toggleCurveActive(false));
+
+    // Фильтр поиска
+    document.getElementById('curveFilter').addEventListener('keyup', function() {
+        const filter = this.value.toLowerCase();
+        document.querySelectorAll('#curvesTable tbody tr').forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(filter) ? '' : 'none';
+        });
+    });
+}
+
+// Создание новой кривой
+async function createCurve() {
+    const form = document.getElementById('createCurveForm');
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+
+    const points = [];
+    document.querySelectorAll('.curve-point-row').forEach(row => {
+        const term = parseFloat(row.querySelector('.point-term').value);
+        const rate = parseFloat(row.querySelector('.point-rate').value);
+        if (!isNaN(term) && !isNaN(rate)) {
+            points.push({ term, rate });
+        }
+    });
+
+    if (points.length < 3) {
+        showAlert('Требуется минимум 3 точки кривой', 'warning');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE}/yield-curves`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                curve_name: document.getElementById('curveName').value,
+                curve_type: document.getElementById('curveType').value,
+                reference_date: document.getElementById('referenceDate').value,
+                currency: document.getElementById('currency').value,
+                curve_points: points
+            })
+        });
+
+        const data = await response.json();
+        if (!data.success) throw new Error(data.message);
+
+        showAlert('Кривая успешно создана', 'success');
+        form.reset();
+        document.getElementById('createCurveModal').style.display = 'none';
+        bootstrap.Modal.getInstance(document.getElementById('createCurveModal')).hide();
+        loadCurves();
+    } catch (error) {
+        console.error('Error creating curve:', error);
+        showAlert('Ошибка при создании кривой: ' + error.message, 'danger');
+    }
+}
+
+// Интерполяция
+async function interpolateCurve() {
+    const term = parseFloat(document.getElementById('interpolationTerm').value);
+    if (isNaN(term)) {
+        showAlert('Введите корректный срок', 'warning');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE}/yield-curves/${currentCurveId}/rate?term=${term}`);
+        const data = await response.json();
+
+        if (!data.success) throw new Error(data.message);
+
+        const result = document.getElementById('interpolationResult');
+        result.value = data.data.rate.toFixed(4);
+    } catch (error) {
+        console.error('Error interpolating:', error);
+        showAlert('Ошибка при интерполяции', 'danger');
+    }
+}
+
+// Активация/деактивация кривой
+async function toggleCurveActive(activate) {
+    try {
+        const response = await fetch(`${API_BASE}/yield-curves/${currentCurveId}/set-active`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ is_active: activate })
+        });
+
+        const data = await response.json();
+        if (!data.success) throw new Error(data.message);
+
+        showAlert('Статус кривой обновлён', 'success');
+        bootstrap.Modal.getInstance(document.getElementById('viewCurveModal')).hide();
+        loadCurves();
+    } catch (error) {
+        console.error('Error toggling curve:', error);
+        showAlert('Ошибка при обновлении статуса', 'danger');
+    }
+}
+
+// Обновление статистики
+function updateStats(curves) {
+    document.getElementById('total-curves').textContent = curves.length;
+    document.getElementById('active-curves').textContent = curves.filter(c => c.is_active).length;
+
+    const allRates = curves.flatMap(c => (c.curve_points || []).map(p => p.rate));
+    const avgRate = allRates.length > 0 ? (allRates.reduce((a,b) => a+b) / allRates.length).toFixed(3) : '-';
+    document.getElementById('avg-rate').textContent = avgRate + (avgRate !== '-' ? '%' : '');
+}
+
+// Вспомогательные функции
+function showAlert(message, type = 'info') {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.insertBefore(alertDiv, document.body.firstChild);
+    setTimeout(() => alertDiv.remove(), 5000);
+}
+
+function escapeHtml(text) {
+    const map = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'};
+    return text.replace(/[&<>"']/g, m => map[m]);
+}
+</script>
+
+<style>
+.stat-card {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin-right: 20px;
+    color: white;
+}
+
+.stat-icon.primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.stat-icon.success { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+.stat-icon.info { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+.stat-icon.warning { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+
+.stat-label {
+    font-size: 12px;
+    color: #6C7A89;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1A1D23;
+    margin-top: 8px;
+}
+</style>
+
+{% endblock %}
