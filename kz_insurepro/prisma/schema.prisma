@@ -1,0 +1,501 @@
+// Prisma schema for KZ-InsurePro Phase 2
+// PostgreSQL database with multi-tenant partitioning
+// Reference: Phase 1 CoreEngine (IFRS 9/17/Solvency)
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-py"
+}
+
+// =============================================================================
+// ENUMS
+// =============================================================================
+
+enum InsuranceType {
+  LIFE
+  NON_LIFE
+  HEALTH
+  ANNUITY
+}
+
+enum MeasurementModel {
+  GMM  // General Measurement Model
+  VFA  // Variable Fee Approach
+  PAA  // Premium Allocation Approach
+}
+
+enum ContractStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  CLAIMED
+}
+
+enum ECLStage {
+  STAGE_1  // 12-month ECL
+  STAGE_2  // Lifetime ECL (SICR)
+  STAGE_3  // Credit-impaired
+}
+
+enum CalculationStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  PARTIAL
+}
+
+enum UserRole {
+  ADMIN
+  ACTUARY
+  AUDITOR
+  ANALYST
+  VIEWER
+}
+
+// =============================================================================
+// MULTI-TENANT CORE
+// =============================================================================
+
+model Tenant {
+  id                    String   @id @default(cuid())
+  code                  String   @unique  // e.g., "bank_abc", "insurer_xyz"
+  name_kz               String
+  name_en               String?
+  currency              String   @default("KZT")
+
+  // Regulatory settings
+  regulator             String   @default("ARRF")  // Agency for Regulation
+  nbrb_discount_rate    Decimal  @default(0.05)
+  inflation_rate        Decimal  @default(0.085)
+
+  // Data residency
+  data_center_location  String   @default("Astana")  // KZ compliance
+
+  // Subscription
+  subscription_tier     String   @default("professional")  // basic, professional, enterprise
+  max_calculation_runs  Int      @default(1000)
+  max_portfolio_size    Int      @default(50000)  // loans
+
+  // Timestamps
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
+
+  // Relations
+  users                 User[]
+  portfolios            Portfolio[]
+  calculation_runs      CalculationRun[]
+  audit_logs            AuditLog[]
+
+  @@index([code])
+}
+
+model User {
+  id                    String   @id @default(cuid())
+  tenant_id             String
+  email                 String
+  name_kz               String
+  name_en               String?
+  password_hash         String
+
+  role                  UserRole @default(VIEWER)
+  is_active             Boolean  @default(true)
+
+  // Last access for audit
+  last_login_at         DateTime?
+  last_activity_at      DateTime @default(now())
+
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
+
+  tenant                Tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+
+  @@unique([tenant_id, email])
+  @@index([tenant_id])
+  @@index([email])
+}
+
+// =============================================================================
+// PORTFOLIO & CALCULATIONS
+// =============================================================================
+
+model Portfolio {
+  id                    String   @id @default(cuid())
+  tenant_id             String
+  name                  String
+  description           String?
+
+  // Portfolio metadata
+  reporting_date        DateTime
+  currency              String   @default("KZT")
+
+  // Status
+  is_active             Boolean  @default(true)
+
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
+
+  tenant                Tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+
+  // Relations
+  loans                 CreditLoan[]
+  contracts             InsuranceContract[]
+  calculation_runs      CalculationRun[]
+
+  @@index([tenant_id])
+  @@index([reporting_date])
+}
+
+// =============================================================================
+// LOANS (IFRS 9 - ECL)
+// =============================================================================
+
+model CreditLoan {
+  id                    String   @id @default(cuid())
+  portfolio_id          String
+  tenant_id             String
+  external_id           String   // Reference to source system
+
+  // Exposure data
+  ead                   Decimal  // Exposure at Default (KZT)
+  pd                    Decimal  // Probability of Default (0-1)
+  lgd                   Decimal  // Loss Given Default (0-1)
+
+  // Stage classification (IFRS 9)
+  stage                 ECLStage @default(STAGE_1)
+  days_past_due         Int      @default(0)
+
+  // Loan details
+  origination_date      DateTime
+  maturity_date         DateTime
+  sector                String   // e.g., "retail", "corporate", "agriculture"
+
+  // Market data
+  country_code          String   @default("KZ")
+  currency              String   @default("KZT")
+
+  // Audit
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
+  last_modified_by      String?  // User ID
+
+  portfolio             Portfolio @relation(fields: [portfolio_id], references: [id], onDelete: Cascade)
+
+  ecl_calculations      ECLCalculation[]
+  audit_trail           AuditLog[]
+
+  @@index([portfolio_id])
+  @@index([tenant_id])
+  @@index([stage])
+  @@index([external_id])
+}
+
+// =============================================================================
+// CONTRACTS (IFRS 17 - INSURANCE LIABILITIES)
+// =============================================================================
+
+model InsuranceContract {
+  id                    String   @id @default(cuid())
+  portfolio_id          String
+  tenant_id             String
+  external_id           String   // Reference to policy system
+
+  // Contract classification
+  type                  InsuranceType
+  measurement_model     MeasurementModel @default(GMM)
+  status                ContractStatus @default(ACTIVE)
+
+  // Cohort grouping (for IFRS 17)
+  cohort_id             String   // e.g., "2024-life-cohort-1"
+  cohort_group          String   // e.g., "2024-life"
+
+  // Coverage and premium
+  coverage_units        Decimal  // Units of coverage
+  annual_premium        Decimal  // KZT
+  annual_claims_expected Decimal
+  annual_expenses       Decimal
+  acquisition_costs     Decimal
+
+  // Terms
+  inception_date        DateTime
+  maturity_date         DateTime
+  contract_term_years   Int
+
+  // Financial assumptions
+  discount_rate         Decimal  @default(0.05)
+
+  // Audit
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
+
+  portfolio             Portfolio @relation(fields: [portfolio_id], references: [id], onDelete: Cascade)
+
+  ifrs17_calculations   IFRS17Calculation[]
+  audit_trail           AuditLog[]
+
+  @@index([portfolio_id])
+  @@index([tenant_id])
+  @@index([cohort_id])
+  @@index([status])
+}
+
+// =============================================================================
+// CALCULATION RESULTS (PHASE 1 OUTPUT STORAGE)
+// =============================================================================
+
+model CalculationRun {
+  id                    String   @id @default(cuid())
+  job_id                String   @unique  // UUID from Phase 1 CoreEngine
+  tenant_id             String
+  portfolio_id          String
+
+  // Status and timing
+  status                CalculationStatus @default(PENDING)
+  started_at            DateTime?
+  completed_at          DateTime?
+  processing_time_ms    Int?
+
+  // Input hash for audit trail
+  input_hash            String   // SHA256
+
+  // Results summary (stored as JSON for flexibility)
+  results_json          Json?
+
+  // Compliance status
+  compliance_status     String?  // "compliant", "warning", "error"
+
+  // Lineage
+  created_by            String?  // User ID
+  created_at            DateTime @default(now())
+
+  tenant                Tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  portfolio             Portfolio @relation(fields: [portfolio_id], references: [id], onDelete: Cascade)
+
+  ecl_results           ECLCalculation[]
+  ifrs17_results        IFRS17Calculation[]
+  solvency_results      SolvencyCalculation[]
+
+  @@index([tenant_id])
+  @@index([portfolio_id])
+  @@index([job_id])
+  @@index([status])
+  @@index([created_at])
+}
+
+// =============================================================================
+// ECL CALCULATIONS (IFRS 9)
+// =============================================================================
+
+model ECLCalculation {
+  id                    String   @id @default(cuid())
+  calculation_run_id    String
+  loan_id               String
+  tenant_id             String
+
+  // ECL components
+  total_ecl             Decimal  // KZT
+  stage_1_ecl           Decimal
+  stage_2_ecl           Decimal
+  stage_3_ecl           Decimal
+
+  // Coverage metrics
+  coverage_ratio        Decimal  // ECL / EAD
+  weighted_pd           Decimal
+  weighted_lgd          Decimal
+  macro_impact          Decimal  // Inflation adjustment
+
+  // Validation
+  is_compliant          Boolean  @default(true)
+  warnings              String?
+
+  created_at            DateTime @default(now())
+
+  calculation_run       CalculationRun @relation(fields: [calculation_run_id], references: [id], onDelete: Cascade)
+  loan                  CreditLoan @relation(fields: [loan_id], references: [id], onDelete: Cascade)
+
+  @@index([calculation_run_id])
+  @@index([loan_id])
+  @@index([tenant_id])
+}
+
+// =============================================================================
+// IFRS 17 CALCULATIONS
+// =============================================================================
+
+model IFRS17Calculation {
+  id                    String   @id @default(cuid())
+  calculation_run_id    String
+  contract_id           String
+  tenant_id             String
+
+  cohort_id             String   // For grouping
+
+  // Components (per cohort)
+  total_bel             Decimal  // Best Estimate Liability (KZT)
+  total_ra              Decimal  // Risk Adjustment
+  total_csm             Decimal  // Contractual Service Margin
+
+  total_liability       Decimal  // BEL + RA
+
+  // Risk metrics
+  ra_confidence_level   Decimal  @default(0.75)  // 75th percentile
+
+  // Onerous detection
+  is_onerous            Boolean  @default(false)
+
+  // Reinsurance
+  reinsurance_impact    Decimal  @default(0.0)
+
+  // Validation
+  warnings              String?
+
+  created_at            DateTime @default(now())
+
+  calculation_run       CalculationRun @relation(fields: [calculation_run_id], references: [id], onDelete: Cascade)
+  contract              InsuranceContract @relation(fields: [contract_id], references: [id], onDelete: Cascade)
+
+  @@index([calculation_run_id])
+  @@index([contract_id])
+  @@index([cohort_id])
+  @@index([tenant_id])
+}
+
+// =============================================================================
+// SOLVENCY CALCULATIONS (ARRF R)
+// =============================================================================
+
+model SolvencyCalculation {
+  id                    String   @id @default(cuid())
+  calculation_run_id    String
+  tenant_id             String
+
+  // Capital components (KZT)
+  market_scr            Decimal  // Market SCR
+  credit_scr            Decimal  // Credit SCR
+  operational_scr       Decimal  // Operational SCR
+  total_scr             Decimal  // √(Market² + Credit² + Op²)
+
+  own_funds             Decimal  // Total capital
+  mmp                   Decimal  // Minimum capital requirement
+
+  // Ratio and compliance
+  solvency_ratio        Decimal  // own_funds / SCR
+  is_compliant          Boolean  @default(true)
+
+  // Stress scenarios (stored as JSON)
+  stress_scenarios      Json?
+
+  created_at            DateTime @default(now())
+
+  calculation_run       CalculationRun @relation(fields: [calculation_run_id], references: [id], onDelete: Cascade)
+
+  @@index([calculation_run_id])
+  @@index([tenant_id])
+}
+
+// =============================================================================
+// AUDIT & COMPLIANCE
+// =============================================================================
+
+model AuditLog {
+  id                    String   @id @default(cuid())
+  tenant_id             String
+
+  // Event details
+  entity_type           String   // "Loan", "Contract", "CalculationRun"
+  entity_id             String   // ID of affected entity
+  action                String   // "CREATE", "UPDATE", "DELETE", "CALCULATE"
+
+  // User info
+  user_id               String?
+  user_email            String?
+
+  // Changes (JSON for flexibility)
+  old_values            Json?
+  new_values            Json?
+
+  // Timestamp
+  created_at            DateTime @default(now())
+
+  tenant                Tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  loan                  CreditLoan? @relation(fields: [entity_id], references: [id], onDelete: SetNull)
+  contract              InsuranceContract? @relation(fields: [entity_id], references: [id], onDelete: SetNull)
+
+  @@index([tenant_id])
+  @@index([entity_type, entity_id])
+  @@index([created_at])
+  @@index([user_email])
+}
+
+// =============================================================================
+// ML MODELS (PHASE 2B - PD Prediction)
+// =============================================================================
+
+model MLModel {
+  id                    String   @id @default(cuid())
+  tenant_id             String
+
+  name                  String   // e.g., "PD_LGD_v1.0"
+  model_type            String   // "logistic_regression", "lstm", "xgboost"
+  version               String
+
+  // Performance metrics
+  accuracy              Decimal?
+  auc_roc               Decimal?
+  training_samples      Int?
+
+  // Model storage
+  model_path            String   // S3 or local path
+  config_json           Json?
+
+  // Status
+  is_active             Boolean  @default(false)
+  deployed_at           DateTime?
+
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
+
+  @@index([tenant_id])
+  @@index([model_type])
+}
+
+// =============================================================================
+// API TOKENS & INTEGRATIONS
+// =============================================================================
+
+model APIKey {
+  id                    String   @id @default(cuid())
+  tenant_id             String
+
+  name                  String
+  key_hash              String   @unique  // SHA256(key)
+
+  // Permissions
+  scopes                String[] @default(["read:portfolio", "write:calculation"])
+
+  // Rate limiting
+  rate_limit_per_hour   Int      @default(100)
+  last_used_at          DateTime?
+
+  is_active             Boolean  @default(true)
+
+  created_at            DateTime @default(now())
+  expires_at            DateTime?
+
+  @@index([tenant_id])
+  @@index([key_hash])
+}
+
+// =============================================================================
+// INDEXES FOR PARTITIONING & PERFORMANCE
+// =============================================================================
+// Note: Actual PostgreSQL partitioning by tenant_id should be configured
+// in migration scripts or directly in database.
+//
+// Example:
+// CREATE TABLE credit_loan_tenant_abc PARTITION OF credit_loan
+//   FOR VALUES IN ('tenant_abc');

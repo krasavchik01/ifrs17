@@ -27,6 +27,7 @@ from app.services.core_engine import (
     ContractInput,
     RiskInput,
 )
+from app.services.database_service import database_service
 from config import format_currency, format_percent
 
 calc_bp = Blueprint("calculate", __name__, url_prefix="/api/calculate")
@@ -170,6 +171,28 @@ def calculate_suite():
             "results": result.to_dict(),
             "processing_time_ms": result.processing_time_ms,
         }
+
+        # Store in database (Phase 2)
+        try:
+            database_service.store_calculation_result(
+                job_id=result.job_id,
+                tenant_id=payload.tenant_id,
+                portfolio_id=data.get("portfolio_id", "default"),
+                payload=data,
+                result=response["results"],
+                processing_time_ms=result.processing_time_ms,
+            )
+            # Create audit log
+            database_service.create_audit_log(
+                tenant_id=payload.tenant_id,
+                entity_type="CalculationRun",
+                entity_id=result.job_id,
+                action="CALCULATE",
+                user_email=data.get("user_email", "api_user"),
+                new_values={"status": result.compliance.status()},
+            )
+        except Exception as e:
+            logger.warning(f"Failed to store calculation in database: {str(e)}")
 
         # Log for audit trail
         logger.info(f"[{result.job_id}] Calculation complete. Status: {result.compliance.status()}. "
