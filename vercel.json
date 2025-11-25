@@ -1,9 +1,11 @@
 {
-  "buildCommand": "npm run build",
+  "buildCommand": "npm install && npm run build",
   "outputDirectory": ".next",
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "framework": "nextjs",
   "regions": ["iad1"],
-  "ignoreCommand": "git check-ignore -q $FILE || exit 0"
+  "env": {
+    "NODE_ENV": "production"
+  }
 }
