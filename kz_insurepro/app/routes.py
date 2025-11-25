@@ -78,6 +78,14 @@ def index():
                           APP_CONFIG=APP_CONFIG)
 
 
+@main_bp.route('/help')
+def help_guide():
+    """Справка и руководство по использованию системы"""
+    return render_template('help_guide.html',
+                          macro=MACRO_INDICATORS_2025,
+                          APP_CONFIG=APP_CONFIG)
+
+
 @main_bp.route('/ifrs9/advanced')
 def ifrs9_advanced():
     """Расширенный анализ ECL с регрессией, стресс-тестами и импортом"""

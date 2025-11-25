@@ -1484,6 +1484,18 @@
                     </li>
                 </ul>
             </div>
+
+            <!-- Help Section (for all roles) -->
+            <div class="nav-section border-top pt-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.help_guide' %}active{% endif %}" href="{{ url_for('main.help_guide') }}">
+                            <i class="bi bi-question-circle"></i>
+                            <span>Справка и руководство</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
             {% endif %}
         </div>
     </nav>
