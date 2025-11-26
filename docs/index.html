@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alliot - Комплексная Регуляторная Система для Страхового Рынка</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --dark-bg: #0f172a;
+            --light-bg: #f8fafc;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Hero Section */
+        .hero-section {
+            min-height: 100vh;
+            background: var(--dark-bg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-gradient {
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: var(--primary-gradient);
+            opacity: 0.1;
+            animation: gradientShift 15s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { transform: translate(-25%, -25%) rotate(0deg); }
+            50% { transform: translate(-25%, -25%) rotate(180deg); }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            padding: 120px 0 80px;
+        }
+
+        .hero-title {
+            font-size: 4rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 0%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+        }
+
+        .hero-subtitle {
+            font-size: 1.5rem;
+            color: #cbd5e1;
+            margin-bottom: 2rem;
+            font-weight: 300;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 3rem;
+            margin-top: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            background: var(--success-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Pain Points Section */
+        .pain-section {
+            padding: 100px 0;
+            background: var(--light-bg);
+        }
+
+        .pain-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+            height: 100%;
+            border-left: 4px solid transparent;
+        }
+
+        .pain-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+        }
+
+        .pain-card.critical { border-left-color: #ef4444; }
+        .pain-card.major { border-left-color: #f59e0b; }
+        .pain-card.moderate { border-left-color: #3b82f6; }
+
+        .pain-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .pain-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #1e293b;
+        }
+
+        .pain-description {
+            color: #64748b;
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+        }
+
+        .pain-metric {
+            background: #fef2f2;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .pain-metric strong {
+            color: #dc2626;
+            font-size: 1.8rem;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        /* Solution Section */
+        .solution-section {
+            padding: 100px 0;
+            background: white;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 40px;
+            color: white;
+            height: 100%;
+            transition: transform 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 200px;
+            height: 200px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            transform: translate(50%, -50%);
+        }
+
+        .feature-card:hover {
+            transform: scale(1.05);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .feature-benefit {
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 1.5rem;
+        }
+
+        .feature-benefit strong {
+            font-size: 2rem;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        /* Pricing Section */
+        .pricing-section {
+            padding: 100px 0;
+            background: var(--dark-bg);
+            color: white;
+        }
+
+        .pricing-card {
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 50px 40px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+            height: 100%;
+        }
+
+        .pricing-card:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.3);
+            transform: scale(1.05);
+        }
+
+        .pricing-tier {
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 1rem;
+            opacity: 0.8;
+        }
+
+        .pricing-amount {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .pricing-period {
+            opacity: 0.7;
+            margin-bottom: 2rem;
+        }
+
+        .pricing-features {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 2rem;
+        }
+
+        .pricing-features li {
+            padding: 12px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .pricing-features li i {
+            color: #10b981;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            padding: 100px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+        }
+
+        .cta-title {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+        }
+
+        .cta-subtitle {
+            font-size: 1.3rem;
+            margin-bottom: 3rem;
+            opacity: 0.9;
+        }
+
+        .btn-cta {
+            background: white;
+            color: #667eea;
+            padding: 20px 50px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            border-radius: 50px;
+            border: none;
+            transition: all 0.3s;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            cursor: pointer;
+        }
+
+        .btn-cta:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            color: #764ba2;
+        }
+
+        /* Animation */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s, transform 0.8s;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-title { font-size: 2.5rem; }
+            .hero-subtitle { font-size: 1.2rem; }
+            .hero-stats { flex-direction: column; gap: 1.5rem; }
+            .stat-number { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top" style="background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px);">
+        <div class="container">
+            <a class="navbar-brand fw-bold fs-3" href="#home">
+                <i class="bi bi-shield-check"></i> RB Partners IT Audit
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="#features">Возможности</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#pricing">Цены</a></li>
+                    <li class="nav-item ms-3">
+                        <button type="button" class="btn btn-light px-4" data-bs-toggle="modal" data-bs-target="#demoModal">
+                            Запрос демо <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section" id="home">
+        <div class="hero-gradient"></div>
+        <div class="container hero-content">
+            <div class="row align-items-center">
+                <div class="col-lg-7">
+                    <h1 class="hero-title fade-in">Alliot</h1>
+                    <p class="hero-subtitle fade-in">Комплексная Регуляторная Система для Страхового Рынка Казахстана</p>
+                    <p class="text-white-50 mb-4 fade-in" style="font-size: 1.1rem;">
+                        Единая платформа для страховых компаний, АРФР и ФГСВ. <br>
+                        Автоматизация расчетов МСФО 17, МСФО 9, платежеспособности и регуляторной отчетности.
+                    </p>
+                    <div class="d-flex gap-3 mb-4 fade-in">
+                        <button class="btn btn-light btn-lg px-5" data-bs-toggle="modal" data-bs-target="#demoModal">
+                            <i class="bi bi-play-circle"></i> Запрос демо версии
+                        </button>
+                        <a href="#pricing" class="btn btn-outline-light btn-lg px-5">
+                            <i class="bi bi-tag"></i> Цены
+                        </a>
+                    </div>
+                    <div class="hero-stats fade-in">
+                        <div class="stat-item">
+                            <div class="stat-number">95%</div>
+                            <div class="stat-label">Сокращение времени</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">100%</div>
+                            <div class="stat-label">Соответствие АРФР</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">6 месяцев</div>
+                            <div class="stat-label">Полное внедрение</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">2-3 мес</div>
+                            <div class="stat-label">Пилот</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-5 text-center fade-in">
+                    <i class="bi bi-shield-shaded" style="font-size: 25rem; color: rgba(167,139,250,0.2);"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Solution Section -->
+    <section class="solution-section" id="features">
+        <div class="container">
+            <div class="text-center mb-5 fade-in">
+                <h2 class="display-4 fw-bold mb-3">Как Alliot решает эти проблемы</h2>
+                <p class="lead text-muted">Автоматизация, точность и соответствие требованиям</p>
+            </div>
+
+            <div class="row g-4 mb-5">
+                <div class="col-lg-4 fade-in">
+                    <div class="feature-card">
+                        <div class="feature-icon">🚀</div>
+                        <h3 class="feature-title">Автоматизация 95% расчетов</h3>
+                        <p>
+                            Загрузили портфель договоров → нажали кнопку → получили полные расчеты
+                            МСФО 17 (BEL, RA, CSM), МСФО 9 (ECL по стадиям), платежеспособности (ММП, ФМП, Нмп).
+                        </p>
+                        <div class="feature-benefit">
+                            <strong>С 200 часов → 10 часов</strong>
+                            <span>время на расчеты в месяц</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 fade-in">
+                    <div class="feature-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                        <div class="feature-icon">✅</div>
+                        <h3 class="feature-title">100% соответствие АРФР</h3>
+                        <p>
+                            Все формулы и требования Постановления АРФР №304, автоматическая проверка
+                            лимитов, встроенные шаблоны отчетов, валидация данных перед отправкой.
+                        </p>
+                        <div class="feature-benefit">
+                            <strong>0 штрафов</strong>
+                            <span>за ошибки в расчетах</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 fade-in">
+                    <div class="feature-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                        <div class="feature-icon">🎯</div>
+                        <h3 class="feature-title">Единый источник истины</h3>
+                        <p>
+                            Все расчеты из ОДНОЙ базы данных. ECL, CSM, платежеспособность -
+                            все цифры сходятся идеально. Полный аудиторский след каждого изменения.
+                        </p>
+                        <div class="feature-benefit">
+                            <strong>100% точность</strong>
+                            <span>одинаковые цифры везде</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-3 fade-in">
+                    <div class="text-center p-4 bg-light rounded-4">
+                        <i class="bi bi-lightning-charge-fill display-3 text-warning mb-3"></i>
+                        <h4 class="fw-bold">Быстрое внедрение</h4>
+                        <p class="text-muted">Пилот 2-3 месяца, полное внедрение 6 месяцев</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 fade-in">
+                    <div class="text-center p-4 bg-light rounded-4">
+                        <i class="bi bi-graph-up-arrow display-3 text-success mb-3"></i>
+                        <h4 class="fw-bold">ROI за 3 месяца</h4>
+                        <p class="text-muted">Экономия на зарплатах и штрафах</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 fade-in">
+                    <div class="text-center p-4 bg-light rounded-4">
+                        <i class="bi bi-shield-fill-check display-3 text-primary mb-3"></i>
+                        <h4 class="fw-bold">Безопасность</h4>
+                        <p class="text-muted">Шифрование, аудит, резервное копирование</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 fade-in">
+                    <div class="text-center p-4 bg-light rounded-4">
+                        <i class="bi bi-headset display-3 text-info mb-3"></i>
+                        <h4 class="fw-bold">Поддержка 24/7</h4>
+                        <p class="text-muted">Команда экспертов всегда на связи</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="pricing-section" id="pricing">
+        <div class="container">
+            <div class="text-center mb-5 fade-in">
+                <h2 class="display-4 fw-bold mb-3">Прозрачные цены</h2>
+                <p class="lead" style="opacity: 0.9;">Выберите тариф в зависимости от размера компании</p>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-12">
+                    <div class="text-center">
+                        <h4 class="mb-4"><i class="bi bi-hammer"></i> Внедрение и Интеграция (единоразово)</h4>
+                        <p class="text-muted mb-4">Полное развертывание, настройка и обучение персонала</p>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 fade-in">
+                    <div class="pricing-card">
+                        <div class="pricing-tier">Малые компании</div>
+                        <div class="pricing-amount">150 млн ₸</div>
+                        <div class="pricing-period">единоразово</div>
+                        <ul class="pricing-features">
+                            <li><i class="bi bi-check-circle-fill"></i> Полное внедрение системы</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Интеграция с 1С и АСП</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Обучение 5-10 человек</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Настройка отчетности</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Техническая поддержка 3 мес</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Документация</li>
+                        </ul>
+                        <div class="text-muted small">
+                            Для компаний с премией до 500 млн ₸/год
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 fade-in">
+                    <div class="pricing-card">
+                        <div class="pricing-tier">Крупные компании</div>
+                        <div class="pricing-amount">250 млн ₸</div>
+                        <div class="pricing-period">единоразово</div>
+                        <ul class="pricing-features">
+                            <li><i class="bi bi-check-circle-fill"></i> Полное внедрение системы</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Расширенная интеграция</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Обучение 10-25 человек</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Кастомные отчеты</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Техническая поддержка 6 мес</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Консультации архитектора</li>
+                        </ul>
+                        <div class="text-muted small">
+                            Для компаний с премией 500млн - 5млрд ₸/год
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 fade-in">
+                    <div class="pricing-card">
+                        <div class="badge bg-warning text-dark mb-3 px-3 py-2">ПРЕМИУМ</div>
+                        <div class="pricing-tier">Большие компании</div>
+                        <div class="pricing-amount">400 млн ₸</div>
+                        <div class="pricing-period">единоразово</div>
+                        <ul class="pricing-features">
+                            <li><i class="bi bi-check-circle-fill"></i> Полная кастомизация</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Выделенная инфраструктура</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Обучение неограниченно</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Выделенный архитектор</li>
+                            <li><i class="bi bi-check-circle-fill"></i> Техническая поддержка 12 мес</li>
+                            <li><i class="bi bi-check-circle-fill"></i> On-premise опция</li>
+                        </ul>
+                        <div class="text-muted small">
+                            Для компаний с премией более 5млрд ₸/год
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container fade-in">
+            <h2 class="cta-title">Готовы начать?</h2>
+            <p class="cta-subtitle">Присоединяйтесь к страховым компаниям, которые уже автоматизировали свою отчетность</p>
+            <button class="btn btn-cta" data-bs-toggle="modal" data-bs-target="#demoModal">
+                <i class="bi bi-rocket-takeoff"></i> Запросить демо версию
+            </button>
+            <p class="mt-4" style="opacity: 0.8;">
+                Персонализированная демо • Пилот за 2-3 месяца • Поддержка 24/7
+            </p>
+        </div>
+    </section>
+
+    <!-- Demo Request Modal -->
+    <div class="modal fade" id="demoModal" tabindex="-1" aria-labelledby="demoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title" id="demoModalLabel">Запросить демо версию Alliot</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body pt-2">
+                    <p class="text-muted mb-4">Заполните форму и мы свяжемся с вами в течение 24 часов для персонализированной демонстрации</p>
+                    <form id="demoForm">
+                        <div class="mb-3">
+                            <label for="demoEmail" class="form-label">Email <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" id="demoEmail" name="email" required placeholder="your@company.com">
+                            <small class="text-muted">Мы отправим вам доступ к демо версии</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="demoName" class="form-label">Имя</label>
+                            <input type="text" class="form-control" id="demoName" name="name" placeholder="Ваше имя">
+                        </div>
+                        <div class="mb-3">
+                            <label for="demoPhone" class="form-label">Номер телефона</label>
+                            <input type="tel" class="form-control" id="demoPhone" name="phone" placeholder="+7 (XXX) XXX-XX-XX">
+                        </div>
+                        <div class="mb-4">
+                            <label for="demoCompany" class="form-label">Компания</label>
+                            <input type="text" class="form-control" id="demoCompany" name="company" placeholder="Название вашей компании">
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 btn-lg">
+                            <i class="bi bi-send"></i> Отправить запрос
+                        </button>
+                    </form>
+                    <p class="text-center text-muted small mt-3">
+                        Мы уважаем вашу конфиденциальность. Ваши данные не будут переданы третьим лицам.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="py-5 bg-dark text-white">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <h4 class="mb-3"><i class="bi bi-shield-check"></i> Alliot</h4>
+                    <p class="text-white-50">
+                        Комплексная Регуляторная Система для страхового рынка Казахстана.
+                        Автоматизация МСФО 17, МСФО 9 и платежеспособности.
+                    </p>
+                </div>
+                <div class="col-lg-2 mb-4">
+                    <h5 class="mb-3">Продукт</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="#features" class="text-white-50 text-decoration-none">Возможности</a></li>
+                        <li class="mb-2"><a href="#pricing" class="text-white-50 text-decoration-none">Цены</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 mb-4">
+                    <h5 class="mb-3">Контакты</h5>
+                    <p class="text-white-50 mb-2"><i class="bi bi-envelope"></i> info@alliot.kz</p>
+                    <p class="text-white-50 mb-2"><i class="bi bi-telephone"></i> +7 (727) 123-45-67</p>
+                    <p class="text-white-50 mb-2"><i class="bi bi-geo-alt"></i> Алматы, пр. Аль-Фараби 77/8</p>
+                    <div class="mt-3">
+                        <a href="#" class="text-white me-3"><i class="bi bi-linkedin fs-4"></i></a>
+                        <a href="#" class="text-white me-3"><i class="bi bi-facebook fs-4"></i></a>
+                        <a href="#" class="text-white"><i class="bi bi-telegram fs-4"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-4" style="opacity: 0.1;">
+            <div class="text-center text-white-50">
+                <p class="mb-0">&copy; 2025 Alliot. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Intersection Observer for fade-in animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        // Demo form submission
+        document.getElementById('demoForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const formData = {
+                email: document.getElementById('demoEmail').value,
+                name: document.getElementById('demoName').value || 'Not provided',
+                phone: document.getElementById('demoPhone').value || 'Not provided',
+                company: document.getElementById('demoCompany').value || 'Not provided',
+                timestamp: new Date().toISOString()
+            };
+
+            // Log to console
+            console.log('Demo request submitted:', formData);
+
+            // Show success message
+            alert('Спасибо за запрос! Мы свяжемся с вами в течение 24 часов на адрес: ' + formData.email);
+
+            // Reset form and close modal
+            this.reset();
+            const demoModal = bootstrap.Modal.getInstance(document.getElementById('demoModal'));
+            demoModal.hide();
+        });
+    </script>
+</body>
+</html>
