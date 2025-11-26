@@ -346,6 +346,128 @@
             z-index: 1;
         }
 
+        /* Enhanced Services Cards */
+        .service-card {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(240, 147, 251, 0.1) 100%);
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 20px;
+            padding: 40px;
+            color: white;
+            height: 100%;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: shimmer 8s infinite;
+        }
+
+        .service-card:hover {
+            transform: translateY(-12px) scale(1.05);
+            border-color: rgba(102, 126, 234, 0.6);
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(240, 147, 251, 0.2) 100%);
+            box-shadow: 0 30px 80px rgba(102, 126, 234, 0.2);
+        }
+
+        /* Tech Requirements Cards */
+        .tech-card {
+            background: linear-gradient(135deg, rgba(79, 172, 254, 0.1) 0%, rgba(0, 242, 254, 0.1) 100%);
+            border: 2px solid rgba(79, 172, 254, 0.3);
+            border-radius: 20px;
+            padding: 30px;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .tech-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: shimmer 8s infinite;
+        }
+
+        .tech-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            border-color: rgba(79, 172, 254, 0.6);
+            background: linear-gradient(135deg, rgba(79, 172, 254, 0.2) 0%, rgba(0, 242, 254, 0.2) 100%);
+            box-shadow: 0 25px 70px rgba(79, 172, 254, 0.2);
+        }
+
+        /* Security & Integration Cards */
+        .highlight-card {
+            background: linear-gradient(135deg, rgba(240, 147, 251, 0.1) 0%, rgba(245, 87, 108, 0.1) 100%);
+            border: 2px solid rgba(240, 147, 251, 0.3);
+            border-radius: 20px;
+            padding: 40px;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .highlight-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: shimmer 8s infinite;
+        }
+
+        .highlight-card:hover {
+            transform: translateY(-12px) scale(1.05);
+            border-color: rgba(240, 147, 251, 0.6);
+            background: linear-gradient(135deg, rgba(240, 147, 251, 0.2) 0%, rgba(245, 87, 108, 0.2) 100%);
+            box-shadow: 0 30px 80px rgba(240, 147, 251, 0.2);
+        }
+
+        /* Performance & Compliance Cards */
+        .perf-card {
+            background: linear-gradient(135deg, rgba(131, 56, 236, 0.1) 0%, rgba(58, 134, 255, 0.1) 100%);
+            border: 2px solid rgba(131, 56, 236, 0.3);
+            border-radius: 20px;
+            padding: 30px;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .perf-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: shimmer 8s infinite;
+        }
+
+        .perf-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            border-color: rgba(131, 56, 236, 0.6);
+            background: linear-gradient(135deg, rgba(131, 56, 236, 0.2) 0%, rgba(58, 134, 255, 0.2) 100%);
+            box-shadow: 0 25px 70px rgba(131, 56, 236, 0.2);
+        }
+
         .cta-title {
             font-size: 3.5rem;
             font-weight: 900;
@@ -645,7 +767,7 @@
     </section>
 
     <!-- Cloud Subscription Section -->
-    <section class="solution-section" style="padding: 100px 0; background: #f8fafc;">
+    <section class="solution-section" style="padding: 100px 0; background: white;">
         <div class="container">
             <div class="text-center mb-5 fade-in">
                 <h2 class="display-4 fw-bold mb-3">Облачная подписка</h2>
@@ -702,35 +824,43 @@
 
             <div class="row g-4">
                 <div class="col-lg-3 fade-in">
-                    <div class="text-center p-4 bg-light rounded-4" style="border-top: 3px solid #667eea;">
-                        <i class="bi bi-gear display-3 text-primary mb-3"></i>
-                        <h4 class="fw-bold">Кастомизация</h4>
-                        <p class="text-muted">Адаптация под специфику вашего бизнеса</p>
-                        <p class="small fw-bold text-primary">От ₸ 2 млн</p>
+                    <div class="service-card text-center">
+                        <div style="position: relative; z-index: 1;">
+                            <i class="bi bi-gear display-3 mb-3" style="color: #667eea;"></i>
+                            <h4 class="fw-bold">Кастомизация</h4>
+                            <p style="opacity: 0.9;">Адаптация под специфику вашего бизнеса</p>
+                            <p class="small fw-bold" style="color: #667eea;">От ₸ 2 млн</p>
+                        </div>
                     </div>
                 </div>
                 <div class="col-lg-3 fade-in">
-                    <div class="text-center p-4 bg-light rounded-4" style="border-top: 3px solid #f5576c;">
-                        <i class="bi bi-book display-3 text-danger mb-3"></i>
-                        <h4 class="fw-bold">Обучение</h4>
-                        <p class="text-muted">Онлайн и офлайн обучение команды</p>
-                        <p class="small fw-bold text-danger">От ₸ 1 млн</p>
+                    <div class="service-card text-center">
+                        <div style="position: relative; z-index: 1;">
+                            <i class="bi bi-book display-3 mb-3" style="color: #f5576c;"></i>
+                            <h4 class="fw-bold">Обучение</h4>
+                            <p style="opacity: 0.9;">Онлайн и офлайн обучение команды</p>
+                            <p class="small fw-bold" style="color: #f5576c;">От ₸ 1 млн</p>
+                        </div>
                     </div>
                 </div>
                 <div class="col-lg-3 fade-in">
-                    <div class="text-center p-4 bg-light rounded-4" style="border-top: 3px solid #4facfe;">
-                        <i class="bi bi-database display-3 text-info mb-3"></i>
-                        <h4 class="fw-bold">Миграция данных</h4>
-                        <p class="text-muted">Безопасный перенос из старой системы</p>
-                        <p class="small fw-bold text-info">От ₸ 1.5 млн</p>
+                    <div class="service-card text-center">
+                        <div style="position: relative; z-index: 1;">
+                            <i class="bi bi-database display-3 mb-3" style="color: #4facfe;"></i>
+                            <h4 class="fw-bold">Миграция данных</h4>
+                            <p style="opacity: 0.9;">Безопасный перенос из старой системы</p>
+                            <p class="small fw-bold" style="color: #4facfe;">От ₸ 1.5 млн</p>
+                        </div>
                     </div>
                 </div>
                 <div class="col-lg-3 fade-in">
-                    <div class="text-center p-4 bg-light rounded-4" style="border-top: 3px solid #fa709a;">
-                        <i class="bi bi-shield-check display-3 text-success mb-3"></i>
-                        <h4 class="fw-bold">Консультации</h4>
-                        <p class="text-muted">Экспертные консультации и аудит</p>
-                        <p class="small fw-bold text-success">От ₸ 500 тыс</p>
+                    <div class="service-card text-center">
+                        <div style="position: relative; z-index: 1;">
+                            <i class="bi bi-shield-check display-3 mb-3" style="color: #10b981;"></i>
+                            <h4 class="fw-bold">Консультации</h4>
+                            <p style="opacity: 0.9;">Экспертные консультации и аудит</p>
+                            <p class="small fw-bold" style="color: #10b981;">От ₸ 500 тыс</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -747,30 +877,30 @@
 
             <div class="row g-4">
                 <div class="col-lg-6 fade-in">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-body">
-                            <h5 class="card-title mb-4"><i class="bi bi-cpu"></i> Серверные требования</h5>
+                    <div class="tech-card">
+                        <div style="position: relative; z-index: 1;">
+                            <h5 class="mb-4" style="color: #4facfe;"><i class="bi bi-cpu"></i> Серверные требования</h5>
                             <ul class="list-unstyled">
-                                <li class="mb-3"><i class="bi bi-check-circle text-success"></i> Процессор: 4 ядра минимум</li>
-                                <li class="mb-3"><i class="bi bi-check-circle text-success"></i> ОЗУ: 16 ГБ минимум</li>
-                                <li class="mb-3"><i class="bi bi-check-circle text-success"></i> Диск: 200 ГБ SSD</li>
-                                <li class="mb-3"><i class="bi bi-check-circle text-success"></i> OS: Windows Server 2016+ или Linux</li>
-                                <li class="mb-3"><i class="bi bi-check-circle text-success"></i> Database: MS SQL Server 2016+ или PostgreSQL</li>
+                                <li class="mb-3"><i class="bi bi-check-circle" style="color: #10b981;"></i> Процессор: 4 ядра минимум</li>
+                                <li class="mb-3"><i class="bi bi-check-circle" style="color: #10b981;"></i> ОЗУ: 16 ГБ минимум</li>
+                                <li class="mb-3"><i class="bi bi-check-circle" style="color: #10b981;"></i> Диск: 200 ГБ SSD</li>
+                                <li class="mb-3"><i class="bi bi-check-circle" style="color: #10b981;"></i> OS: Windows Server 2016+ или Linux</li>
+                                <li class="mb-3"><i class="bi bi-check-circle" style="color: #10b981;"></i> Database: MS SQL Server 2016+ или PostgreSQL</li>
                             </ul>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-lg-6 fade-in">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-body">
-                            <h5 class="card-title mb-4"><i class="bi bi-wifi"></i> Сетевые требования</h5>
+                    <div class="tech-card">
+                        <div style="position: relative; z-index: 1;">
+                            <h5 class="mb-4" style="color: #4facfe;"><i class="bi bi-wifi"></i> Сетевые требования</h5>
                             <ul class="list-unstyled">
-                                <li class="mb-3"><i class="bi bi-check-circle text-success"></i> Интернет: 10 Мбит/сек минимум</li>
-                                <li class="mb-3"><i class="bi bi-check-circle text-success"></i> Соединение с 1С: API или OLE DB</li>
-                                <li class="mb-3"><i class="bi bi-check-circle text-success"></i> VPN для защиты данных</li>
-                                <li class="mb-3"><i class="bi bi-check-circle text-success"></i> Портов: 443 (HTTPS), 3306/5432 (БД)</li>
-                                <li class="mb-3"><i class="bi bi-check-circle text-success"></i> Firewall: white-list для IP адресов</li>
+                                <li class="mb-3"><i class="bi bi-check-circle" style="color: #10b981;"></i> Интернет: 10 Мбит/сек минимум</li>
+                                <li class="mb-3"><i class="bi bi-check-circle" style="color: #10b981;"></i> Соединение с 1С: API или OLE DB</li>
+                                <li class="mb-3"><i class="bi bi-check-circle" style="color: #10b981;"></i> VPN для защиты данных</li>
+                                <li class="mb-3"><i class="bi bi-check-circle" style="color: #10b981;"></i> Портов: 443 (HTTPS), 3306/5432 (БД)</li>
+                                <li class="mb-3"><i class="bi bi-check-circle" style="color: #10b981;"></i> Firewall: white-list для IP адресов</li>
                             </ul>
                         </div>
                     </div>
@@ -789,24 +919,30 @@
 
             <div class="row g-4">
                 <div class="col-lg-4 fade-in">
-                    <div class="text-center p-4 bg-light rounded-4">
-                        <i class="bi bi-shield-lock display-3 text-primary mb-3"></i>
-                        <h4 class="fw-bold">Шифрование</h4>
-                        <p class="text-muted">AES-256 для данных в покое, TLS 1.3 в пути</p>
+                    <div class="highlight-card text-center">
+                        <div style="position: relative; z-index: 1;">
+                            <i class="bi bi-shield-lock display-3 mb-3" style="color: #f093fb;"></i>
+                            <h4 class="fw-bold">Шифрование</h4>
+                            <p style="opacity: 0.9;">AES-256 для данных в покое, TLS 1.3 в пути</p>
+                        </div>
                     </div>
                 </div>
                 <div class="col-lg-4 fade-in">
-                    <div class="text-center p-4 bg-light rounded-4">
-                        <i class="bi bi-eye display-3 text-success mb-3"></i>
-                        <h4 class="fw-bold">Аудит</h4>
-                        <p class="text-muted">Полный лог всех операций и доступа</p>
+                    <div class="highlight-card text-center">
+                        <div style="position: relative; z-index: 1;">
+                            <i class="bi bi-eye display-3 mb-3" style="color: #10b981;"></i>
+                            <h4 class="fw-bold">Аудит</h4>
+                            <p style="opacity: 0.9;">Полный лог всех операций и доступа</p>
+                        </div>
                     </div>
                 </div>
                 <div class="col-lg-4 fade-in">
-                    <div class="text-center p-4 bg-light rounded-4">
-                        <i class="bi bi-arrow-repeat display-3 text-danger mb-3"></i>
-                        <h4 class="fw-bold">Резервное копирование</h4>
-                        <p class="text-muted">Ежедневные автоматические резервные копии</p>
+                    <div class="highlight-card text-center">
+                        <div style="position: relative; z-index: 1;">
+                            <i class="bi bi-arrow-repeat display-3 mb-3" style="color: #ff006e;"></i>
+                            <h4 class="fw-bold">Резервное копирование</h4>
+                            <p style="opacity: 0.9;">Ежедневные автоматические резервные копии</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -823,27 +959,35 @@
 
             <div class="row g-4">
                 <div class="col-lg-3 fade-in">
-                    <div class="text-center p-4">
-                        <h5 class="fw-bold mb-3">1С:Предприятие</h5>
-                        <p class="text-muted small">Прямая синхронизация финансовых данных</p>
+                    <div class="service-card text-center">
+                        <div style="position: relative; z-index: 1;">
+                            <h5 class="fw-bold mb-3">1С:Предприятие</h5>
+                            <p style="opacity: 0.9; font-size: 0.95rem;">Прямая синхронизация финансовых данных</p>
+                        </div>
                     </div>
                 </div>
                 <div class="col-lg-3 fade-in">
-                    <div class="text-center p-4">
-                        <h5 class="fw-bold mb-3">Microsoft Excel</h5>
-                        <p class="text-muted small">Экспорт отчетов и загрузка данных</p>
+                    <div class="service-card text-center">
+                        <div style="position: relative; z-index: 1;">
+                            <h5 class="fw-bold mb-3">Microsoft Excel</h5>
+                            <p style="opacity: 0.9; font-size: 0.95rem;">Экспорт отчетов и загрузка данных</p>
+                        </div>
                     </div>
                 </div>
                 <div class="col-lg-3 fade-in">
-                    <div class="text-center p-4">
-                        <h5 class="fw-bold mb-3">REST API</h5>
-                        <p class="text-muted small">Для кастомных интеграций</p>
+                    <div class="service-card text-center">
+                        <div style="position: relative; z-index: 1;">
+                            <h5 class="fw-bold mb-3">REST API</h5>
+                            <p style="opacity: 0.9; font-size: 0.95rem;">Для кастомных интеграций</p>
+                        </div>
                     </div>
                 </div>
                 <div class="col-lg-3 fade-in">
-                    <div class="text-center p-4">
-                        <h5 class="fw-bold mb-3">Power BI</h5>
-                        <p class="text-muted small">Продвинутая визуализация данных</p>
+                    <div class="service-card text-center">
+                        <div style="position: relative; z-index: 1;">
+                            <h5 class="fw-bold mb-3">Power BI</h5>
+                            <p style="opacity: 0.9; font-size: 0.95rem;">Продвинутая визуализация данных</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -860,9 +1004,9 @@
 
             <div class="row g-4">
                 <div class="col-lg-6 fade-in">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-body">
-                            <h5 class="card-title mb-4"><i class="bi bi-lightning-fill"></i> Скорость обработки</h5>
+                    <div class="perf-card">
+                        <div style="position: relative; z-index: 1;">
+                            <h5 class="mb-4" style="color: #8338ec;"><i class="bi bi-lightning-fill"></i> Скорость обработки</h5>
                             <ul class="list-unstyled">
                                 <li class="mb-3"><strong>10,000 контрактов</strong> → 30 сек</li>
                                 <li class="mb-3"><strong>50,000 контрактов</strong> → 2 минуты</li>
@@ -874,14 +1018,14 @@
                 </div>
 
                 <div class="col-lg-6 fade-in">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-body">
-                            <h5 class="card-title mb-4"><i class="bi bi-graph-up"></i> Масштабируемость</h5>
+                    <div class="perf-card">
+                        <div style="position: relative; z-index: 1;">
+                            <h5 class="mb-4" style="color: #8338ec;"><i class="bi bi-graph-up"></i> Масштабируемость</h5>
                             <ul class="list-unstyled">
-                                <li class="mb-3"><i class="bi bi-check-circle text-success"></i> Горизонтальное масштабирование</li>
-                                <li class="mb-3"><i class="bi bi-check-circle text-success"></i> Load balancing для балансировки нагрузки</li>
-                                <li class="mb-3"><i class="bi bi-check-circle text-success"></i> Кэширование для оптимизации</li>
-                                <li class="mb-3"><i class="bi bi-check-circle text-success"></i> 99.9% SLA гарантия</li>
+                                <li class="mb-3"><i class="bi bi-check-circle" style="color: #10b981;"></i> Горизонтальное масштабирование</li>
+                                <li class="mb-3"><i class="bi bi-check-circle" style="color: #10b981;"></i> Load balancing для балансировки нагрузки</li>
+                                <li class="mb-3"><i class="bi bi-check-circle" style="color: #10b981;"></i> Кэширование для оптимизации</li>
+                                <li class="mb-3"><i class="bi bi-check-circle" style="color: #10b981;"></i> 99.9% SLA гарантия</li>
                             </ul>
                         </div>
                     </div>
@@ -900,29 +1044,29 @@
 
             <div class="row g-4">
                 <div class="col-lg-4 fade-in">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-body text-center">
-                            <h5 class="card-title mb-3">МСФО 17</h5>
-                            <p class="text-muted">Модели BBA, PAA, VFA реализованы полностью</p>
-                            <span class="badge bg-success">Сертифицировано</span>
+                    <div class="perf-card text-center">
+                        <div style="position: relative; z-index: 1;">
+                            <h5 class="mb-3">МСФО 17</h5>
+                            <p style="opacity: 0.9;">Модели BBA, PAA, VFA реализованы полностью</p>
+                            <span class="badge" style="background: #10b981; color: white; margin-top: 10px;">Сертифицировано</span>
                         </div>
                     </div>
                 </div>
                 <div class="col-lg-4 fade-in">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-body text-center">
-                            <h5 class="card-title mb-3">МСФО 9</h5>
-                            <p class="text-muted">ECL расчеты по стадиям 1, 2, 3</p>
-                            <span class="badge bg-success">Сертифицировано</span>
+                    <div class="perf-card text-center">
+                        <div style="position: relative; z-index: 1;">
+                            <h5 class="mb-3">МСФО 9</h5>
+                            <p style="opacity: 0.9;">ECL расчеты по стадиям 1, 2, 3</p>
+                            <span class="badge" style="background: #10b981; color: white; margin-top: 10px;">Сертифицировано</span>
                         </div>
                     </div>
                 </div>
                 <div class="col-lg-4 fade-in">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-body text-center">
-                            <h5 class="card-title mb-3">Solvency II</h5>
-                            <p class="text-muted">Расчет SCR и MCR по стандартной формуле</p>
-                            <span class="badge bg-success">Сертифицировано</span>
+                    <div class="perf-card text-center">
+                        <div style="position: relative; z-index: 1;">
+                            <h5 class="mb-3">Solvency II</h5>
+                            <p style="opacity: 0.9;">Расчет SCR и MCR по стандартной формуле</p>
+                            <span class="badge" style="background: #10b981; color: white; margin-top: 10px;">Сертифицировано</span>
                         </div>
                     </div>
                 </div>
@@ -930,17 +1074,21 @@
 
             <div class="row g-4 mt-4">
                 <div class="col-lg-6 fade-in">
-                    <div class="text-center p-4 bg-white rounded-4">
-                        <i class="bi bi-file-earmark-check display-3 text-primary mb-3"></i>
-                        <h5 class="fw-bold">Постановление АРФР №304</h5>
-                        <p class="text-muted">Все требования регулятора Казахстана реализованы</p>
+                    <div class="highlight-card text-center">
+                        <div style="position: relative; z-index: 1;">
+                            <i class="bi bi-file-earmark-check display-3 mb-3" style="color: #667eea;"></i>
+                            <h5 class="fw-bold">Постановление АРФР №304</h5>
+                            <p style="opacity: 0.9;">Все требования регулятора Казахстана реализованы</p>
+                        </div>
                     </div>
                 </div>
                 <div class="col-lg-6 fade-in">
-                    <div class="text-center p-4 bg-white rounded-4">
-                        <i class="bi bi-shield-check display-3 text-success mb-3"></i>
-                        <h5 class="fw-bold">Международные стандарты</h5>
-                        <p class="text-muted">GDPR, ISO 27001, SOC 2 Type II</p>
+                    <div class="highlight-card text-center">
+                        <div style="position: relative; z-index: 1;">
+                            <i class="bi bi-shield-check display-3 mb-3" style="color: #10b981;"></i>
+                            <h5 class="fw-bold">Международные стандарты</h5>
+                            <p style="opacity: 0.9;">GDPR, ISO 27001, SOC 2 Type II</p>
+                        </div>
                     </div>
                 </div>
             </div>
